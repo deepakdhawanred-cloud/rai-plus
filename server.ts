@@ -387,12 +387,16 @@ function requireRoles(allowed: UserRole[]) {
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   app.disable('x-powered-by');
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), payment=(), usb=()');
     res.setHeader('X-DNS-Prefetch-Control', 'off');
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
     next();
   });
   app.use(express.json({ limit: '4mb' }));
@@ -8061,8 +8065,10 @@ async function startServer() {
   // ---------------- VITE MIDDLEWARE OR PRODUCTION STATIC ----------------
   const distDir = path.resolve(process.cwd(), 'dist');
   const hasDistBuild = fs.existsSync(path.join(distDir, 'index.html'));
+  const isStartScript =
+    process.env.npm_lifecycle_event === 'start' || process.env.npm_lifecycle_event === 'preview';
   const isProduction =
-    process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE);
+    process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE) || isStartScript;
   if (!isProduction || !hasDistBuild) {
     // Start Vite middleware asynchronously so port 3000 binds immediately for health checks.
     const vitePromise = import('vite')

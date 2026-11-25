@@ -1,0 +1,2798 @@
+{
+  "1-TinxQhvwMwd-icAxIB2nJ1pIVC-s41W": {
+    "fileId": "1-TinxQhvwMwd-icAxIB2nJ1pIVC-s41W",
+    "reportSubjectName": "VIS 1ST AITIK",
+    "brainDominance": {
+      "leftPct": 50.52,
+      "rightPct": 49.48
+    },
+    "vak": {
+      "visualPct": 33.09,
+      "auditoryPct": 38.23,
+      "kinestheticPct": 28.69,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 14.43,
+      "visualSpatial": 11.36,
+      "bodilyKinesthetic": 10.37,
+      "musical": 14.28,
+      "intrapersonal": 15.03,
+      "logicalMathematical": 9.17,
+      "verbalLinguistic": 13.36,
+      "naturalist": 12.02
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 15.03
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 14.43
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 14.28
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 13.36
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 12.02
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 11.36
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 10.37
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 9.17
+      }
+    ],
+    "brainLobes": {
+      "action": 24,
+      "thinking": 16,
+      "tactile": 17,
+      "auditory": 23,
+      "visual": 20
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "CAUTIOUS",
+      "primaryBird": "Owl",
+      "secondaryBird": "Owl"
+    },
+    "motiveThought": {
+      "motivePct": 57.83,
+      "thoughtPct": 42.17
+    },
+    "leadership": {
+      "taskOrientedPct": 50,
+      "relationshipOrientedPct": 50
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention",
+        "Cognitive Flexibility"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "10qsMXDfd2R_DvY77s3jThOjATBbsFSnM": {
+    "fileId": "10qsMXDfd2R_DvY77s3jThOjATBbsFSnM",
+    "reportSubjectName": "ABHIRAJ VIS 2ND",
+    "brainDominance": {
+      "leftPct": 53.26,
+      "rightPct": 46.74
+    },
+    "vak": {
+      "visualPct": 38.8,
+      "auditoryPct": 35.05,
+      "kinestheticPct": 26.15,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": 23.28,
+      "eq": 18.87,
+      "aq": 29.74,
+      "cq": 28.11
+    },
+    "multipleIntelligences": {
+      "interpersonal": 7.81,
+      "visualSpatial": 10.29,
+      "bodilyKinesthetic": 11.2,
+      "musical": 17.82,
+      "intrapersonal": 11.06,
+      "logicalMathematical": 11.06,
+      "verbalLinguistic": 12.22,
+      "naturalist": 18.54
+    },
+    "topIntelligences": [
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 18.54
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 17.82
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 12.22
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 11.2
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 11.06
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.06
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.29
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 7.81
+      }
+    ],
+    "brainLobes": {
+      "action": 16,
+      "thinking": 14,
+      "tactile": 18,
+      "auditory": 25,
+      "visual": 27
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 52.73,
+      "thoughtPct": 47.27
+    },
+    "leadership": {
+      "taskOrientedPct": 41,
+      "relationshipOrientedPct": 59
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Connect taxonomy, classification tables, and real-world observation tasks to chapters.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "12vdAGTc-69yUv0BDo3GMxIuTZ-Ku_G0a": {
+    "fileId": "12vdAGTc-69yUv0BDo3GMxIuTZ-Ku_G0a",
+    "reportSubjectName": "VIS 6 ABHIRAJ",
+    "brainDominance": {
+      "leftPct": 55.03,
+      "rightPct": 44.97
+    },
+    "vak": {
+      "visualPct": 28.34,
+      "auditoryPct": 38.75,
+      "kinestheticPct": 32.91,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 26.95,
+      "eq": 22.31,
+      "aq": 25.59,
+      "cq": 25.15
+    },
+    "multipleIntelligences": {
+      "interpersonal": 7.67,
+      "visualSpatial": 10.14,
+      "bodilyKinesthetic": 13.32,
+      "musical": 15.01,
+      "intrapersonal": 14.64,
+      "logicalMathematical": 10.58,
+      "verbalLinguistic": 16.37,
+      "naturalist": 12.27
+    },
+    "topIntelligences": [
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 16.37
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 15.01
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 14.64
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 13.32
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 12.27
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.58
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.14
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 7.67
+      }
+    ],
+    "brainLobes": {
+      "action": 18,
+      "thinking": 16,
+      "tactile": 22,
+      "auditory": 25,
+      "visual": 19
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 47.54,
+      "thoughtPct": 52.46
+    },
+    "leadership": {
+      "taskOrientedPct": 41,
+      "relationshipOrientedPct": 59
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "13TvUd-N1SjfomReCUeropilvwcs_8bqw": {
+    "fileId": "13TvUd-N1SjfomReCUeropilvwcs_8bqw",
+    "reportSubjectName": "VIS 8TH ABHISHEK 1",
+    "brainDominance": {
+      "leftPct": 51.04,
+      "rightPct": 48.96
+    },
+    "vak": {
+      "visualPct": 29.45,
+      "auditoryPct": 45.82,
+      "kinestheticPct": 24.73,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 25.98,
+      "eq": 25.64,
+      "aq": 19.39,
+      "cq": 28.99
+    },
+    "multipleIntelligences": {
+      "interpersonal": 10.76,
+      "visualSpatial": 10.52,
+      "bodilyKinesthetic": 9.35,
+      "musical": 18.47,
+      "intrapersonal": 14.88,
+      "logicalMathematical": 9.78,
+      "verbalLinguistic": 16.2,
+      "naturalist": 10.03
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 18.47
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 16.2
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 14.88
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 10.76
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.52
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 10.03
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 9.78
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.35
+      }
+    ],
+    "brainLobes": {
+      "action": 21,
+      "thinking": 15,
+      "tactile": 16,
+      "auditory": 29,
+      "visual": 19
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 56.82,
+      "thoughtPct": 43.18
+    },
+    "leadership": {
+      "taskOrientedPct": 44,
+      "relationshipOrientedPct": 56
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1Aq_-xJ936dWmoU1xS7ckVAYHSdALWkfp": {
+    "fileId": "1Aq_-xJ936dWmoU1xS7ckVAYHSdALWkfp",
+    "reportSubjectName": "VIS 5TH NIKHIL",
+    "brainDominance": {
+      "leftPct": 46.99,
+      "rightPct": 53.01
+    },
+    "vak": {
+      "visualPct": 38.1,
+      "auditoryPct": 29.19,
+      "kinestheticPct": 32.7,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": 22.58,
+      "eq": 27.05,
+      "aq": 24.21,
+      "cq": 26.16
+    },
+    "multipleIntelligences": {
+      "interpersonal": 11.93,
+      "visualSpatial": 14.23,
+      "bodilyKinesthetic": 11.76,
+      "musical": 11.93,
+      "intrapersonal": 15.11,
+      "logicalMathematical": 13.52,
+      "verbalLinguistic": 9.06,
+      "naturalist": 12.45
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 15.11
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 14.23
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 13.52
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 12.45
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 11.93
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 11.93
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 11.76
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 9.06
+      }
+    ],
+    "brainLobes": {
+      "action": 21,
+      "thinking": 21,
+      "tactile": 19,
+      "auditory": 17,
+      "visual": 22
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 50,
+      "thoughtPct": 50
+    },
+    "leadership": {
+      "taskOrientedPct": 44,
+      "relationshipOrientedPct": 56
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use geometry sketching, graphic organisers, and spatial flowcharts across subjects.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1GJJ2wy09G0PqmeupglOhdZft0SkQHPkD": {
+    "fileId": "1GJJ2wy09G0PqmeupglOhdZft0SkQHPkD",
+    "reportSubjectName": "VIS 5TH MAYANK",
+    "brainDominance": {
+      "leftPct": 49.73,
+      "rightPct": 50.27
+    },
+    "vak": {
+      "visualPct": 30.18,
+      "auditoryPct": 43.72,
+      "kinestheticPct": 26.11,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 27.23,
+      "eq": 29.16,
+      "aq": 17.44,
+      "cq": 26.17
+    },
+    "multipleIntelligences": {
+      "interpersonal": 13.5,
+      "visualSpatial": 13.8,
+      "bodilyKinesthetic": 8.63,
+      "musical": 12.38,
+      "intrapersonal": 15.65,
+      "logicalMathematical": 10.69,
+      "verbalLinguistic": 16.54,
+      "naturalist": 8.81
+    },
+    "topIntelligences": [
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 16.54
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 15.65
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 13.8
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 13.5
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 12.38
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.69
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 8.81
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 8.63
+      }
+    ],
+    "brainLobes": {
+      "action": 24,
+      "thinking": 22,
+      "tactile": 14,
+      "auditory": 24,
+      "visual": 16
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 55.68,
+      "thoughtPct": 44.32
+    },
+    "leadership": {
+      "taskOrientedPct": 49,
+      "relationshipOrientedPct": 51
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1KRJkq4OFHKr3G1n6S-aYX1vp4WH6bb4R": {
+    "fileId": "1KRJkq4OFHKr3G1n6S-aYX1vp4WH6bb4R",
+    "reportSubjectName": "VIS 4TH DEEPIKA",
+    "brainDominance": {
+      "leftPct": 49.49,
+      "rightPct": 50.51
+    },
+    "vak": {
+      "visualPct": 30.82,
+      "auditoryPct": 41.91,
+      "kinestheticPct": 27.28,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": 23.32,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 12.03,
+      "visualSpatial": 9.63,
+      "bodilyKinesthetic": 10.38,
+      "musical": 18.2,
+      "intrapersonal": 12.64,
+      "logicalMathematical": 10.48,
+      "verbalLinguistic": 13.7,
+      "naturalist": 12.94
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 18.2
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 13.7
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 12.94
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 12.64
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 12.03
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.48
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 10.38
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 9.63
+      }
+    ],
+    "brainLobes": {
+      "action": 21,
+      "thinking": 16,
+      "tactile": 17,
+      "auditory": 27,
+      "visual": 20
+    },
+    "personality": {
+      "primaryTrait": "DECISIVE",
+      "secondaryTrait": "CAUTIOUS",
+      "primaryBird": "Eagle",
+      "secondaryBird": "Owl"
+    },
+    "motiveThought": {
+      "motivePct": 53.57,
+      "thoughtPct": 46.43
+    },
+    "leadership": {
+      "taskOrientedPct": 50,
+      "relationshipOrientedPct": 50
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Responds best to crisp targets, measurable challenges, and leadership ownership."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1MHhy9wfdOzgQ-ZBRmxHnm9eOgDzGgBGg": {
+    "fileId": "1MHhy9wfdOzgQ-ZBRmxHnm9eOgDzGgBGg",
+    "reportSubjectName": "VIS 10TH AJAY",
+    "brainDominance": {
+      "leftPct": 42.25,
+      "rightPct": 57.75
+    },
+    "vak": {
+      "visualPct": 39.09,
+      "auditoryPct": 38.16,
+      "kinestheticPct": 22.75,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 16.09,
+      "visualSpatial": 14.76,
+      "bodilyKinesthetic": 7.45,
+      "musical": 16.77,
+      "intrapersonal": 18.7,
+      "logicalMathematical": 8.23,
+      "verbalLinguistic": 8.23,
+      "naturalist": 9.76
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 18.7
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 16.77
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 16.09
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 14.76
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 9.76
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 8.23
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 8.23
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 7.45
+      }
+    ],
+    "brainLobes": {
+      "action": 28,
+      "thinking": 18,
+      "tactile": 12,
+      "auditory": 20,
+      "visual": 21
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 61.43,
+      "thoughtPct": 38.57
+    },
+    "leadership": {
+      "taskOrientedPct": 44,
+      "relationshipOrientedPct": 56
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1OdmCj35AILmJ2bbYQUFbPf2rq4L_2VcC": {
+    "fileId": "1OdmCj35AILmJ2bbYQUFbPf2rq4L_2VcC",
+    "reportSubjectName": "vis UKG charu",
+    "brainDominance": {
+      "leftPct": 52.15,
+      "rightPct": 47.85
+    },
+    "vak": {
+      "visualPct": 39.96,
+      "auditoryPct": 34.67,
+      "kinestheticPct": 25.37,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 12.35,
+      "visualSpatial": 11.33,
+      "bodilyKinesthetic": 9.47,
+      "musical": 13.03,
+      "intrapersonal": 14.21,
+      "logicalMathematical": 10.18,
+      "verbalLinguistic": 12.87,
+      "naturalist": 16.56
+    },
+    "topIntelligences": [
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 16.56
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 14.21
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 13.03
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 12.87
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 12.35
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 11.33
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.18
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.47
+      }
+    ],
+    "brainLobes": {
+      "action": 22,
+      "thinking": 16,
+      "tactile": 16,
+      "auditory": 21,
+      "visual": 25
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 53.75,
+      "thoughtPct": 46.25
+    },
+    "leadership": {
+      "taskOrientedPct": 47,
+      "relationshipOrientedPct": 53
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Connect taxonomy, classification tables, and real-world observation tasks to chapters.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1QFppz2YItm7ZzFoUd9LuJBiDXHaMkVie": {
+    "fileId": "1QFppz2YItm7ZzFoUd9LuJBiDXHaMkVie",
+    "reportSubjectName": "VIS 11TH ARUSHI",
+    "brainDominance": {
+      "leftPct": 46.46,
+      "rightPct": 53.54
+    },
+    "vak": {
+      "visualPct": 28.48,
+      "auditoryPct": 40.29,
+      "kinestheticPct": 31.23,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 17.83,
+      "eq": 34.98,
+      "aq": 19.71,
+      "cq": 27.48
+    },
+    "multipleIntelligences": {
+      "interpersonal": 17.02,
+      "visualSpatial": 10.01,
+      "bodilyKinesthetic": 10.38,
+      "musical": 17.47,
+      "intrapersonal": 17.96,
+      "logicalMathematical": 8.51,
+      "verbalLinguistic": 9.32,
+      "naturalist": 9.32
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 17.96
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 17.47
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 17.02
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 10.38
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.01
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 9.32
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 9.32
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 8.51
+      }
+    ],
+    "brainLobes": {
+      "action": 29,
+      "thinking": 16,
+      "tactile": 17,
+      "auditory": 22,
+      "visual": 16
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 64.91,
+      "thoughtPct": 35.09
+    },
+    "leadership": {
+      "taskOrientedPct": 49,
+      "relationshipOrientedPct": 51
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1RrCVds1TIx7WBB5C9xPx-wMAFLR4Emrc": {
+    "fileId": "1RrCVds1TIx7WBB5C9xPx-wMAFLR4Emrc",
+    "reportSubjectName": "VIS 12TH CHIRAG",
+    "brainDominance": {
+      "leftPct": 48.46,
+      "rightPct": 51.54
+    },
+    "vak": {
+      "visualPct": 39.39,
+      "auditoryPct": 35.05,
+      "kinestheticPct": 25.56,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": 25.15,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 12.35,
+      "visualSpatial": 11.8,
+      "bodilyKinesthetic": 9.7,
+      "musical": 14.01,
+      "intrapersonal": 12.07,
+      "logicalMathematical": 12.04,
+      "verbalLinguistic": 12.58,
+      "naturalist": 15.45
+    },
+    "topIntelligences": [
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 15.45
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 14.01
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 12.58
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 12.35
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 12.07
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 12.04
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 11.8
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.7
+      }
+    ],
+    "brainLobes": {
+      "action": 20,
+      "thinking": 17,
+      "tactile": 16,
+      "auditory": 22,
+      "visual": 25
+    },
+    "personality": {
+      "primaryTrait": "DECISIVE",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Eagle",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 50.6,
+      "thoughtPct": 49.4
+    },
+    "leadership": {
+      "taskOrientedPct": 52,
+      "relationshipOrientedPct": 48
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Connect taxonomy, classification tables, and real-world observation tasks to chapters.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Responds best to crisp targets, measurable challenges, and leadership ownership."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1UKgCQXxZ4i0wpBR1TGwSaFzu474AFSNk": {
+    "fileId": "1UKgCQXxZ4i0wpBR1TGwSaFzu474AFSNk",
+    "reportSubjectName": "VIS 7TH NITIN",
+    "brainDominance": {
+      "leftPct": 51.34,
+      "rightPct": 48.66
+    },
+    "vak": {
+      "visualPct": 24.57,
+      "auditoryPct": 23.55,
+      "kinestheticPct": 51.88,
+      "dominantStyle": "Kinesthetic"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": 25.07,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 15.09,
+      "visualSpatial": 11.55,
+      "bodilyKinesthetic": 17.01,
+      "musical": 7.72,
+      "intrapersonal": 17.19,
+      "logicalMathematical": 15.67,
+      "verbalLinguistic": 7.72,
+      "naturalist": 8.06
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 17.19
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 17.01
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 15.67
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 15.09
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 11.55
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 8.06
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 7.72
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 7.72
+      }
+    ],
+    "brainLobes": {
+      "action": 25,
+      "thinking": 24,
+      "tactile": 26,
+      "auditory": 12,
+      "visual": 13
+    },
+    "personality": {
+      "primaryTrait": "DECISIVE",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Eagle",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 59.32,
+      "thoughtPct": 40.68
+    },
+    "leadership": {
+      "taskOrientedPct": 49,
+      "relationshipOrientedPct": 51
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Break study into 20-minute active sprints using flashcards, physical models, and worked examples."
+      ],
+      "classroomSupport": [
+        "Allow short movement transitions and hands-on lab/manipulative tasks to lock in concepts.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Pair concept revision with practical demonstrations, sports discipline, or board work.",
+        "Responds best to crisp targets, measurable challenges, and leadership ownership."
+      ],
+      "suggestedCognitiveCategories": [
+        "Response Control",
+        "Cognitive Flexibility",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1WwKlqKHi6y_LIlSTcTPriBt41SrDARU-": {
+    "fileId": "1WwKlqKHi6y_LIlSTcTPriBt41SrDARU-",
+    "reportSubjectName": "VIS 10TH PRIYA",
+    "brainDominance": {
+      "leftPct": 44.32,
+      "rightPct": 55.68
+    },
+    "vak": {
+      "visualPct": 39.44,
+      "auditoryPct": 46.91,
+      "kinestheticPct": 13.65,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 25.05,
+      "eq": 18.18,
+      "aq": 22.49,
+      "cq": 34.28
+    },
+    "multipleIntelligences": {
+      "interpersonal": 9.09,
+      "visualSpatial": 12.11,
+      "bodilyKinesthetic": 5.41,
+      "musical": 22.17,
+      "intrapersonal": 9.09,
+      "logicalMathematical": 10,
+      "verbalLinguistic": 15.06,
+      "naturalist": 17.07
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 22.17
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 17.07
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 15.06
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 12.11
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 9.09
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 9.09
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 5.41
+      }
+    ],
+    "brainLobes": {
+      "action": 15,
+      "thinking": 17,
+      "tactile": 9,
+      "auditory": 32,
+      "visual": 27
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 47.62,
+      "thoughtPct": 52.38
+    },
+    "leadership": {
+      "taskOrientedPct": 50,
+      "relationshipOrientedPct": 50
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Connect taxonomy, classification tables, and real-world observation tasks to chapters.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Perception Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1ZFfuZ8cpmytyjgtHVxtsj1kHghlhqlsp": {
+    "fileId": "1ZFfuZ8cpmytyjgtHVxtsj1kHghlhqlsp",
+    "reportSubjectName": "GOPAL VIS 11TH",
+    "brainDominance": {
+      "leftPct": 45.29,
+      "rightPct": 54.71
+    },
+    "vak": {
+      "visualPct": 33.92,
+      "auditoryPct": 35.99,
+      "kinestheticPct": 30.09,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 13.81,
+      "visualSpatial": 13.4,
+      "bodilyKinesthetic": 10.72,
+      "musical": 16.57,
+      "intrapersonal": 16.63,
+      "logicalMathematical": 11.21,
+      "verbalLinguistic": 9.08,
+      "naturalist": 8.58
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 16.63
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 16.57
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 13.81
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 13.4
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.21
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 10.72
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 9.08
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 8.58
+      }
+    ],
+    "brainLobes": {
+      "action": 25,
+      "thinking": 18,
+      "tactile": 17,
+      "auditory": 21,
+      "visual": 19
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 55.22,
+      "thoughtPct": 44.78
+    },
+    "leadership": {
+      "taskOrientedPct": 46,
+      "relationshipOrientedPct": 54
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1d8O94Leg951jbPovoGSYbSHtoRjzx5Mh": {
+    "fileId": "1d8O94Leg951jbPovoGSYbSHtoRjzx5Mh",
+    "reportSubjectName": "CHANDANI VIS 3RD",
+    "brainDominance": {
+      "leftPct": 46.6,
+      "rightPct": 53.4
+    },
+    "vak": {
+      "visualPct": 39.17,
+      "auditoryPct": 35.69,
+      "kinestheticPct": 25.14,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 16.14,
+      "visualSpatial": 13.39,
+      "bodilyKinesthetic": 9.22,
+      "musical": 13.96,
+      "intrapersonal": 10.78,
+      "logicalMathematical": 11.33,
+      "verbalLinguistic": 12.2,
+      "naturalist": 12.97
+    },
+    "topIntelligences": [
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 16.14
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 13.96
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 13.39
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 12.97
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 12.2
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.33
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 10.78
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.22
+      }
+    ],
+    "brainLobes": {
+      "action": 22,
+      "thinking": 18,
+      "tactile": 15,
+      "auditory": 21,
+      "visual": 23
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "CAUTIOUS",
+      "primaryBird": "Owl",
+      "secondaryBird": "Owl"
+    },
+    "motiveThought": {
+      "motivePct": 50,
+      "thoughtPct": 50
+    },
+    "leadership": {
+      "taskOrientedPct": 62,
+      "relationshipOrientedPct": 38
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Cognitive Flexibility",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1j44PiwjlKLZo-nYhlt2c8XnRpu7WP5z9": {
+    "fileId": "1j44PiwjlKLZo-nYhlt2c8XnRpu7WP5z9",
+    "reportSubjectName": "VIS 1ST OM PRAJAPATI",
+    "brainDominance": {
+      "leftPct": 50.27,
+      "rightPct": 49.73
+    },
+    "vak": {
+      "visualPct": 39.22,
+      "auditoryPct": 35.36,
+      "kinestheticPct": 25.42,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": 23.63,
+      "eq": 25.72,
+      "aq": 24.05,
+      "cq": 26.6
+    },
+    "multipleIntelligences": {
+      "interpersonal": 10.08,
+      "visualSpatial": 11.58,
+      "bodilyKinesthetic": 9.4,
+      "musical": 15.02,
+      "intrapersonal": 15.65,
+      "logicalMathematical": 12.51,
+      "verbalLinguistic": 11.13,
+      "naturalist": 14.65
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 15.65
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 15.02
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 14.65
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 12.51
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 11.58
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 11.13
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 10.08
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.4
+      }
+    ],
+    "brainLobes": {
+      "action": 21,
+      "thinking": 18,
+      "tactile": 16,
+      "auditory": 22,
+      "visual": 24
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 52.31,
+      "thoughtPct": 47.69
+    },
+    "leadership": {
+      "taskOrientedPct": 41,
+      "relationshipOrientedPct": 59
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1keW1iQKwS-CNH3c7oVXTm-hxPSwFLlBR": {
+    "fileId": "1keW1iQKwS-CNH3c7oVXTm-hxPSwFLlBR",
+    "reportSubjectName": "VIA 9TH MOHIT",
+    "brainDominance": {
+      "leftPct": 49.92,
+      "rightPct": 50.08
+    },
+    "vak": {
+      "visualPct": 30.38,
+      "auditoryPct": 44.3,
+      "kinestheticPct": 25.32,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 12.76,
+      "visualSpatial": 9.64,
+      "bodilyKinesthetic": 9.24,
+      "musical": 17.64,
+      "intrapersonal": 13.52,
+      "logicalMathematical": 11.76,
+      "verbalLinguistic": 14.7,
+      "naturalist": 10.75
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 17.64
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 14.7
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 13.52
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 12.76
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.76
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 10.75
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 9.64
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.24
+      }
+    ],
+    "brainLobes": {
+      "action": 22,
+      "thinking": 17,
+      "tactile": 16,
+      "auditory": 27,
+      "visual": 19
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 57.14,
+      "thoughtPct": 42.86
+    },
+    "leadership": {
+      "taskOrientedPct": 48,
+      "relationshipOrientedPct": 53
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1l1cIlnFZrKtUumsHR78IYjJBSW9SA9b2": {
+    "fileId": "1l1cIlnFZrKtUumsHR78IYjJBSW9SA9b2",
+    "reportSubjectName": "VIS 8TH MAHI",
+    "brainDominance": {
+      "leftPct": 42.92,
+      "rightPct": 57.08
+    },
+    "vak": {
+      "visualPct": 24.37,
+      "auditoryPct": 50.33,
+      "kinestheticPct": 25.29,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 24.43,
+      "eq": 24.05,
+      "aq": 19.11,
+      "cq": 32.41
+    },
+    "multipleIntelligences": {
+      "interpersonal": 14.44,
+      "visualSpatial": 10.53,
+      "bodilyKinesthetic": 9.5,
+      "musical": 21.87,
+      "intrapersonal": 9.61,
+      "logicalMathematical": 8.48,
+      "verbalLinguistic": 15.95,
+      "naturalist": 9.61
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 21.87
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 15.95
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 14.44
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.53
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 9.61
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 9.61
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.5
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 8.48
+      }
+    ],
+    "brainLobes": {
+      "action": 20,
+      "thinking": 17,
+      "tactile": 16,
+      "auditory": 32,
+      "visual": 15
+    },
+    "personality": {
+      "primaryTrait": null,
+      "secondaryTrait": null,
+      "primaryBird": null,
+      "secondaryBird": null
+    },
+    "motiveThought": {
+      "motivePct": 57.38,
+      "thoughtPct": 42.62
+    },
+    "leadership": {
+      "taskOrientedPct": 51,
+      "relationshipOrientedPct": 49
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1pa42z4SHd-mY7IlaunJDveXDGiixifIh": {
+    "fileId": "1pa42z4SHd-mY7IlaunJDveXDGiixifIh",
+    "reportSubjectName": "VIS 1ST VIVEK [RAJKUMAR]",
+    "brainDominance": {
+      "leftPct": 52.32,
+      "rightPct": 47.68
+    },
+    "vak": {
+      "visualPct": 27.48,
+      "auditoryPct": 40.25,
+      "kinestheticPct": 32.27,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 30.01,
+      "eq": 23.23,
+      "aq": 22.2,
+      "cq": 24.56
+    },
+    "multipleIntelligences": {
+      "interpersonal": 11,
+      "visualSpatial": 10.61,
+      "bodilyKinesthetic": 11.99,
+      "musical": 13.96,
+      "intrapersonal": 12.23,
+      "logicalMathematical": 14.06,
+      "verbalLinguistic": 15.95,
+      "naturalist": 10.21
+    },
+    "topIntelligences": [
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 15.95
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 14.06
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 13.96
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 12.23
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 11.99
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 11
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.61
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 10.21
+      }
+    ],
+    "brainLobes": {
+      "action": 19,
+      "thinking": 20,
+      "tactile": 20,
+      "auditory": 24,
+      "visual": 17
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "ADAPTIVE",
+      "primaryBird": "Dove",
+      "secondaryBird": "Dove"
+    },
+    "motiveThought": {
+      "motivePct": 48.1,
+      "thoughtPct": 51.9
+    },
+    "leadership": {
+      "taskOrientedPct": 47,
+      "relationshipOrientedPct": 53
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Invite structured storytelling, debate summaries, and vocabulary reflection notes.",
+        "Encourage hypothesis testing, number puzzles, and structured multi-step reasoning.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Logical Thinking"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1qugC1qCA_vrY-yDi1QCReAmX5eSxSsKY": {
+    "fileId": "1qugC1qCA_vrY-yDi1QCReAmX5eSxSsKY",
+    "reportSubjectName": "NAMAN VIS 2ND",
+    "brainDominance": {
+      "leftPct": 45.72,
+      "rightPct": 54.28
+    },
+    "vak": {
+      "visualPct": 25.35,
+      "auditoryPct": 44.39,
+      "kinestheticPct": 30.26,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 22.26,
+      "visualSpatial": 7.97,
+      "bodilyKinesthetic": 9.06,
+      "musical": 15.7,
+      "intrapersonal": 20.42,
+      "logicalMathematical": 6.86,
+      "verbalLinguistic": 10.88,
+      "naturalist": 6.85
+    },
+    "topIntelligences": [
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 22.26
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 20.42
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 15.7
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 10.88
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.06
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 7.97
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 6.86
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 6.85
+      }
+    ],
+    "brainLobes": {
+      "action": 36,
+      "thinking": 12,
+      "tactile": 15,
+      "auditory": 23,
+      "visual": 13
+    },
+    "personality": {
+      "primaryTrait": null,
+      "secondaryTrait": null,
+      "primaryBird": null,
+      "secondaryBird": null
+    },
+    "motiveThought": {
+      "motivePct": 81.29,
+      "thoughtPct": 18.71
+    },
+    "leadership": {
+      "taskOrientedPct": 53,
+      "relationshipOrientedPct": 47
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Provide quiet reflection checklists and self-paced goal trackers."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Cognitive Flexibility",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1v0nJv0b4BRF7l9F7-M-Ux16JA6Y2_NT-": {
+    "fileId": "1v0nJv0b4BRF7l9F7-M-Ux16JA6Y2_NT-",
+    "reportSubjectName": "VIS 7TH ANKITA GHATAL",
+    "brainDominance": {
+      "leftPct": 47.38,
+      "rightPct": 52.62
+    },
+    "vak": {
+      "visualPct": 32.87,
+      "auditoryPct": 38.12,
+      "kinestheticPct": 29.02,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": 22.01,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 9.31,
+      "visualSpatial": 13.1,
+      "bodilyKinesthetic": 11.81,
+      "musical": 18.05,
+      "intrapersonal": 13.86,
+      "logicalMathematical": 10.69,
+      "verbalLinguistic": 12.99,
+      "naturalist": 10.19
+    },
+    "topIntelligences": [
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 18.05
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 13.86
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 13.1
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 12.99
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 11.81
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.69
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 10.19
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 9.31
+      }
+    ],
+    "brainLobes": {
+      "action": 19,
+      "thinking": 16,
+      "tactile": 19,
+      "auditory": 25,
+      "visual": 21
+    },
+    "personality": {
+      "primaryTrait": "DECISIVE",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Eagle",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 51.67,
+      "thoughtPct": 48.33
+    },
+    "leadership": {
+      "taskOrientedPct": 42,
+      "relationshipOrientedPct": 58
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Responds best to crisp targets, measurable challenges, and leadership ownership."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1vuscM_eEXHaJkTfskKCs4EIaIe-l2rFU": {
+    "fileId": "1vuscM_eEXHaJkTfskKCs4EIaIe-l2rFU",
+    "reportSubjectName": "AASHVI VIS 4TH",
+    "brainDominance": {
+      "leftPct": 47.16,
+      "rightPct": 52.84
+    },
+    "vak": {
+      "visualPct": 30.01,
+      "auditoryPct": 39.42,
+      "kinestheticPct": 30.57,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": 17.65,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 17.69,
+      "visualSpatial": 9.52,
+      "bodilyKinesthetic": 10.22,
+      "musical": 14.96,
+      "intrapersonal": 17.39,
+      "logicalMathematical": 11.4,
+      "verbalLinguistic": 11.4,
+      "naturalist": 7.43
+    },
+    "topIntelligences": [
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 17.69
+      },
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 17.39
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 14.96
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.4
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 11.4
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 10.22
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 9.52
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 7.43
+      }
+    ],
+    "brainLobes": {
+      "action": 29,
+      "thinking": 15,
+      "tactile": 17,
+      "auditory": 22,
+      "visual": 17
+    },
+    "personality": {
+      "primaryTrait": "DECISIVE",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Eagle",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 65.75,
+      "thoughtPct": 34.25
+    },
+    "leadership": {
+      "taskOrientedPct": 50,
+      "relationshipOrientedPct": 50
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Responds best to crisp targets, measurable challenges, and leadership ownership."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Cognitive Flexibility",
+        "Visual Attention"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1wdsgfync5eXD3qQHjmt1EX3Osq-gMAjh": {
+    "fileId": "1wdsgfync5eXD3qQHjmt1EX3Osq-gMAjh",
+    "reportSubjectName": "KUSH VIS 3RD",
+    "brainDominance": {
+      "leftPct": 53.01,
+      "rightPct": 46.99
+    },
+    "vak": {
+      "visualPct": 42.91,
+      "auditoryPct": 27.19,
+      "kinestheticPct": 29.91,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 14.71,
+      "visualSpatial": 12.26,
+      "bodilyKinesthetic": 9.09,
+      "musical": 9.09,
+      "intrapersonal": 20.23,
+      "logicalMathematical": 14.14,
+      "verbalLinguistic": 7.44,
+      "naturalist": 13.04
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 20.23
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 14.71
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 14.14
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 13.04
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 12.26
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 9.09
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 9.09
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 7.44
+      }
+    ],
+    "brainLobes": {
+      "action": 29,
+      "thinking": 21,
+      "tactile": 15,
+      "auditory": 14,
+      "visual": 21
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 56.72,
+      "thoughtPct": 43.28
+    },
+    "leadership": {
+      "taskOrientedPct": 42,
+      "relationshipOrientedPct": 58
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Cognitive Flexibility"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1z89hpBhKQ1CCmPkNNvIylid9TLVkG1eh": {
+    "fileId": "1z89hpBhKQ1CCmPkNNvIylid9TLVkG1eh",
+    "reportSubjectName": "VIS 6TH HARDIK",
+    "brainDominance": {
+      "leftPct": 50.73,
+      "rightPct": 49.27
+    },
+    "vak": {
+      "visualPct": 34.52,
+      "auditoryPct": 32.61,
+      "kinestheticPct": 32.87,
+      "dominantStyle": "Visual"
+    },
+    "quotients": {
+      "iq": null,
+      "eq": null,
+      "aq": null,
+      "cq": null
+    },
+    "multipleIntelligences": {
+      "interpersonal": 12.99,
+      "visualSpatial": 10.07,
+      "bodilyKinesthetic": 12.07,
+      "musical": 14.05,
+      "intrapersonal": 15.99,
+      "logicalMathematical": 11.26,
+      "verbalLinguistic": 9.91,
+      "naturalist": 13.66
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 15.99
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 14.05
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 13.66
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 12.99
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 12.07
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 11.26
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 10.07
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 9.91
+      }
+    ],
+    "brainLobes": {
+      "action": 24,
+      "thinking": 16,
+      "tactile": 20,
+      "auditory": 20,
+      "visual": 21
+    },
+    "personality": {
+      "primaryTrait": "CAUTIOUS",
+      "secondaryTrait": "DECISIVE",
+      "primaryBird": "Owl",
+      "secondaryBird": "Eagle"
+    },
+    "motiveThought": {
+      "motivePct": 55.77,
+      "thoughtPct": 44.23
+    },
+    "leadership": {
+      "taskOrientedPct": 45,
+      "relationshipOrientedPct": 55
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Use colour-coded mind maps, labelled diagrams, and step-by-step worked visuals during revision."
+      ],
+      "classroomSupport": [
+        "Seat where board diagrams are unobstructed; pair verbal instructions with a written anchor.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Use rhythmic mnemonics, pattern chanting, and structured audio focus cues.",
+        "Appreciates clear rubrics, logical expectations, and uninterrupted checking time."
+      ],
+      "suggestedCognitiveCategories": [
+        "Visual Attention",
+        "Perception Training",
+        "Memory Training"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  },
+  "1zTwZ2IDiCSV8f8l49yd9TQqCwk2jGEmJ": {
+    "fileId": "1zTwZ2IDiCSV8f8l49yd9TQqCwk2jGEmJ",
+    "reportSubjectName": "VIS 9TH JASIKA",
+    "brainDominance": {
+      "leftPct": 50.84,
+      "rightPct": 49.16
+    },
+    "vak": {
+      "visualPct": 23.92,
+      "auditoryPct": 41.63,
+      "kinestheticPct": 34.45,
+      "dominantStyle": "Auditory"
+    },
+    "quotients": {
+      "iq": 25.25,
+      "eq": 32.58,
+      "aq": 19.74,
+      "cq": 22.43
+    },
+    "multipleIntelligences": {
+      "interpersonal": 15.2,
+      "visualSpatial": 9.21,
+      "bodilyKinesthetic": 11.43,
+      "musical": 13.22,
+      "intrapersonal": 17.38,
+      "logicalMathematical": 10.86,
+      "verbalLinguistic": 14.39,
+      "naturalist": 8.31
+    },
+    "topIntelligences": [
+      {
+        "key": "intrapersonal",
+        "label": "Intrapersonal",
+        "score": 17.38
+      },
+      {
+        "key": "interpersonal",
+        "label": "Interpersonal",
+        "score": 15.2
+      },
+      {
+        "key": "verbalLinguistic",
+        "label": "Verbal-Linguistic",
+        "score": 14.39
+      },
+      {
+        "key": "musical",
+        "label": "Musical",
+        "score": 13.22
+      },
+      {
+        "key": "bodilyKinesthetic",
+        "label": "Bodily-Kinesthetic",
+        "score": 11.43
+      },
+      {
+        "key": "logicalMathematical",
+        "label": "Logical-Mathematical",
+        "score": 10.86
+      },
+      {
+        "key": "visualSpatial",
+        "label": "Visual-Spatial",
+        "score": 9.21
+      },
+      {
+        "key": "naturalist",
+        "label": "Naturalist",
+        "score": 8.31
+      }
+    ],
+    "brainLobes": {
+      "action": 27,
+      "thinking": 18,
+      "tactile": 19,
+      "auditory": 23,
+      "visual": 13
+    },
+    "personality": {
+      "primaryTrait": "ADAPTIVE",
+      "secondaryTrait": "CAUTIOUS",
+      "primaryBird": "Dove",
+      "secondaryBird": "Owl"
+    },
+    "motiveThought": {
+      "motivePct": 57.75,
+      "thoughtPct": 42.25
+    },
+    "leadership": {
+      "taskOrientedPct": 51,
+      "relationshipOrientedPct": 49
+    },
+    "advisorySummary": {
+      "studyTips": [
+        "Read key definitions aloud, summarise chapters verbally to a peer/parent, and use rhythmic recall."
+      ],
+      "classroomSupport": [
+        "Include structured Q&A, oral recaps, and verbal walkthroughs before independent seatwork.",
+        "Provide quiet reflection checklists and self-paced goal trackers.",
+        "Leverage peer-tutoring pairs and group project roles to channel social leadership.",
+        "Thrives in supportive, collaborative classrooms with encouraging step-by-step feedback."
+      ],
+      "suggestedCognitiveCategories": [
+        "Memory Training",
+        "Response Control",
+        "Visual Attention",
+        "Cognitive Flexibility"
+      ],
+      "governanceNotice": "Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score."
+    },
+    "extractedAt": "2026-11-15T16:15:00.000Z",
+    "extractionSource": "preparsed_bundle"
+  }
+}

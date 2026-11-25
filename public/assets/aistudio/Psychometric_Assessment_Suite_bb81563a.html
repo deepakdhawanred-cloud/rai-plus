@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Psychometric Assessment Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a quiet testing-room page — one column, test content centred in a single card, results as a clinical report */
+:root{
+  --bg:#f2f3ef;--surface:#ffffff;--ink:#18212b;--muted:#5b6571;--line:#d8dcd4;
+  --accent:#1d5b86;--accent-soft:#e2ecf3;--mark:#b0731a;
+  --good:#2e7a4d;--warn:#a66a12;--bad:#b23b3b;
+  --display:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161a;--surface:#1a2026;--ink:#e6e9e5;--muted:#9aa4ae;--line:#2c353d;
+  --accent:#7db2d8;--accent-soft:#1c2c38;--mark:#e0a447;--good:#6cc08f;--warn:#e0a447;--bad:#ec8080;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#11161a;--surface:#1a2026;--ink:#e6e9e5;--muted:#9aa4ae;--line:#2c353d;
+  --accent:#7db2d8;--accent-soft:#1c2c38;--mark:#e0a447;--good:#6cc08f;--warn:#e0a447;--bad:#ec8080;color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
+h1,h2,h3{font-family:var(--display);font-weight:650;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:1.65rem}h2{font-size:1.35rem}h3{font-size:1.08rem}
+p{margin:0}
+a{color:var(--accent)}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--line);background:var(--surface)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 0}
+.brand{display:flex;flex-direction:column}
+.brand small{color:var(--muted);font-size:.8rem}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;padding:8px 14px;border-radius:6px;font:500 .95rem var(--body);color:var(--muted);cursor:pointer}
+nav button[aria-current="true"]{background:var(--accent-soft);color:var(--accent)}
+main{padding:28px 0 64px}
+.stack{display:flex;flex-direction:column;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.eyebrow{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;font-weight:500}
+input,select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.check{flex-direction:row;align-items:flex-start;gap:10px;font-weight:400}
+.check input{margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 .95rem var(--body);padding:10px 18px;border-radius:7px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.facts{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:600}
+.err{color:var(--bad);font-size:.88rem}
+/* test runner */
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent)}
+.likert-row{display:grid;grid-template-columns:minmax(200px,1.3fr) 2fr;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.likert-row.missing .stmt{color:var(--bad)}
+.likert-row .stmt{font-weight:500}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale button{font:500 .74rem/1.2 var(--body);padding:8px 4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;cursor:pointer;min-height:44px}
+.scale button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+@media (max-width:640px){.likert-row{grid-template-columns:1fr}.scale button{font-size:.68rem}}
+.timer{font:600 1.1rem var(--body);font-variant-numeric:tabular-nums;padding:4px 10px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.timer.low{background:var(--bad);color:var(--surface)}
+.qtext{font-size:1.15rem;font-weight:500}
+.series{font:600 1.6rem var(--display);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.matrix{display:grid;grid-template-columns:repeat(3,96px);gap:0;border:2px solid var(--ink);width:max-content;margin:0 auto}
+.matrix div{width:96px;height:96px;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink)}
+.matrix .q{font:650 2rem var(--display);color:var(--mark)}
+.opts{display:grid;gap:10px}
+.opts.fig{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.opts.txt{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.opt{position:relative;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;cursor:pointer;padding:10px;font:500 1rem var(--body);display:grid;place-items:center;min-height:52px}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt .lbl{position:absolute;top:4px;left:7px;font-size:.72rem;color:var(--muted);font-weight:600}
+.opt svg{width:80px;height:80px}
+.target svg{width:120px;height:120px}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:5px}
+.palette button{font:600 .75rem var(--body);height:32px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.palette button.done{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-soft)}
+.palette button.cur{outline:2px solid var(--accent)}
+/* report */
+.score-hero{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end}
+.big{font:650 3.4rem/1 var(--display);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font:600 .78rem var(--body);padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.trait{display:grid;grid-template-columns:190px 1fr 56px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.trait .desc{grid-column:2/4;font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.trait{grid-template-columns:1fr 50px}.trait .desc{grid-column:1/3}.trait .track{grid-column:1/2}}
+.track{position:relative;height:12px;border-radius:6px;background:var(--line)}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--accent)}
+.track .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted);opacity:.5}
+.num{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.ci{position:relative;height:30px;margin-top:8px}
+.ci .axis{position:absolute;left:0;right:0;top:14px;height:2px;background:var(--line)}
+.ci .band{position:absolute;top:8px;height:14px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px}
+.ci .pt{position:absolute;top:5px;width:4px;height:20px;background:var(--accent);margin-left:-2px;border-radius:2px}
+.ci-labels{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-weight:600;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+.tablebox{overflow-x:auto}
+.note{border-left:3px solid var(--mark);padding:10px 14px;background:color-mix(in srgb,var(--mark) 9%,transparent);border-radius:0 6px 6px 0;font-size:.92rem}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:12px}
+.prose ul,.prose ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.refs li{font-size:.86rem}
+.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;padding:20px;z-index:10}
+.modal .card{max-width:440px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.9rem;z-index:20}
+.feature{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.subitem{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:.88rem}
+.subitem .num{min-width:22px;text-align:center;border-radius:50%;background:var(--line);font-size:.78rem;line-height:22px}
+.subitem.done .num{background:var(--good);color:var(--surface)}
+.subitem.next{border-color:var(--accent);background:var(--accent-soft)}
+.opts.one{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.bdwrap{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.bdgrid{display:grid;gap:0;border:2px solid var(--ink);width:max-content}
+.bdgrid svg{display:block}
+.bdgrid.work button{padding:0;border:0;background:none;cursor:pointer;line-height:0}
+.faces{display:flex;gap:8px;flex-wrap:wrap}
+.faces button{padding:3px;border:2px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer;line-height:0}
+.faces button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.span-box{width:160px;height:160px;display:grid;place-items:center;font:650 5rem var(--display);border:2px solid var(--line);border-radius:12px;font-variant-numeric:tabular-nums}
+.span-in{font:600 2rem var(--body);letter-spacing:.3em;text-align:center;width:min(340px,100%)}
+.keypad{display:grid;grid-template-columns:repeat(3,72px);gap:8px}
+.keypad button{height:52px;font:600 1.3rem var(--body);border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.keypad .okk{grid-column:span 2;background:var(--accent);color:var(--surface);border-color:var(--accent);font-size:1rem}
+.board{position:relative;width:min(440px,100%);aspect-ratio:4/3;margin:0 auto;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.blk{position:absolute;width:13%;aspect-ratio:1;border-radius:8px;border:0;background:var(--muted);opacity:.55;cursor:pointer}
+.blk:disabled{cursor:default}
+.blk.lit{background:var(--mark);opacity:1}
+.blk.tap{background:var(--accent);opacity:1}
+.cdkey{display:grid;grid-template-columns:repeat(9,1fr);border:2px solid var(--ink);border-radius:6px;overflow:hidden}
+.cdkey div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-right:1px solid var(--line);color:var(--ink)}
+.cdkey div:last-child{border-right:0}
+.cdkey b{font-variant-numeric:tabular-nums}
+.cdq{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+.cdd{font:650 3.6rem/1 var(--display)}
+.cdbtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.cdbtns button{height:64px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer;display:grid;place-items:center}
+.ssrow{display:flex;gap:28px;justify-content:center;align-items:center;flex-wrap:wrap;padding:14px 0;color:var(--ink)}
+.sst{display:flex;gap:8px;padding:8px 12px;border:2px solid var(--accent);border-radius:8px}
+.ssg{display:flex;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px}
+.scale-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.scale-row .small{min-width:64px;text-align:right}
+.pan{display:inline-flex;gap:3px;padding:6px 10px;border-bottom:3px solid var(--ink);min-height:38px;align-items:center;flex-wrap:wrap;max-width:300px}
+.pan.qm{font:650 1.4rem var(--display);color:var(--mark)}
+.eqs{font-size:.82rem;color:var(--muted)}
+.scale-row.ask{padding-top:8px;border-top:1px dashed var(--line)}
+.idxrow{display:grid;grid-template-columns:230px 1fr 52px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.idxrow.axisrow{border-top:0;padding-top:0}
+@media (max-width:640px){.idxrow{grid-template-columns:1fr 46px}.idxrow .idxtrack{grid-column:1/3;grid-row:2}}
+.idxtrack{position:relative;height:22px;border-radius:4px;background:color-mix(in srgb,var(--line) 55%,transparent)}
+.idxtrack .avg,.sstrack .avg{position:absolute;top:0;bottom:0;background:var(--line)}
+.idxtrack .l100{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--muted)}
+.idxtrack .cib{position:absolute;top:7px;height:8px;border-radius:4px;background:color-mix(in srgb,var(--accent) 35%,transparent)}
+.idxtrack .dot,.sstrack .dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.sstrack{position:relative;height:16px;border-radius:4px;background:color-mix(in srgb,var(--line) 45%,transparent)}
+table.cm td,table.cm th{text-align:center;padding:5px}
+@media (prefers-reduced-motion:no-preference){.progress i{transition:width .3s}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;color:var(--ink)" aria-hidden="true"><defs>
+<pattern id="hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="currentColor" stroke-width="3"/></pattern>
+</defs></svg>
+<header><div class="wrap bar">
+  <div class="brand"><h1>Psychometric Assessment Suite</h1><small>Cognitive battery (FSIQ) · Reasoning screen · Big Five · RIASEC career interests</small></div>
+  <nav id="nav"><button data-v="home">Take a test</button><button data-v="results">Results &amp; norms</button><button data-v="science">Science &amp; methods</button></nav>
+</div></header>
+<main><div class="wrap" id="app"></div></main>
+<script>
+/* ===== CORE: item banks + scoring (no DOM) ===== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function seededShuffle(arr,seed){const r=mulberry32(seed),a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- Big Five: IPIP 50-item Big-Five Factor Markers (Goldberg, 1992; public domain) ---------- */
+/* trait: E Extraversion, A Agreeableness, C Conscientiousness, S Emotional Stability, O Intellect/Imagination */
+const BF_ITEMS=[
+["Am the life of the party.","E",1],["Feel little concern for others.","A",-1],["Am always prepared.","C",1],["Get stressed out easily.","S",-1],["Have a rich vocabulary.","O",1],
+["Don't talk a lot.","E",-1],["Am interested in people.","A",1],["Leave my belongings around.","C",-1],["Am relaxed most of the time.","S",1],["Have difficulty understanding abstract ideas.","O",-1],
+["Feel comfortable around people.","E",1],["Insult people.","A",-1],["Pay attention to details.","C",1],["Worry about things.","S",-1],["Have a vivid imagination.","O",1],
+["Keep in the background.","E",-1],["Sympathize with others' feelings.","A",1],["Make a mess of things.","C",-1],["Seldom feel blue.","S",1],["Am not interested in abstract ideas.","O",-1],
+["Start conversations.","E",1],["Am not interested in other people's problems.","A",-1],["Get chores done right away.","C",1],["Am easily disturbed.","S",-1],["Have excellent ideas.","O",1],
+["Have little to say.","E",-1],["Have a soft heart.","A",1],["Often forget to put things back in their proper place.","C",-1],["Get upset easily.","S",-1],["Do not have a good imagination.","O",-1],
+["Talk to a lot of different people at parties.","E",1],["Am not really interested in others.","A",-1],["Like order.","C",1],["Change my mood a lot.","S",-1],["Am quick to understand things.","O",1],
+["Don't like to draw attention to myself.","E",-1],["Take time out for others.","A",1],["Shirk my duties.","C",-1],["Have frequent mood swings.","S",-1],["Use difficult words.","O",1],
+["Don't mind being the center of attention.","E",1],["Feel others' emotions.","A",1],["Follow a schedule.","C",1],["Get irritated easily.","S",-1],["Spend time reflecting on things.","O",1],
+["Am quiet around strangers.","E",-1],["Make people feel at ease.","A",1],["Am exacting in my work.","C",1],["Often feel blue.","S",-1],["Am full of ideas.","O",1]
+];
+/* Attention-check items (Curran, 2016): inserted after positions 17 and 39; expected answer 1 */
+const AC_ITEMS=[{after:17,text:"To show you are reading carefully, choose “Very inaccurate” for this line.",expect:1},
+                {after:39,text:"Please choose “Very inaccurate” here so we know you are paying attention.",expect:1}];
+function personalitySequence(){const seq=[];BF_ITEMS.forEach((it,i)=>{seq.push({kind:"bf",idx:i,text:it[0]});AC_ITEMS.forEach((ac,k)=>{if(ac.after===i+1)seq.push({kind:"ac",idx:k,text:ac.text});});});return seq;}
+const TRAITS={
+E:{name:"Extraversion",lo:"Reserved, prefers small groups and quiet settings; recharges alone.",mid:"Comfortable socially but also values time alone.",hi:"Outgoing, energetic, talkative; enjoys groups and attention."},
+A:{name:"Agreeableness",lo:"Direct, sceptical, competitive; puts the task before feelings.",mid:"Generally cooperative while able to stand firm.",hi:"Warm, kind, considerate; values harmony and helping others."},
+C:{name:"Conscientiousness",lo:"Flexible and spontaneous; may find routines, deadlines and tidiness hard.",mid:"Reasonably organised; plans when it matters.",hi:"Organised, dependable, goal-directed; plans ahead and follows through."},
+S:{name:"Emotional Stability",lo:"Feels stress, worry and mood changes strongly; may benefit from coping strategies.",mid:"Usually steady with occasional stress.",hi:"Calm, even-tempered, recovers quickly from setbacks."},
+O:{name:"Intellect / Imagination",lo:"Practical and concrete; prefers the familiar.",mid:"Balances curiosity with practicality.",hi:"Curious, imaginative, enjoys ideas, reading and abstract thinking."}};
+const TRAIT_ORDER=["O","C","E","A","S"];
+
+/* ---------- Career interests: RIASEC (Holland, 1997) — items written for this suite, modelled on O*NET Interest Profiler activity items ---------- */
+const RIASEC_ITEMS=[
+["Repair a bicycle or motorbike","R"],["Do a science experiment in a lab","I"],["Draw, paint or design something","A"],["Teach or tutor younger students","S"],["Lead a team or a school club","E"],["Keep records and accounts neatly","C"],
+["Build or make things with wood or tools","R"],["Solve challenging maths puzzles","I"],["Write stories, poems or articles","A"],["Help people work through their problems","S"],["Start a small business of my own","E"],["Organise files, data or a library","C"],
+["Work outdoors on a farm, garden or field site","R"],["Learn how the human body works","I"],["Act in a play or perform on stage","A"],["Look after people who are sick or injured","S"],["Convince people to agree with my ideas","E"],["Work with numbers in a spreadsheet","C"],
+["Operate machines or equipment","R"],["Find out why something happens by researching it","I"],["Play a musical instrument or sing","A"],["Volunteer for community service","S"],["Sell a product or service","E"],["Follow clear rules and procedures to finish a job","C"],
+["Assemble electronic or robotics kits","R"],["Read about space, planets and the universe","I"],["Design clothes, posters, apps or websites","A"],["Coach a sports team","S"],["Organise and manage an event","E"],["Check documents carefully for errors","C"],
+["Drive, fix or maintain vehicles","R"],["Analyse data to find patterns","I"],["Take creative photos or make videos","A"],["Listen to friends and give them advice","S"],["Debate or speak in public","E"],["Plan schedules and budgets","C"]];
+const RIASEC={
+R:{name:"Realistic",tag:"Doers",desc:"Hands-on work with tools, machines, plants or animals.",careers:"Mechanical / civil / automobile engineer, electrician, pilot, agriculture scientist, armed forces, physiotherapist, chef"},
+I:{name:"Investigative",tag:"Thinkers",desc:"Observing, analysing and solving problems with ideas and evidence.",careers:"Doctor, research scientist, data scientist, software engineer, pharmacist, economist, forensic expert"},
+A:{name:"Artistic",tag:"Creators",desc:"Self-expression, imagination and working without rigid rules.",careers:"Designer (graphic, fashion, UX), architect, writer / journalist, musician, animator, film-maker"},
+S:{name:"Social",tag:"Helpers",desc:"Teaching, caring for and helping other people.",careers:"Teacher, counsellor / psychologist, nurse, social worker, HR professional, occupational therapist"},
+E:{name:"Enterprising",tag:"Persuaders",desc:"Leading, persuading, selling and taking initiative.",careers:"Entrepreneur, manager, lawyer, marketing / sales, civil services, politician, hotel management"},
+C:{name:"Conventional",tag:"Organisers",desc:"Working with data, records and clear procedures accurately.",careers:"Chartered accountant, banker, company secretary, auditor, actuary, administrator, logistics planner"}};
+const RIASEC_ORDER=["R","I","A","S","E","C"];
+
+function scorePersonality(bfResp,acResp,riResp,pageTimes){
+  const raw={E:[],A:[],C:[],S:[],O:[]};
+  BF_ITEMS.forEach((it,i)=>{const r=bfResp[i];if(r)raw[it[1]].push(it[2]>0?r:6-r);});
+  const traits={};
+  for(const t in raw){const a=raw[t];const m=a.reduce((x,y)=>x+y,0)/a.length;traits[t]={mean:+m.toFixed(3),pomp:Math.round((m-1)/4*100),n:a.length};}
+  const ri={};RIASEC_ORDER.forEach(k=>ri[k]=0);RIASEC_ITEMS.forEach((it,i)=>{ri[it[1]]+=riResp[i]||0;});
+  const sorted=RIASEC_ORDER.slice().sort((a,b)=>ri[b]-ri[a]||RIASEC_ORDER.indexOf(a)-RIASEC_ORDER.indexOf(b));
+  const code=sorted.slice(0,3).join("");
+  const differentiation=ri[sorted[0]]-ri[sorted[5]];
+  /* validity / careless-responding indices (Curran, 2016) */
+  const all=[...bfResp,...riResp];
+  let longest=1,cur=1;for(let i=1;i<all.length;i++){if(all[i]===all[i-1]){cur++;longest=Math.max(longest,cur);}else cur=1;}
+  const acFail=AC_ITEMS.filter((ac,k)=>acResp[k]!==ac.expect).length;
+  const mean=all.reduce((a,b)=>a+b,0)/all.length;const sd=Math.sqrt(all.reduce((a,b)=>a+(b-mean)**2,0)/all.length);
+  /* inconsistency: reverse-keyed pairs that measure the same thing answered identically at the extremes */
+  const totalSec=(pageTimes||[]).reduce((a,b)=>a+b,0);const secPerItem=totalSec/(all.length+AC_ITEMS.length);
+  const flags=[];
+  if(acFail>0)flags.push(`${acFail} of 2 attention checks missed`);
+  if(longest>=12)flags.push(`${longest} identical answers in a row`);
+  if(sd<0.6)flags.push("Very little variation in answers");
+  if(totalSec&&secPerItem<1.8)flags.push(`Very fast responding (${secPerItem.toFixed(1)} s per item)`);
+  return {traits,riasec:ri,code,differentiation,validity:{acFail,longest,sd:+sd.toFixed(2),secPerItem:+secPerItem.toFixed(1),flags,valid:flags.length===0}};
+}
+
+/* ---------- Reasoning (IQ) item bank — 4 CHC domains, ICAR-style item types ---------- */
+const SH=["circle","square","triangle"],FI=["solid","hollow","striped"];
+const MATRIX_DEFS=[
+ {b:-2.0,f:(r,c)=>({shape:SH[r],fill:"solid",n:c+1,rot:0})},
+ {b:-1.5,f:(r,c)=>({shape:SH[c],fill:FI[r],n:1,rot:0})},
+ {b:-1.0,f:(r,c)=>({shape:SH[(r+c)%3],fill:FI[r],n:1,rot:0})},
+ {b:-0.5,f:(r,c)=>({shape:"arrow",fill:"solid",n:1,rot:((r*3+c)*45)%360})},
+ {b:0.0, f:(r,c)=>({shape:SH[(r+c)%3],fill:FI[c],n:((r+2*c)%3)+1,rot:0})},
+ {b:0.4, f:(r,c)=>({shape:SH[r],fill:"hollow",n:[[1,1,2],[1,2,3],[2,2,4]][r][c],rot:0})},
+ {b:0.8, f:(r,c)=>({shape:SH[(r+c)%3],fill:FI[(r+2*c)%3],n:c+1,rot:0})},
+ {b:1.2, f:(r,c)=>({shape:"arrow",fill:"hollow",n:r+1,rot:(c*90+r*45)%360})},
+ {b:1.6, f:(r,c)=>({shape:SH[(r+c)%3],fill:"solid",n:[[4,1,3],[3,2,1],[4,2,2]][r][c],rot:0})},
+ {b:2.0, f:(r,c)=>({shape:SH[(r+2*c)%3],fill:FI[(r+c)%3],n:[[1,2,3],[2,1,3],[1,1,2]][r][c],rot:0})}];
+function cellKey(a){return [a.shape,a.fill,a.n,a.rot].join("|");}
+function matrixOptions(def,seed){
+  const ans=def.f(2,2),cands=[];
+  const push=o=>{if(o.n>=1&&o.n<=4&&cellKey(o)!==cellKey(ans)&&!cands.some(x=>cellKey(x)===cellKey(o)))cands.push(o);};
+  push(def.f(2,1)); /* common error: copying the neighbour */
+  if(ans.shape==="arrow"){[45,90,180,270,315,135].forEach(d=>push({...ans,rot:(ans.rot+d)%360}));push({...ans,n:ans.n+1});}
+  else{SH.filter(s=>s!==ans.shape).forEach(s=>push({...ans,shape:s}));}
+  FI.filter(f=>f!==ans.fill).forEach(f=>push({...ans,fill:f}));
+  push({...ans,n:ans.n+1});push({...ans,n:ans.n-1});
+  const pick=[cands[0],...seededShuffle(cands.slice(1),seed).slice(0,4)];
+  const opts=seededShuffle([ans,...pick],seed*7+3);
+  return {opts,answer:opts.findIndex(o=>cellKey(o)===cellKey(ans))};
+}
+const SERIES=[
+ {b:-2.0,q:"2, 4, 6, 8, ?",o:["9","10","11","12","14"],a:1},
+ {b:-1.5,q:"3, 6, 12, 24, ?",o:["30","36","48","42","27"],a:2},
+ {b:-1.0,q:"A, C, E, G, ?",o:["H","J","I","K","F"],a:2},
+ {b:-0.5,q:"1, 4, 9, 16, 25, ?",o:["30","36","34","49","32"],a:1},
+ {b:0.0, q:"2, 3, 5, 8, 12, ?",o:["16","17","18","20","15"],a:1},
+ {b:0.4, q:"Z, X, U, Q, ?",o:["M","L","K","N","O"],a:1},
+ {b:0.8, q:"3, 5, 9, 17, 33, ?",o:["49","64","65","66","57"],a:2},
+ {b:1.1, q:"2, 6, 3, 9, 6, 18, ?",o:["15","12","54","21","9"],a:0},
+ {b:1.5, q:"B2, D4, G7, K11, ?",o:["O15","P16","N14","P15","Q17"],a:1},
+ {b:1.9, q:"4, 9, 25, 49, 121, ?",o:["144","169","196","225","143"],a:1}];
+const VERBAL=[
+ {b:-2.0,q:"Hot is to cold as up is to …",o:["high","down","sky","over","top"],a:1},
+ {b:-1.5,q:"Which word does not belong with the others?",o:["apple","mango","carrot","banana","grape"],a:2},
+ {b:-1.0,q:"Book is to author as painting is to …",o:["canvas","museum","artist","colour","frame"],a:2},
+ {b:-0.8,q:"Which one does not belong with the others?",o:["Mercury","Venus","Moon","Mars","Jupiter"],a:2},
+ {b:-0.6,q:"Doctor is to patient as lawyer is to …",o:["judge","court","client","law","case"],a:2},
+ {b:-0.3,q:"Choose the word closest in meaning to CANDID.",o:["careful","frank","sweet","hidden","bright"],a:1},
+ {b:0.0, q:"Which word does not belong with the others?",o:["anxious","apprehensive","uneasy","serene","nervous"],a:3},
+ {b:0.2, q:"Ravi is taller than Amit. Amit is taller than Sunil. Sunil is taller than Joy. Who is the second shortest?",o:["Ravi","Amit","Sunil","Joy","Cannot be determined"],a:2},
+ {b:0.4, q:"In a code, CAT is written as DBU. How is DOG written in the same code?",o:["EPH","EPG","CNF","DPH","FQI"],a:0},
+ {b:0.8, q:"All roses are flowers. Some flowers fade quickly. Which statement must be true?",o:["Some roses fade quickly","All roses fade quickly","No roses fade quickly","Some flowers are roses that fade","None of these must be true"],a:4},
+ {b:0.9, q:"Choose the word most nearly OPPOSITE to EPHEMERAL.",o:["permanent","fragile","ethereal","sudden","visible"],a:0},
+ {b:1.6, q:"Some A are B. No B are C. Which statement must be true?",o:["Some A are C","No A are C","Some A are not C","All C are A","Some C are B"],a:2}];
+/* Spatial: which option is the same shape rotated (not flipped)? */
+const ROT_DEFS=[
+ {b:-1.2,cells:[[0,0],[0,1],[0,2],[1,2]],k:2},
+ {b:-0.6,cells:[[0,0],[0,1],[0,2],[0,3],[1,3]],k:1},
+ {b:-0.2,cells:[[1,0],[2,0],[0,1],[1,1],[1,2]],k:1},
+ {b:0.2, cells:[[0,0],[0,1],[1,1],[1,2],[1,3]],k:3},
+ {b:0.6, cells:[[0,0],[1,0],[0,1],[1,1],[0,2]],k:2},
+ {b:1.0, cells:[[0,1],[1,0],[1,1],[1,2],[1,3]],k:1},
+ {b:1.4, cells:[[0,0],[1,0],[2,0],[2,1],[3,1],[1,2]],k:3},
+ {b:1.8, cells:[[0,0],[0,1],[1,1],[2,1],[2,2],[3,2],[1,3]],k:1}];
+function normCells(c){const mx=Math.min(...c.map(p=>p[0])),my=Math.min(...c.map(p=>p[1]));return c.map(p=>[p[0]-mx,p[1]-my]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);}
+function rot90(c){return normCells(c.map(([x,y])=>[-y,x]));}
+function rotK(c,k){let r=normCells(c);for(let i=0;i<k;i++)r=rot90(r);return r;}
+function mirror(c){return normCells(c.map(([x,y])=>[-x,y]));}
+function cellsKey(c){return JSON.stringify(normCells(c));}
+function isChiral(c){const m=cellsKey(mirror(c));for(let k=0;k<4;k++)if(cellsKey(rotK(c,k))===m)return false;return true;}
+function rotationOptions(def,seed){
+  const correct=rotK(def.cells,def.k),m=mirror(def.cells);
+  const mir=[];seededShuffle([0,1,2,3],seed).forEach(k=>{const o=rotK(m,k);if(!mir.some(x=>cellsKey(x)===cellsKey(o)))mir.push(o);});
+  const opts=seededShuffle([correct,...mir.slice(0,3)],seed*11+5);
+  return {opts,answer:opts.findIndex(o=>cellsKey(o)===cellsKey(correct))};
+}
+/* Assemble bank in fixed order, interleaving domains so time pressure falls evenly */
+function buildIQBank(){
+  const M=MATRIX_DEFS.map((d,i)=>{const o=matrixOptions(d,101+i);return {dom:"Gf-M",domName:"Matrix reasoning",type:"matrix",def:i,b:d.b,opts:o.opts,a:o.answer,k:o.opts.length};});
+  const S=SERIES.map(d=>({dom:"Gf-S",domName:"Number & letter series",type:"text",q:d.q,b:d.b,opts:d.o,a:d.a,k:d.o.length}));
+  const V=VERBAL.map(d=>({dom:"Gc",domName:"Verbal reasoning",type:"text",q:d.q,b:d.b,opts:d.o,a:d.a,k:d.o.length}));
+  const R=ROT_DEFS.map((d,i)=>{const o=rotationOptions(d,301+i);return {dom:"Gv",domName:"Spatial rotation",type:"rot",cells:normCells(d.cells),b:d.b,opts:o.opts,a:o.answer,k:o.opts.length};});
+  const bank=[];const pools=[M,S,V,R];
+  const maxLen=Math.max(...pools.map(p=>p.length));
+  /* blocks of increasing difficulty: take items by rank */
+  for(let i=0;i<maxLen;i++)pools.forEach(p=>{if(p[i])bank.push(p[i]);});
+  bank.sort((x,y)=>x.b-y.b); /* easy → hard, standard for power tests */
+  bank.forEach((it,i)=>it.id="Q"+(i+1));
+  return bank;
+}
+const IQ_BANK=buildIQBank();
+const IQ_TIME_MIN=35;
+
+/* ---------- IRT scoring: 3PL with fixed a, guessing c = 1/k; EAP ability (Embretson & Reise, 2000) ---------- */
+const IRT_A=1.2,IRT_D=1.7;
+function p3(theta,b,c){return c+(1-c)/(1+Math.exp(-IRT_D*IRT_A*(theta-b)));}
+function eap(correct,bank){
+  let num=0,den=0,num2=0;
+  for(let t=-4;t<=4.0001;t+=0.05){
+    let lp=-t*t/2;
+    bank.forEach((it,i)=>{const p=p3(t,it.b,1/it.k);lp+=correct[i]?Math.log(p):Math.log(1-p);});
+    const w=Math.exp(lp);num+=t*w;num2+=t*t*w;den+=w;}
+  const th=num/den,sd=Math.sqrt(Math.max(num2/den-th*th,1e-6));return {theta:th,se:sd};
+}
+function iqBand(iq){if(iq>=130)return"Very high";if(iq>=120)return"High";if(iq>=110)return"High average";if(iq>=90)return"Average";if(iq>=80)return"Low average";if(iq>=70)return"Low";return"Very low";}
+function scoreIQ(choices,times){
+  const correct=IQ_BANK.map((it,i)=>choices[i]===it.a?1:0);
+  const raw=correct.reduce((a,b)=>a+b,0);
+  const {theta,se}=eap(correct,IQ_BANK);
+  const iq=Math.round(100+15*theta),ci=Math.round(1.645*15*se);
+  const dom={};IQ_BANK.forEach((it,i)=>{dom[it.dom]=dom[it.dom]||{name:it.domName,n:0,c:0};dom[it.dom].n++;dom[it.dom].c+=correct[i];});
+  const answered=choices.filter(x=>x!==-1&&x!=null).length;
+  const flags=[];
+  const fast=(times||[]).filter((t,i)=>choices[i]!==-1&&t>0&&t<2.5).length;
+  if(fast>=8)flags.push(`${fast} answers given in under 2.5 seconds`);
+  if(answered<IQ_BANK.length*0.6)flags.push(`Only ${answered} of ${IQ_BANK.length} items answered`);
+  /* person-fit: easy items wrong while hard items right (Guttman errors) */
+  let gutt=0;for(let i=0;i<IQ_BANK.length;i++)for(let j=i+1;j<IQ_BANK.length;j++)if(!correct[i]&&correct[j]&&IQ_BANK[j].b-IQ_BANK[i].b>1.5)gutt++;
+  if(gutt>25)flags.push("Unusual answer pattern (many easy items wrong, hard items right)");
+  return {correct,raw,theta:+theta.toFixed(3),se:+se.toFixed(3),iq,ci,band:iqBand(iq),domains:dom,answered,guttman:gutt,validity:{flags,valid:flags.length===0}};
+}
+
+/* ---------- Psychometric analytics on collected data ---------- */
+function variance(a){const m=a.reduce((x,y)=>x+y,0)/a.length;return a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1);}
+function meanOf(a){return a.reduce((x,y)=>x+y,0)/a.length;}
+function corr(x,y){const mx=meanOf(x),my=meanOf(y);let sxy=0,sx=0,sy=0;for(let i=0;i<x.length;i++){sxy+=(x[i]-mx)*(y[i]-my);sx+=(x[i]-mx)**2;sy+=(y[i]-my)**2;}return sx&&sy?sxy/Math.sqrt(sx*sy):0;}
+function cronbach(matrix){/* rows = people, cols = items */
+  if(matrix.length<3)return null;const k=matrix[0].length;
+  const itemVar=[...Array(k).keys()].map(j=>variance(matrix.map(r=>r[j])));
+  const tot=variance(matrix.map(r=>r.reduce((a,b)=>a+b,0)));
+  return tot?k/(k-1)*(1-itemVar.reduce((a,b)=>a+b,0)/tot):null;}
+function itemAnalysis(matrix){
+  const k=matrix[0].length;return [...Array(k).keys()].map(j=>{
+    const item=matrix.map(r=>r[j]),rest=matrix.map(r=>r.reduce((a,b)=>a+b,0)-r[j]);
+    return {p:meanOf(item),rit:corr(item,rest)};});}
+function ageBand(age){age=+age;if(!age)return"Unknown";if(age<=12)return"11–12";if(age<=14)return"13–14";if(age<=16)return"15–16";if(age<=18)return"17–18";if(age<=25)return"19–25";return"26+";}
+
+if(typeof module!=="undefined")module.exports={BF_ITEMS,RIASEC_ITEMS,IQ_BANK,ROT_DEFS,MATRIX_DEFS,isChiral,scoreIQ,scorePersonality,eap,cronbach,itemAnalysis,personalitySequence,cellKey,cellsKey};
+
+/* ===== BATTERY CORE: Wechsler-style cognitive profile battery (original items) ===== */
+const BAT_SUBS=[
+ {key:"BD",name:"Block Patterns",idx:"VSI",core:true,mins:6,desc:"Copy red-and-white patterns with blocks. Faster correct copies earn bonus points."},
+ {key:"SI",name:"Similarities",idx:"VCI",core:true,mins:4,desc:"Choose the best way in which two things are alike."},
+ {key:"MR",name:"Matrix Reasoning",idx:"FRI",core:true,mins:6,desc:"Find the missing piece that completes a visual pattern."},
+ {key:"DS",name:"Digit Span",idx:"WMI",core:true,mins:7,desc:"Remember strings of numbers forwards, backwards and in order."},
+ {key:"CD",name:"Symbol Coding",idx:"PSI",core:true,mins:3,desc:"Use a key to match numbers to symbols as fast as you can (90 seconds)."},
+ {key:"VC",name:"Vocabulary",idx:"VCI",core:true,mins:3,desc:"Choose the word that means the same."},
+ {key:"FW",name:"Balance Puzzles",idx:"FRI",core:true,mins:6,desc:"Work out what balances a scale from the scales shown."},
+ {key:"SR",name:"Shape Rotation",idx:"VSI",core:false,mins:4,desc:"Find the same shape turned around, not flipped."},
+ {key:"SP",name:"Spatial Span",idx:"WMI",core:false,mins:4,desc:"Remember the order in which blocks light up."},
+ {key:"SS",name:"Symbol Search",idx:"PSI",core:false,mins:3,desc:"Decide quickly whether a target symbol appears in a row (90 seconds)."}];
+const BAT_INDEX={VCI:{name:"Verbal Comprehension",subs:["SI","VC"]},VSI:{name:"Visual Spatial",subs:["BD","SR"]},FRI:{name:"Fluid Reasoning",subs:["MR","FW"]},WMI:{name:"Working Memory",subs:["DS","SP"]},PSI:{name:"Processing Speed",subs:["CD","SS"]}};
+const BAT_INDEX_ORDER=["VCI","VSI","FRI","WMI","PSI"];
+const FSIQ_SUBS=["BD","SI","MR","DS","CD","VC","FW"]; /* mirrors the 7-subtest FSIQ structure */
+const GAI_SUBS=["SI","VC","BD","MR","FW"];
+const CPI_SUBS=["DS","SP","CD","SS"];
+
+/* --- Similarities: credit 2 = abstract category, 1 = concrete/partial, 0 = wrong --- */
+const SIM_ITEMS=[
+ ["CAT","DOG",["Both are animals",2],["Both have tails",1],["Both chase mice",0],["Both are brown",0]],
+ ["SHIRT","TROUSERS",["Both are clothing",2],["Both are made of cloth",1],["Both have buttons",0],["Both are worn only in winter",0]],
+ ["PIANO","FLUTE",["Both are musical instruments",2],["Both make sounds",1],["Both have keys",0],["Both are played with the mouth",0]],
+ ["RIVER","OCEAN",["Both are bodies of water",2],["Both have fish in them",1],["Both are salty",0],["Both flow downhill",0]],
+ ["APPLE","POTATO",["Both are plant parts we eat",2],["Both are roundish",1],["Both are fruits",0],["Both are red",0]],
+ ["ELBOW","KNEE",["Both are joints",2],["Both bend",1],["Both are on the arm",0],["Both can get scraped",0]],
+ ["ICE","STEAM",["Both are forms of water",2],["Both depend on temperature",1],["Both are cold",0],["Both are gases",0]],
+ ["HOUR","KILOMETRE",["Both are units of measurement",2],["Both come up when travelling",1],["Both measure time",0],["Both are long",0]],
+ ["FLY","TREE",["Both are living things",2],["Both are found outdoors",1],["Both have wings",0],["Both grow leaves",0]],
+ ["POEM","STATUE",["Both are works of art",2],["Both are made by people",1],["Both are made of stone",0],["Both are old",0]],
+ ["EGG","SEED",["Both are the start of new life",2],["Both have a covering",1],["Both are eaten at breakfast",0],["Both are white",0]],
+ ["FIRST","LAST",["Both are positions in an order",2],["Both are about numbers",1],["Both mean the beginning",0],["Both are prizes",0]],
+ ["PRAISE","PUNISHMENT",["Both are responses that shape behaviour",2],["Both are things parents do",1],["Both make people happy",0],["Both are punishments",0]],
+ ["FREEDOM","JUSTICE",["Both are ideals a society aims for",2],["Both appear in the Constitution",1],["Both are laws",0],["Both mean doing whatever you like",0]]];
+/* --- Vocabulary: which word means the same --- */
+const VOC_ITEMS=[
+ ["BIG",["small","large","heavy","tall"],1],["RAPID",["quick","loud","steady","sharp"],0],["ANCIENT",["broken","very old","famous","huge"],1],
+ ["FRAGILE",["easily broken","very light","rare","colourful"],0],["GENEROUS",["clever","giving","wealthy","polite"],1],["CONCEAL",["reveal","hide","collect","destroy"],1],
+ ["RELUCTANT",["unwilling","angry","tired","eager"],0],["ABUNDANT",["missing","plentiful","valuable","strange"],1],["DILIGENT",["lazy","careful and hard-working","intelligent","punctual"],1],
+ ["OBSOLETE",["out of date","obvious","expensive","hidden"],0],["METICULOUS",["very precise","nervous","generous","quick"],0],["AMBIGUOUS",["two-handed","having more than one meaning","ambitious","enormous"],1],
+ ["GREGARIOUS",["greedy","sociable","serious","angry"],1],["UBIQUITOUS",["found everywhere","unique","very rare","uncertain"],0],["LACONIC",["using few words","lazy","tearful","excessive"],0],
+ ["SANGUINE",["bloody","optimistic","sad","sensible"],1]];
+/* --- Balance puzzles: shapes C circle S square T triangle D diamond R star --- */
+const FW_ITEMS=[
+ {eq:[["C","SS"]],q:"CC",opts:["SS","SSS","SSSS","SSSSS"],a:2},
+ {eq:[["S","TTT"]],q:"SS",opts:["TTTTT","TTTTTT","TTT","TTTTTTTTT"],a:1},
+ {eq:[["C","SS"],["S","TT"]],q:"C",opts:["TT","TTTT","TTT","ST"],a:1},
+ {eq:[["CS","TTTTT"],["S","TT"]],q:"C",opts:["TT","TTT","TTTT","S"],a:1},
+ {eq:[["DD","C"],["C","SSS"]],q:"SSSSSS",opts:["DD","DDD","DDDD","DDDDDD"],a:2},
+ {eq:[["C","ST"],["S","TT"]],q:"CC",opts:["TTTT","TTTTT","TTTTTT","STT"],a:2},
+ {eq:[["R","CC"],["C","SSS"],["S","TT"]],q:"R",opts:["SSSS","SSSSS","SSSSSS","SSSSSSSS"],a:2},
+ {eq:[["CS","DDD"],["C","SS"]],q:"S",opts:["D","DD","DDD","C"],a:0},
+ {eq:[["CC","SSS"],["SS","TTTT"]],q:"CCCC",opts:["TTTTTTTT","TTTTTTTTTT","TTTTTTTTTTTT","TTTTTT"],a:2},
+ {eq:[["RT","CC"],["C","TTT"]],q:"R",opts:["TTTT","TTTTT","TTTTTT","TTTTTTT"],a:1},
+ {eq:[["CS","TTTT"],["C","STT"]],q:"S",opts:["T","TT","TTT","C"],a:0},
+ {eq:[["CCS","R"],["SS","C"]],q:"R",opts:["SSSS","SSSSS","SSSSSS","SSS"],a:1},
+ {eq:[["DD","CT"],["C","TTT"],["S","DT"]],q:"S",opts:["TT","TTT","TTTT","TTTTT"],a:1},
+ {eq:[["R","CD"],["CDD","SSSS"],["D","S"]],q:"R",opts:["SS","SSS","SSSS","SSSSS"],a:1}];
+/* --- Block patterns: 0 white, 1 red, 2 red top-left half, 3 top-right, 4 bottom-right, 5 bottom-left --- */
+const BD_ITEMS=[
+ [[1,0],[0,1]],[[4,5],[3,2]],[[1,2],[4,1]],[[2,3],[5,4]],
+ [[1,0,1],[0,1,0],[1,0,1]],[[4,1,5],[1,1,1],[3,1,2]],[[2,0,3],[0,1,0],[5,0,4]],
+ [[1,4,0],[4,0,2],[0,2,1]],[[3,2,3],[4,5,4],[3,2,3]],[[2,1,3],[0,4,5],[5,3,1]]];
+const BD_PRACTICE=[[1,0],[0,0]];
+function bdLimit(p){return p.length===2?60:120;}
+function bdScore(p,sec){const lim=bdLimit(p);if(sec==null||sec>lim)return 0;const base=p.length===2?2:4,maxB=p.length===2?2:3;return base+Math.max(0,Math.floor(maxB*(1-sec/lim)+0.0001));}
+const BD_MAX=BD_ITEMS.reduce((a,p)=>a+(p.length===2?4:7),0);
+
+/* --- Span sequences (fixed seeds so every participant sees the same items) --- */
+function spanSeqs(seed,from,to,pool){const r=mulberry32(seed),out=[];for(let L=from;L<=to;L++)for(let t=0;t<2;t++){const s=[];while(s.length<L){const d=pool[Math.floor(r()*pool.length)];if(!s.includes(d))s.push(d);}out.push(s);}return out;}
+const DS_PARTS=[{key:"F",name:"Forward",seqs:spanSeqs(11,2,9,[1,2,3,4,5,6,7,8,9])},{key:"B",name:"Backward",seqs:spanSeqs(23,2,8,[1,2,3,4,5,6,7,8,9])},{key:"S",name:"Sequencing",seqs:spanSeqs(37,2,9,[1,2,3,4,5,6,7,8,9])}];
+function dsExpected(part,seq){return part==="F"?seq.join(""):part==="B"?seq.slice().reverse().join(""):seq.slice().sort((a,b)=>a-b).join("");}
+const SP_SEQS=spanSeqs(53,2,9,[0,1,2,3,4,5,6,7,8]);
+const SP_POS=[[10,62],[28,14],[48,46],[74,10],[86,56],[62,80],[32,84],[8,24],[66,36]];
+
+/* --- Glyphs for coding / symbol search: 4 outlines x 6 inner marks --- */
+function glyphSVG(id,size){
+  const b=Math.floor(id/6)%4,m=id%6,s='stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  const base=[`<circle cx="20" cy="20" r="14" ${s}/>`,`<rect x="6" y="6" width="28" height="28" ${s}/>`,`<polygon points="20,4 36,34 4,34" ${s}/>`,`<polygon points="20,3 37,20 20,37 3,20" ${s}/>`][b];
+  const mk=["",`<circle cx="20" cy="22" r="3" fill="currentColor"/>`,`<line x1="12" y1="22" x2="28" y2="22" ${s}/>`,`<line x1="20" y1="13" x2="20" y2="30" ${s}/>`,`<line x1="13" y1="29" x2="27" y2="15" ${s}/>`,`<line x1="13" y1="15" x2="27" y2="29" ${s}/>`][m];
+  return `<svg viewBox="0 0 40 40" width="${size||40}" height="${size||40}" aria-hidden="true">${base}${mk}</svg>`;
+}
+const CD_KEY=[0,7,14,21,2,9,16,23,4]; /* glyph for digits 1..9 */
+const CD_BTN_ORDER=[4,0,7,2,8,5,1,6,3]; /* answer buttons in a different order from the key */
+const CD_SEQ=(()=>{const r=mulberry32(71),s=[];while(s.length<250){const d=1+Math.floor(r()*9);if(d!==s[s.length-1])s.push(d);}return s;})();
+const SS_TRIALS=(()=>{const r=mulberry32(89),out=[];for(let i=0;i<150;i++){const pick=()=>Math.floor(r()*24);let t1=pick(),t2;do{t2=pick();}while(t2===t1);
+  const g=[];while(g.length<5){const x=pick();if(x!==t1&&x!==t2&&!g.includes(x))g.push(x);}const present=r()<0.5;if(present)g[Math.floor(r()*5)]=r()<0.5?t1:t2;out.push({t:[t1,t2],g,present});}return out;})();
+const BAT_TIMED_SEC=90;
+
+/* --- Provisional norms: expert priors for adults, scaled by an age-band development factor.
+       Replaced automatically by local norms once 30+ valid batteries exist in a band. --- */
+const BAT_PRIOR={SI:[20,4.5],VC:[10.5,3],BD:[36,10],SR:[5,2],MR:[6.5,2.2],FW:[8.5,3],DS:[26,5],SP:[9,2.5],CD:[52,11],SS:[34,9]};
+const BAT_MAX={SI:28,VC:16,BD:BD_MAX,SR:8,MR:10,FW:14,DS:46,SP:16,CD:250,SS:150};
+const BAT_AGEF={"11–12":0.78,"13–14":0.86,"15–16":0.93,"17–18":0.97,"19–25":1,"26+":0.97,"Unknown":1};
+const BAT_NORM_MIN=30;
+function normalCdf(z){const t=1/(1+0.2316419*Math.abs(z)),d=0.3989423*Math.exp(-z*z/2);const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function batNormFor(key,band,pool){
+  const g=(pool||[]).filter(r=>r.p.band===band).map(r=>r.raw[key]).filter(v=>v!=null);
+  if(g.length>=BAT_NORM_MIN){const m=meanOf(g),sd=Math.sqrt(variance(g))||1;return {m,sd,local:true,n:g.length};}
+  const f=BAT_AGEF[band]||1,[m,sd]=BAT_PRIOR[key];return {m:m*f,sd:sd*Math.sqrt(f),local:false,n:g.length};
+}
+function scaledScore(raw,nm){return Math.max(1,Math.min(19,Math.round(10+3*(raw-nm.m)/nm.sd)));}
+function composite(sum,k,r){const mean=10*k,sd=3*Math.sqrt(k+k*(k-1)*r);return Math.max(40,Math.min(160,Math.round(100+15*(sum-mean)/sd)));}
+function wechslerBand(s){if(s>=130)return"Extremely high";if(s>=120)return"Very high";if(s>=110)return"High average";if(s>=90)return"Average";if(s>=80)return"Low average";if(s>=70)return"Very low";return"Extremely low";}
+const REL={index:0.85,FSIQ:0.93,GAI:0.91,CPI:0.86}; /* assumed until estimated from local data */
+function ci90(score,rel){const h=Math.round(1.645*15*Math.sqrt(1-rel));return [score-h,score+h];}
+function scoreBattery(rec,pool){
+  const band=rec.p.band,ss={},norms={};
+  BAT_SUBS.forEach(s=>{const nm=batNormFor(s.key,band,pool);norms[s.key]=nm;ss[s.key]=scaledScore(rec.raw[s.key],nm);});
+  const idx={};BAT_INDEX_ORDER.forEach(k=>{const sum=BAT_INDEX[k].subs.reduce((a,s)=>a+ss[s],0);const sc=composite(sum,2,0.6);idx[k]={sum,score:sc,ci:ci90(sc,REL.index),pct:Math.round(normalCdf((sc-100)/15)*100),band:wechslerBand(sc)};});
+  const comp=(subs,r,rel)=>{const sum=subs.reduce((a,s)=>a+ss[s],0),sc=composite(sum,subs.length,r);return {sum,score:sc,ci:ci90(sc,rel),pct:Math.round(normalCdf((sc-100)/15)*100),band:wechslerBand(sc)};};
+  const FSIQ=comp(FSIQ_SUBS,0.45,REL.FSIQ),GAI=comp(GAI_SUBS,0.5,REL.GAI),CPI=comp(CPI_SUBS,0.4,REL.CPI);
+  const scores=BAT_INDEX_ORDER.map(k=>idx[k].score),mIdx=meanOf(scores),spread=Math.max(...scores)-Math.min(...scores);
+  const sw={};BAT_INDEX_ORDER.forEach(k=>{const d=idx[k].score-mIdx;sw[k]=d>=12?"S":d<=-12?"W":"";});
+  const local=Object.values(norms).every(n=>n.local);
+  return {ss,idx,FSIQ,GAI,CPI,sw,spread,meanIdx:mIdx,local,normN:norms.SI.n};
+}
+
+if(typeof module!=="undefined")module.exports={BAT_SUBS,SIM_ITEMS,VOC_ITEMS,FW_ITEMS,BD_ITEMS,DS_PARTS,SP_SEQS,CD_SEQ,SS_TRIALS,scoreBattery,bdScore,dsExpected,BAT_MAX};
+
+/* ===== BATTERY UI ===== */
+let BAT_T=[];
+function batClear(){BAT_T.forEach(t=>{clearInterval(t);clearTimeout(t);});BAT_T=[];document.onkeydown=null;}
+const later=(f,ms)=>{const t=setTimeout(f,ms);BAT_T.push(t);return t;};
+const every=(f,ms)=>{const t=setInterval(f,ms);BAT_T.push(t);return t;};
+function batSaveProgress(){try{localStorage.setItem("psy-bat",JSON.stringify({p:S.participant,res:S.run.res,i:S.run.i,start:S.run.start}));}catch(e){}}
+function batLoadProgress(){try{return JSON.parse(localStorage.getItem("psy-bat")||"null");}catch(e){return null;}}
+function batClearProgress(){try{localStorage.removeItem("psy-bat");}catch(e){}}
+function startBattery(resume){
+  if(resume){const pr=batLoadProgress();if(!pr)return;S.participant=pr.p;S.run={type:"bat",i:pr.i,res:pr.res,start:pr.start,phase:"menu"};}
+  else S.run={type:"bat",i:0,res:{},start:Date.now(),phase:"menu"};
+  batSaveProgress();setView("bat");
+}
+function batView(){
+  const r=S.run;
+  if(r.phase==="sub")return `<div class="stack"><div class="spread"><p class="eyebrow">Cognitive battery · Subtest ${r.i+1} of ${BAT_SUBS.length} · ${BAT_SUBS[r.i].name}</p><span class="small muted">${esc(S.participant.name)}</span></div><div id="sub"></div></div>`;
+  const nx=BAT_SUBS[r.i];
+  return `<div class="stack"><section class="card stack">
+    <div class="spread"><div><p class="eyebrow">Cognitive Profile Battery · ${esc(S.participant.name)}</p><h2>${r.i===0?"Ready to begin":"Subtest complete. Take a short break if needed."}</h2></div><span class="small muted">${r.i} of ${BAT_SUBS.length} done</span></div>
+    <div class="progress" aria-hidden="true"><i style="width:${r.i/BAT_SUBS.length*100}%"></i></div>
+    <div class="subgrid">${BAT_SUBS.map((s,k)=>`<div class="subitem ${k<r.i?"done":k===r.i?"next":""}"><span class="num">${k+1}</span><span>${s.name}<br><span class="small muted">${BAT_INDEX[s.idx].name}</span></span></div>`).join("")}</div>
+  </section>
+  <section class="card stack"><p class="eyebrow">Next · about ${nx.mins} minutes</p><h2>${nx.name}</h2><p>${nx.desc}</p>
+    <div class="row"><button class="btn" id="bgo">Start ${nx.name}</button><button class="btn ghost" id="bexit">Save and continue later</button></div>
+    <p class="small muted">Progress is kept on this device after each subtest, so the battery can be split across two sittings on the same day.</p></section></div>`;
+}
+function batMount(){
+  const sub=BAT_SUBS[S.run.i],el=$("#sub");
+  BAT_RUN[sub.key](el,res=>{batClear();S.run.res[sub.key]=res;S.run.i++;batSaveProgress();window.scrollTo(0,0);
+    if(S.run.i>=BAT_SUBS.length)finishBattery();else{S.run.phase="menu";render();}});
+}
+function subIntro(el,title,html,onStart,label){
+  el.innerHTML=`<section class="card stack"><p class="eyebrow">${title}</p><div class="prose">${html}</div><div><button class="btn" id="go">${label||"Start"}</button></div></section>`;
+  el.querySelector("#go").onclick=onStart;el.querySelector("#go").focus();
+}
+
+/* ---------- generic multiple-choice runner ---------- */
+function runMC(el,cfg,done){
+  const n=cfg.items.length,credits=[],choices=[],times=[];let i=0,zeros=0,t0=0,sel=-1,tick=null;
+  function show(){
+    sel=-1;t0=Date.now();const it=cfg.items[i];
+    el.innerHTML=`<section class="card stack"><div class="spread"><p class="eyebrow">${cfg.name} · Item ${i+1} of ${n}</p>${cfg.limit?`<span class="timer" id="it">${cfg.limit}s</span>`:""}</div>
+      ${it.prompt?`<h2>${it.prompt}</h2>`:""}${it.fig?`<div style="padding:6px 0">${it.fig}</div>`:""}
+      <div class="opts ${cfg.cls}">${it.opts.map((o,k)=>`<button class="opt" data-o="${k}" aria-pressed="false" style="color:var(--ink)"><span class="lbl">${LETTERS[k]}</span>${o}</button>`).join("")}</div>
+      <div class="spread"><span class="small muted">${cfg.hint||""}</span><button class="btn" id="nx" disabled>Next</button></div></section>`;
+    el.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{sel=+b.dataset.o;el.querySelectorAll("[data-o]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));el.querySelector("#nx").disabled=false;});
+    el.querySelector("#nx").onclick=()=>next(sel);
+    if(cfg.limit)tick=every(()=>{const rem=cfg.limit-(Date.now()-t0)/1000,e=el.querySelector("#it");if(e){e.textContent=Math.ceil(Math.max(0,rem))+"s";e.classList.toggle("low",rem<10);}if(rem<=0)next(sel);},250);
+  }
+  function next(c){
+    if(tick){clearInterval(tick);tick=null;}
+    const cr=c>=0?cfg.items[i].credit[c]:0;credits.push(cr);choices.push(c);times.push(+((Date.now()-t0)/1000).toFixed(1));zeros=cr===0?zeros+1:0;i++;
+    if(i>=n||(cfg.disc&&zeros>=cfg.disc)){const disc=i<n;while(credits.length<n){credits.push(0);choices.push(-2);times.push(0);}done({raw:credits.reduce((a,b)=>a+b,0),items:credits,choices,times,disc});}
+    else show();
+  }
+  show();
+}
+function matrixFig(def){return `<div class="matrix">${[0,1,2].map(rr=>[0,1,2].map(cc=>rr===2&&cc===2?`<div class="q">?</div>`:`<div>${cellSVG(def.f(rr,cc))}</div>`).join("")).join("")}</div>`;}
+const FW_COL={C:"var(--accent)",S:"var(--mark)",T:"var(--good)",D:"var(--bad)",R:"var(--ink)"};
+function fwGlyph(ch){const c=FW_COL[ch],s=`fill="${c}"`;
+  const g={C:`<circle cx="12" cy="12" r="9" ${s}/>`,S:`<rect x="3" y="3" width="18" height="18" ${s}/>`,T:`<polygon points="12,2 22,21 2,21" ${s}/>`,D:`<polygon points="12,1 23,12 12,23 1,12" ${s}/>`,R:`<polygon points="12,1 15,9 23,9 17,14 19,22 12,17 5,22 7,14 1,9 9,9" ${s}/>`}[ch];
+  return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">${g}</svg>`;}
+function fwPan(str){return `<span class="pan">${[...str].map(fwGlyph).join("")}</span>`;}
+function fwFig(it){return `<div class="stack" style="gap:8px;align-items:center">${it.eq.map(([l,r],k)=>`<div class="scale-row"><span class="small muted">Scale ${k+1}</span>${fwPan(l)}<span class="eqs">balances</span>${fwPan(r)}</div>`).join("")}
+  <div class="scale-row ask"><span class="small muted">Question</span>${fwPan(it.q)}<span class="eqs">balances</span><span class="pan qm">?</span></div></div>`;}
+const BAT_RUN={
+SI(el,done){subIntro(el,"Similarities",`<h2>How are two things alike?</h2><p>You will see two words. Choose the answer that <b>best</b> says how they are alike. Some answers are partly right; the best answer names the most important thing they have in common.</p><p class="note">Example: <b>RED</b> and <b>BLUE</b>. “Both are colours” is the best answer. “Both are in the flag” is only partly right.</p>`,()=>{
+  const items=SIM_ITEMS.map((it,k)=>{const opts=seededShuffle(it.slice(2),500+k);return {prompt:`How are <b>${it[0]}</b> and <b>${it[1]}</b> alike?`,opts:opts.map(o=>esc(o[0])),credit:opts.map(o=>o[1])};});
+  runMC(el,{name:"Similarities",items,cls:"txt one",disc:4,hint:"Choose the best answer, then Next."},done);});},
+VC(el,done){subIntro(el,"Vocabulary",`<h2>Which word means the same?</h2><p>Choose the word or phrase closest in meaning to the word in capitals. The words get harder; a careful guess is fine.</p>`,()=>{
+  const items=VOC_ITEMS.map(it=>({prompt:`Which means the same as <b>${it[0]}</b>?`,opts:it[1].map(esc),credit:it[1].map((_,k)=>k===it[2]?1:0)}));
+  runMC(el,{name:"Vocabulary",items,cls:"txt",disc:4},done);});},
+MR(el,done){subIntro(el,"Matrix Reasoning",`<h2>Complete the pattern</h2><p>Each puzzle is a 3 × 3 grid with the bottom-right piece missing. Look across rows and down columns to find the rule, then pick the piece that fits. You have <b>60 seconds</b> per puzzle.</p>`,()=>{
+  const items=MATRIX_DEFS.map((d,k)=>{const o=matrixOptions(d,101+k);return {prompt:"Which piece completes the pattern?",fig:matrixFig(d),opts:o.opts.map(cellSVG),credit:o.opts.map((_,j)=>j===o.answer?1:0)};});
+  runMC(el,{name:"Matrix Reasoning",items,cls:"fig",disc:4,limit:60},done);});},
+SR(el,done){subIntro(el,"Shape Rotation",`<h2>Same shape, only turned</h2><p>Pick the option that is the shape at the top <b>turned around</b> on the page. Options that are flipped over (mirror images) are wrong. You have <b>45 seconds</b> per item.</p>`,()=>{
+  const items=ROT_DEFS.map((d,k)=>{const o=rotationOptions(d,301+k);return {prompt:"Which option is this shape turned, not flipped?",fig:`<div class="target" style="display:grid;place-items:center;color:var(--ink)">${polySVG(normCells(d.cells))}</div>`,opts:o.opts.map(polySVG),credit:o.opts.map((_,j)=>j===o.answer?1:0)};});
+  runMC(el,{name:"Shape Rotation",items,cls:"fig",disc:4,limit:45},done);});},
+FW(el,done){subIntro(el,"Balance Puzzles",`<h2>What balances the scale?</h2><p>The scales show which shapes weigh the same. Use them to work out what balances the question scale. You have <b>40 seconds</b> per puzzle.</p><div class="note">${fwFig({eq:[["C","SS"]],q:"C"})}<p class="small" style="margin-top:8px">Here one circle balances two squares, so the answer to “one circle balances ?” is two squares.</p></div>`,()=>{
+  const items=FW_ITEMS.map(it=>({prompt:"",fig:fwFig(it),opts:it.opts.map(fwPan),credit:it.opts.map((_,k)=>k===it.a?1:0)}));
+  runMC(el,{name:"Balance Puzzles",items,cls:"txt",disc:3,limit:40},done);});},
+
+BD(el,done){
+  const face=(f,sz)=>{if(f==null)return `<svg viewBox="0 0 40 40" width="${sz}" height="${sz}" aria-hidden="true"><rect x="1" y="1" width="38" height="38" fill="none" stroke="var(--muted)" stroke-dasharray="4 3"/></svg>`;
+    const P={1:"0,0 40,0 40,40 0,40",2:"0,0 40,0 0,40",3:"0,0 40,0 40,40",4:"40,0 40,40 0,40",5:"0,0 40,40 0,40"}[f];
+    return `<svg viewBox="0 0 40 40" width="${sz}" height="${sz}" aria-hidden="true"><rect x="0" y="0" width="40" height="40" fill="#fbfbf8"/>${P?`<polygon points="${P}" fill="#c23b32"/>`:""}<rect x="0.5" y="0.5" width="39" height="39" fill="none" stroke="#8a8f88"/></svg>`;};
+  const scores=[],times=[];let i=0,zeros=0;
+  function item(pat,practice){
+    const n=pat.length,grid=pat.map(r=>r.map(()=>null));let sel=1,t0=Date.now(),fin=false;const lim=bdLimit(pat);
+    el.innerHTML=`<section class="card stack"><div class="spread"><p class="eyebrow">Block Patterns · ${practice?"Practice":`Item ${i+1} of ${BD_ITEMS.length}`}</p>${practice?"":`<span class="timer" id="bt">${lim}s</span>`}</div>
+      <h2>${practice?"Practice: copy the pattern on the left":"Copy the pattern"}</h2>
+      <div class="bdwrap"><div><p class="small muted">Pattern</p><div class="bdgrid" style="grid-template-columns:repeat(${n},48px)">${pat.flat().map(f=>face(f,48)).join("")}</div></div>
+      <div><p class="small muted">Your copy: tap a square to place the selected block</p><div class="bdgrid work" style="grid-template-columns:repeat(${n},64px)" id="work">${grid.flat().map((f,k)=>`<button data-c="${k}" aria-label="Square ${k+1}">${face(f,64)}</button>`).join("")}</div></div></div>
+      <div><p class="small muted">Blocks</p><div class="faces">${[0,1,2,3,4,5].map(f=>`<button data-f="${f}" aria-pressed="${f===sel}" aria-label="Block face ${f+1}">${face(f,44)}</button>`).join("")}</div></div>
+      <div class="spread"><span class="small muted" id="bmsg">${practice?"Take your time. The next items are timed, and faster correct copies score more.":""}</span>${practice?"":`<button class="btn ghost" id="bskip">I can't do this one</button>`}</div></section>`;
+    el.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{sel=+b.dataset.f;el.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));});
+    el.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{if(fin)return;const k=+b.dataset.c;grid[Math.floor(k/n)][k%n]=sel;b.innerHTML=face(sel,64);
+      if(grid.every((row,r)=>row.every((f,c)=>f===pat[r][c]))){fin=true;const sec=(Date.now()-t0)/1000;el.querySelector("#bmsg").textContent="Correct!";
+        later(()=>practice?startItems():finish(bdScore(pat,sec),sec),700);}});
+    if(!practice){
+      const tk=every(()=>{const rem=lim-(Date.now()-t0)/1000,e=el.querySelector("#bt");if(e){e.textContent=Math.ceil(Math.max(0,rem))+"s";e.classList.toggle("low",rem<10);}if(rem<=0&&!fin){fin=true;clearInterval(tk);finish(0,null);}},250);
+      el.querySelector("#bskip").onclick=()=>{if(fin)return;fin=true;clearInterval(tk);finish(0,null);};}
+    function finish(sc,sec){BAT_T.forEach(t=>clearInterval(t));scores.push(sc);times.push(sec==null?null:+sec.toFixed(1));zeros=sc===0?zeros+1:0;i++;
+      if(i>=BD_ITEMS.length||zeros>=3){const disc=i<BD_ITEMS.length;while(scores.length<BD_ITEMS.length){scores.push(0);times.push(null);}done({raw:scores.reduce((a,b)=>a+b,0),items:scores,times,disc});}
+      else item(BD_ITEMS[i],false);}
+  }
+  function startItems(){item(BD_ITEMS[0],false);}
+  subIntro(el,"Block Patterns",`<h2>Copy red-and-white patterns</h2><p>Each block has six faces: all white, all red, and four half-red faces split along the diagonal. Pick a face from the row of blocks, then tap a square in your copy to place it. When your copy matches, the next pattern appears automatically.</p><p>Patterns get bigger and harder. Each has a time limit and <b>faster correct copies score bonus points</b>.</p>`,()=>item(BD_PRACTICE,true),"Try the practice pattern");
+},
+
+DS(el,done){
+  const trials=[],longest={F:0,B:0,S:0};let pi=0;
+  const instr={F:["Forward","Numbers will appear one at a time. When they finish, type them <b>in the same order</b>.","3 · 8 · 6","386"],
+    B:["Backward","Now type the numbers <b>in reverse order</b>, starting with the last one.","3 · 8 · 6","683"],
+    S:["Sequencing","Now type the numbers <b>from smallest to largest</b>, whatever order they appeared in.","7 · 2 · 5","257"]};
+  function part(){
+    const P=DS_PARTS[pi],[nm,txt,ex,ans]=instr[P.key];
+    subIntro(el,`Digit Span · ${nm}`,`<h2>${nm}</h2><p>${txt}</p><p class="note">Example: if you see <b>${ex}</b>, type <b>${ans}</b>.</p><p class="small muted">Each number shows for about one second. Don't write anything down.</p>`,()=>practice(P),"Try a practice one");
+  }
+  function present(seq,cb){
+    el.innerHTML=`<section class="card stack" style="align-items:center"><p class="eyebrow">Watch carefully</p><div class="span-box" id="sb"></div></section>`;
+    const sb=el.querySelector("#sb");let k=0;
+    const step=()=>{if(k>=seq.length){sb.textContent="";later(cb,400);return;}sb.textContent=seq[k++];later(()=>{sb.textContent="";later(step,200);},800);};later(step,700);
+  }
+  function ask(label,cb){
+    el.innerHTML=`<section class="card stack" style="align-items:center"><p class="eyebrow">${label}</p><input id="dsin" class="span-in" inputmode="numeric" autocomplete="off" aria-label="Type the numbers">
+      <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${d}</button>`).join("")}<button data-d="x" aria-label="Delete">⌫</button><button data-d="ok" class="okk">Done</button></div></section>`;
+    const inp=el.querySelector("#dsin");inp.focus();inp.oninput=()=>{inp.value=inp.value.replace(/[^1-9]/g,"");};
+    inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();cb(inp.value);}};
+    el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==="x")inp.value=inp.value.slice(0,-1);else if(d==="ok")cb(inp.value);else inp.value+=d;});
+  }
+  function practice(P){const seq=P.key==="S"?[6,1,4]:[5,2];present(seq,()=>ask("Practice: type your answer",v=>{const ok=v===dsExpected(P.key,seq);
+    el.innerHTML=`<section class="card stack"><h2>${ok?"Correct.":"Not quite."}</h2><p>The numbers were <b>${seq.join(" · ")}</b>, so the answer is <b>${dsExpected(P.key,seq)}</b>.</p><div><button class="btn" id="go">Start ${P.name}</button></div></section>`;
+    el.querySelector("#go").onclick=()=>run(P,0);el.querySelector("#go").focus();}));}
+  function run(P,t){
+    if(t>=P.seqs.length)return nextPart();
+    const seq=P.seqs[t];present(seq,()=>ask(`${P.name} · ${seq.length} numbers`,v=>{const ok=v===dsExpected(P.key,seq);trials.push({part:P.key,len:seq.length,ok:ok?1:0});if(ok)longest[P.key]=Math.max(longest[P.key],seq.length);
+      if(t%2===1&&!ok&&!trials[trials.length-2].ok)return nextPart();run(P,t+1);}));
+  }
+  function nextPart(){pi++;if(pi>=DS_PARTS.length){const sc=k=>trials.filter(x=>x.part===k&&x.ok).length;done({raw:trials.filter(x=>x.ok).length,F:sc("F"),B:sc("B"),S:sc("S"),longest,trials});}else part();}
+  part();
+},
+
+SP(el,done){
+  const trials=[];let longest=0;
+  const board=lit=>`<div class="board">${SP_POS.map(([x,y],k)=>`<button class="blk ${lit===k?"lit":""}" data-b="${k}" style="left:${x}%;top:${y}%" aria-label="Block ${k+1}" disabled></button>`).join("")}</div>`;
+  function present(seq,label,cb){
+    el.innerHTML=`<section class="card stack"><div class="spread"><p class="eyebrow">${label}</p><span class="small muted" id="spm">Watch</span></div>${board(-1)}</section>`;
+    const bl=[...el.querySelectorAll(".blk")];let k=0;
+    const step=()=>{if(k>=seq.length){later(()=>respond(seq,cb),300);return;}const b=bl[seq[k++]];b.classList.add("lit");later(()=>{b.classList.remove("lit");later(step,300);},700);};later(step,800);
+  }
+  function respond(seq,cb){const bl=[...el.querySelectorAll(".blk")],got=[];el.querySelector("#spm").textContent="Now tap the blocks in the same order";
+    bl.forEach(b=>{b.disabled=false;b.onclick=()=>{got.push(+b.dataset.b);b.classList.add("tap");later(()=>b.classList.remove("tap"),250);if(got.length===seq.length){bl.forEach(x=>x.disabled=true);later(()=>cb(got.join(",")===seq.join(",")),350);}};});}
+  function run(t){if(t>=SP_SEQS.length)return fin();const seq=SP_SEQS[t];
+    present(seq,`Spatial Span · ${seq.length} blocks`,ok=>{trials.push({len:seq.length,ok:ok?1:0});if(ok)longest=Math.max(longest,seq.length);
+      if(t%2===1&&!ok&&!trials[trials.length-2].ok)return fin();run(t+1);});}
+  function fin(){done({raw:trials.filter(x=>x.ok).length,longest,trials});}
+  subIntro(el,"Spatial Span",`<h2>Remember where the blocks light up</h2><p>Some blocks will light up one after another. When they stop, tap the same blocks <b>in the same order</b>. The sequences get longer.</p>`,()=>{
+    present([2,6],"Practice",ok=>{el.innerHTML=`<section class="card stack"><h2>${ok?"Correct.":"Not quite. The order was the middle block, then the lower-left one."}</h2><div><button class="btn" id="go">Start Spatial Span</button></div></section>`;el.querySelector("#go").onclick=()=>run(0);});
+  },"Try a practice one");
+},
+
+CD(el,done){
+  const keyHTML=`<div class="cdkey">${CD_KEY.map((g,k)=>`<div><b>${k+1}</b>${glyphSVG(g,34)}</div>`).join("")}</div>`;
+  const btns=`<div class="cdbtns">${CD_BTN_ORDER.map(d=>`<button data-g="${d}" aria-label="Symbol ${d+1}">${glyphSVG(CD_KEY[d],40)}</button>`).join("")}</div>`;
+  function screen(title,timer){el.innerHTML=`<section class="card stack"><div class="spread"><p class="eyebrow">${title}</p>${timer?`<span class="timer" id="ct">${BAT_TIMED_SEC}s</span>`:`<span></span>`}</div>${keyHTML}
+    <div class="cdq"><span class="small muted">Which symbol goes with</span><span class="cdd" id="cdd"></span><span class="small muted" id="cdn"></span></div>${btns}<p class="small muted" id="cfb"></p></section>`;}
+  function practice(){const seq=[3,7,1,9,5,2];let k=0;screen("Symbol Coding · Practice",false);
+    const show=()=>{el.querySelector("#cdd").textContent=seq[k];};show();
+    el.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{const ok=+b.dataset.g===seq[k]-1;el.querySelector("#cfb").textContent=ok?"Correct.":`Not quite: ${seq[k]} goes with the symbol under ${seq[k]} in the key.`;
+      if(ok){k++;if(k>=seq.length){el.querySelector("#cfb").innerHTML=`<button class="btn" id="go">Start the 90-second task</button>`;el.querySelector("#go").onclick=main;}else show();}});}
+  function main(){screen("Symbol Coding",true);let k=0,correct=0,errors=0;const t0=Date.now();
+    const show=()=>{el.querySelector("#cdd").textContent=CD_SEQ[k];el.querySelector("#cdn").textContent=`next: ${CD_SEQ.slice(k+1,k+4).join("  ")}`;};show();
+    el.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{if(+b.dataset.g===CD_SEQ[k]-1)correct++;else errors++;k++;if(k>=CD_SEQ.length)end();else show();});
+    const end=()=>{batClear();done({raw:correct,errors,attempted:k});};
+    every(()=>{const rem=BAT_TIMED_SEC-(Date.now()-t0)/1000,e=el.querySelector("#ct");if(e){e.textContent=Math.ceil(Math.max(0,rem))+"s";e.classList.toggle("low",rem<10);}if(rem<=0)end();},250);}
+  subIntro(el,"Symbol Coding",`<h2>Match numbers to symbols, fast</h2><p>The key at the top shows which symbol goes with each number. A number appears in the middle: tap the symbol that goes with it. Work <b>as quickly as you can without making mistakes</b>. The task lasts 90 seconds.</p>`,practice,"Try the practice");
+},
+
+SS(el,done){
+  function screen(title,timer){el.innerHTML=`<section class="card stack"><div class="spread"><p class="eyebrow">${title}</p>${timer?`<span class="timer" id="st">${BAT_TIMED_SEC}s</span>`:`<span></span>`}</div>
+    <div class="ssrow"><div class="sst" id="sst"></div><div class="ssg" id="ssg"></div></div>
+    <div class="row" style="justify-content:center"><button class="btn" data-a="1" style="min-width:120px">Yes (Y)</button><button class="btn" data-a="0" style="min-width:120px">No (N)</button></div><p class="small muted" id="sfb" style="text-align:center"></p></section>`;}
+  const draw=tr=>{el.querySelector("#sst").innerHTML=tr.t.map(g=>glyphSVG(g,44)).join("");el.querySelector("#ssg").innerHTML=tr.g.map(g=>glyphSVG(g,44)).join("");};
+  function bindAns(f){el.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>f(b.dataset.a==="1"));document.onkeydown=e=>{const k=e.key.toLowerCase();if(k==="y")f(true);else if(k==="n")f(false);};}
+  function practice(){const P=SS_TRIALS.slice(146,150);let k=0;screen("Symbol Search · Practice",false);draw(P[0]);
+    bindAns(a=>{const ok=a===P[k].present;el.querySelector("#sfb").textContent=ok?"Correct.":`Not quite: a target ${P[k].present?"is":"is not"} in the row.`;
+      if(ok){k++;if(k>=P.length){document.onkeydown=null;el.querySelector("#sfb").innerHTML=`<button class="btn" id="go">Start the 90-second task</button>`;el.querySelector("#go").onclick=main;}else draw(P[k]);}});}
+  function main(){screen("Symbol Search",true);let k=0,correct=0,errors=0;const t0=Date.now();draw(SS_TRIALS[0]);
+    const end=()=>{batClear();done({raw:Math.max(0,correct-errors),correct,errors,attempted:k});};
+    bindAns(a=>{if(a===SS_TRIALS[k].present)correct++;else errors++;k++;if(k>=146)end();else draw(SS_TRIALS[k]);});
+    every(()=>{const rem=BAT_TIMED_SEC-(Date.now()-t0)/1000,e=el.querySelector("#st");if(e){e.textContent=Math.ceil(Math.max(0,rem))+"s";e.classList.toggle("low",rem<10);}if(rem<=0)end();},250);}
+  subIntro(el,"Symbol Search",`<h2>Is a target symbol in the row?</h2><p>On the left are two target symbols. Look at the row on the right. If <b>either</b> target appears in the row, answer <b>Yes</b>; otherwise <b>No</b>. Use the buttons or the Y and N keys. Work fast but accurately: wrong answers are subtracted. The task lasts 90 seconds.</p>`,practice,"Try the practice");
+}};
+
+async function finishBattery(){
+  const r=S.run,res=r.res,raw={};BAT_SUBS.forEach(s=>raw[s.key]=res[s.key].raw);
+  const flags=[];
+  if(res.CD.attempted&&res.CD.errors/res.CD.attempted>0.15)flags.push(`Symbol Coding error rate ${Math.round(res.CD.errors/res.CD.attempted*100)}%`);
+  if(res.SS.attempted&&res.SS.errors/res.SS.attempted>0.25)flags.push(`Symbol Search error rate ${Math.round(res.SS.errors/res.SS.attempted*100)}%`);
+  if(res.DS.longest.F<3)flags.push("Digit Span forward below 3, check the task was understood");
+  const fast=["SI","VC","MR","FW","SR"].reduce((a,k)=>a+res[k].times.filter((t,j)=>res[k].choices[j]>=0&&t<2).length,0);
+  if(fast>=8)flags.push(`${fast} reasoning answers given in under 2 seconds`);
+  const rec={id:"bt-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:Date.now(),type:"battery",p:pubP(),raw,res,
+    durationSec:Math.round((Date.now()-r.start)/1000),validity:{flags,valid:flags.length===0},version:"1.0"};
+  const sc=scoreBattery(rec,validBat());rec.snapshot={FSIQ:sc.FSIQ.score,GAI:sc.GAI.score,CPI:sc.CPI.score,...Object.fromEntries(BAT_INDEX_ORDER.map(k=>[k,sc.idx[k].score])),local:sc.local};
+  S.run=null;batClearProgress();await saveRecord(rec);S.report=rec;S.reportFrom="home";setView("report");
+}
+function validBat(){return allRecords().filter(r=>r.type==="battery"&&r.validity&&r.validity.valid);}
+
+/* ---------- battery report ---------- */
+function batReport(rec){
+  const sc=scoreBattery(rec,validBat()),X=v=>Math.max(0,Math.min(100,(v-40)/120*100));
+  const strong=BAT_INDEX_ORDER.filter(k=>sc.sw[k]==="S"),weak=BAT_INDEX_ORDER.filter(k=>sc.sw[k]==="W");
+  const idxRow=(label,o,tag)=>`<div class="idxrow"><div><b>${label}</b>${tag?` <span class="pill ${tag==="S"?"ok":"warn"}">${tag==="S"?"Relative strength":"Relative weakness"}</span>`:""}<div class="small muted">${o.band} · percentile ${o.pct}</div></div>
+    <div class="idxtrack"><span class="avg" style="left:${X(85)}%;width:${X(115)-X(85)}%"></span><span class="l100" style="left:${X(100)}%"></span><span class="cib" style="left:${X(o.ci[0])}%;width:${X(o.ci[1])-X(o.ci[0])}%"></span><span class="dot" style="left:${X(o.score)}%"></span></div><span class="num" style="font-size:1.15rem">${o.score}</span></div>`;
+  const ds=rec.res.DS;
+  const story=[];
+  story.push(`${esc(rec.p.name)}'s overall score (FSIQ ${sc.FSIQ.score}) falls in the <b>${sc.FSIQ.band.toLowerCase()}</b> range, higher than about ${sc.FSIQ.pct}% of people of the same age${sc.local?" in your local sample":""}.`);
+  if(strong.length)story.push(`Relative strength in ${strong.map(k=>BAT_INDEX[k].name).join(" and ")}, compared with the participant's own average.`);
+  if(weak.length)story.push(`Relative weakness in ${weak.map(k=>BAT_INDEX[k].name).join(" and ")}. Use it to target support, not as a diagnosis.`);
+  if(!strong.length&&!weak.length)story.push("The five index scores are fairly even, so the overall score summarises the profile well.");
+  if(sc.spread>=23)story.push(`The index scores differ by ${sc.spread} points. With a spread this large, describe the profile index by index rather than relying on one overall number. The General Ability Index (${sc.GAI.score}) leaves out memory and speed and may better reflect reasoning ability.`);
+  if(ds.longest.F-ds.longest.B>=3)story.push(`Forward span (${ds.longest.F}) is much longer than backward span (${ds.longest.B}). This suggests holding information is easier than mentally manipulating it.`);
+  return `<section class="card stack">${reportHead(rec)}
+    <div class="score-hero">
+      <div><p class="eyebrow">Full Scale IQ ${sc.local?"(local norms)":"(provisional)"}</p><div class="big">${sc.FSIQ.score}</div><p class="small muted">90% range ${sc.FSIQ.ci[0]}–${sc.FSIQ.ci[1]} · ${sc.FSIQ.band} · percentile ${sc.FSIQ.pct}</p></div>
+      <div><p class="eyebrow">General Ability Index</p><div class="big" style="font-size:2.2rem">${sc.GAI.score}</div><p class="small muted">Reasoning without memory &amp; speed</p></div>
+      <div><p class="eyebrow">Cognitive Proficiency Index</p><div class="big" style="font-size:2.2rem">${sc.CPI.score}</div><p class="small muted">Memory &amp; speed</p></div>
+    </div>${validityBox(rec)}</section>
+  <section class="card stack"><div class="spread"><h3>Index profile</h3><span class="small muted">Shaded = average range 85–115 · bar = 90% confidence range</span></div>
+    ${BAT_INDEX_ORDER.map(k=>idxRow(BAT_INDEX[k].name,sc.idx[k],sc.sw[k])).join("")}
+    <div class="idxrow axisrow"><span></span><div class="ci-labels"><span>40</span><span>70</span><span>100</span><span>130</span><span>160</span></div><span></span></div>
+    ${idxRow("Full Scale IQ",sc.FSIQ,"")}</section>
+  <section class="card stack"><div class="spread"><h3>Subtest scaled scores</h3><span class="small muted">Mean 10, SD 3 · 8–12 is average</span></div>
+    <div class="tablebox"><table class="sstable"><thead><tr><th>Index</th><th>Subtest</th><th>Raw</th><th>Scaled</th><th style="min-width:220px">1 · · · · 10 · · · · 19</th></tr></thead><tbody>
+    ${BAT_INDEX_ORDER.map(k=>BAT_INDEX[k].subs.map((s,j)=>{const sub=BAT_SUBS.find(x=>x.key===s),v=sc.ss[s];return `<tr><td>${j===0?BAT_INDEX[k].name:""}</td><td>${sub.name}${FSIQ_SUBS.includes(s)?"":' <span class="small muted">(supplemental)</span>'}</td><td>${rec.raw[s]}</td><td class="num" style="text-align:left">${v}</td>
+      <td><div class="sstrack"><span class="avg" style="left:${(7.5)/18*100}%;width:${5/18*100}%"></span><span class="dot" style="left:${(v-1)/18*100}%"></span></div></td></tr>`;}).join("")).join("")}</tbody></table></div>
+    <p class="small muted">Digit Span: longest forward ${ds.longest.F}, backward ${ds.longest.B}, sequencing ${ds.longest.S}. Symbol Coding: ${rec.res.CD.raw} correct, ${rec.res.CD.errors} errors. Symbol Search: ${rec.res.SS.correct} correct, ${rec.res.SS.errors} errors.</p></section>
+  <section class="card stack prose" style="max-width:none"><h3>Summary</h3>${story.map(s=>`<p>${s}</p>`).join("")}
+    <p class="note">${sc.local?`Scores compare this participant with ${sc.normN} valid results from the same age band collected with this battery.`:`Scores are provisional: they use estimated age norms until ${BAT_NORM_MIN} valid batteries exist for age band ${esc(rec.p.band)} (currently ${sc.normN}). They then switch to local norms automatically.`} This battery follows the Wechsler index structure but uses original, unstandardised items. It is a screening and counselling tool, not a WAIS or WISC result, and must not be used for diagnosis.</p></section>`;
+}
+
+/* ===== UI ===== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LIK=["Very inaccurate","Moderately inaccurate","Neither accurate nor inaccurate","Moderately accurate","Very accurate"];
+const LIKE=["Strongly dislike","Dislike","Unsure","Like","Strongly like"];
+const LETTERS="ABCDEF";
+const S={view:"home",participant:null,run:null,report:null,records:[],dbRecords:[],dbState:"connecting",filter:"all"};
+let DB=null,DL=null,timerId=null;
+
+/* ---------- storage ---------- */
+function loadLocal(){try{return JSON.parse(localStorage.getItem("psy-results")||"[]");}catch(e){return[];}}
+function saveLocal(list){try{localStorage.setItem("psy-results",JSON.stringify(list));return true;}catch(e){return false;}}
+S.records=loadLocal();
+function allRecords(){const m=new Map();[...S.records,...S.dbRecords].forEach(r=>{if(r&&r.id)m.set(r.id,r);});return [...m.values()].sort((a,b)=>b.ts-a.ts);}
+async function saveRecord(rec){
+  if(DB){try{await DB.collection("results").doc(rec.id).set(rec);rec._where="shared";return;}catch(e){/* fall through */}}
+  S.records.push(rec);rec._where=saveLocal(S.records)?"device":"session";
+}
+(async()=>{
+  if(typeof claude==="undefined"||!claude.use){S.dbState="off";return;}
+  try{DL=await claude.use("downloads");}catch(e){DL=null;}
+  try{DB=await claude.use("db");}catch(e){DB=null;}
+  if(!DB){S.dbState="off";if(S.view==="results")render();return;}
+  const t=setTimeout(()=>{S.dbState="slow";if(S.view==="results")render();},10000);
+  DB.collection("results").orderBy("ts","desc").limit(1000).onSnapshot(snap=>{
+    if(!snap.metadata.fromCache){clearTimeout(t);S.dbState="live";}
+    S.dbRecords=snap.docs.map(d=>d.data());if(S.view==="results")render();
+  },err=>{clearTimeout(t);S.dbState="error";if(S.view==="results")render();});
+})();
+
+function toast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),3200);}
+async function offerFile(filename,data){
+  if(DL){try{await DL.save({filename,data});return;}catch(e){/* declined or failed: fall back to copy */}}
+  try{await navigator.clipboard.writeText(data);toast("Download isn't available here, so the content was copied to your clipboard.");}
+  catch(e){toast("Couldn't download or copy in this view.");}
+}
+function confirmBox(title,body,okLabel,onOk){
+  const m=document.createElement("div");m.className="modal";
+  m.innerHTML=`<div class="card stack" role="dialog" aria-modal="true"><h3>${title}</h3><p class="muted">${body}</p><div class="row"><button class="btn" id="mOk">${okLabel}</button><button class="btn ghost" id="mNo">Keep going</button></div></div>`;
+  document.body.appendChild(m);m.querySelector("#mOk").onclick=()=>{m.remove();onOk();};m.querySelector("#mNo").onclick=()=>m.remove();m.querySelector("#mOk").focus();
+}
+
+/* ---------- figures ---------- */
+function shapeSVG(shape,cx,cy,s,fill,rot){
+  const f=fill==="solid"?"currentColor":fill==="striped"?"url(#hatch)":"none";
+  const a=`fill="${f}" stroke="currentColor" stroke-width="3" stroke-linejoin="round"`;
+  if(shape==="circle")return `<circle cx="${cx}" cy="${cy}" r="${s/2}" ${a}/>`;
+  if(shape==="square")return `<rect x="${cx-s/2+2}" y="${cy-s/2+2}" width="${s-4}" height="${s-4}" ${a}/>`;
+  if(shape==="triangle"){const h=s/2;return `<polygon points="${cx},${cy-h} ${cx+h},${cy+h*.8} ${cx-h},${cy+h*.8}" ${a}/>`;}
+  if(shape==="arrow"){const P=[[0,-.5],[.4,-.02],[.15,-.02],[.15,.5],[-.15,.5],[-.15,-.02],[-.4,-.02]];
+    return `<polygon points="${P.map(([x,y])=>`${cx+x*s},${cy+y*s}`).join(" ")}" transform="rotate(${rot} ${cx} ${cy})" ${a}/>`;}
+  return "";
+}
+const POS={1:[[50,50]],2:[[29,50],[71,50]],3:[[50,28],[28,71],[72,71]],4:[[29,29],[71,29],[29,71],[71,71]]};
+const SZ={1:50,2:32,3:30,4:30};
+function cellSVG(c){return `<svg viewBox="0 0 100 100" width="80" height="80" aria-hidden="true">${POS[c.n].map(([x,y])=>shapeSVG(c.shape,x,y,SZ[c.n],c.fill,c.rot)).join("")}</svg>`;}
+function polySVG(cells){
+  const w=Math.max(...cells.map(p=>p[0]))+1,h=Math.max(...cells.map(p=>p[1]))+1,u=16,ox=50-w*u/2,oy=50-h*u/2;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${cells.map(([x,y])=>`<rect x="${ox+x*u}" y="${oy+y*u}" width="${u}" height="${u}" fill="currentColor" fill-opacity=".85" stroke="var(--surface)" stroke-width="1.5"/>`).join("")}</svg>`;
+}
+
+/* ---------- views ---------- */
+function setView(v){S.view=v;if(v!=="iq"&&timerId){/* keep timer if mid-test */}render();window.scrollTo(0,0);}
+document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(S.run){const bat=S.run.type==="bat";confirmBox(bat?"Leave the battery?":"Leave the test?",bat?"Completed subtests are saved on this device and can be resumed from the home page. The subtest in progress will restart.":"Your answers so far will be lost.",bat?"Leave battery":"Leave test",()=>{stopTimer();batClear();S.run=null;setView(b.dataset.v);});return;}
+  setView(b.dataset.v);});
+function render(){
+  document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",String(b.dataset.v===S.view||(S.view!=="results"&&S.view!=="science"&&b.dataset.v==="home"))));
+  const app=$("#app");
+  if(S.view==="home")app.innerHTML=homeView();
+  else if(S.view==="pers")app.innerHTML=persView();
+  else if(S.view==="iqintro")app.innerHTML=iqIntroView();
+  else if(S.view==="iq")app.innerHTML=iqView();
+  else if(S.view==="report")app.innerHTML=reportView(S.report);
+  else if(S.view==="bat")app.innerHTML=batView();
+  else if(S.view==="results")app.innerHTML=resultsView();
+  else if(S.view==="science")app.innerHTML=scienceView();
+  bind();
+}
+
+function homeView(){
+  const p=S.participant||{};
+  return `<div class="stack">
+  <section class="card stack">
+    <div><p class="eyebrow">Step 1</p><h2>Participant details</h2></div>
+    <form class="form" id="pform" novalidate>
+      <label for="pname">Name or ID code<input id="pname" required value="${esc(p.name)}" placeholder="e.g. Aarav S. or VIS-7B-12"></label>
+      <label for="page">Age (years)<input id="page" type="number" min="10" max="80" required value="${esc(p.age)}"></label>
+      <label for="pcls">Class / role<select id="pcls">${["Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12","College","Adult / parent","Teacher / staff","Counselling client"].map(o=>`<option ${p.cls===o?"selected":""}>${o}</option>`).join("")}</select></label>
+      <label for="pgen">Gender (optional)<select id="pgen">${["Prefer not to say","Female","Male","Other"].map(o=>`<option ${p.gender===o?"selected":""}>${o}</option>`).join("")}</select></label>
+    </form>
+    <label class="check" for="pcons"><input type="checkbox" id="pcons" ${p.consent?"checked":""}> <span>The participant agrees to take this assessment and to have the results stored for counselling and research. For anyone under 18, a parent or guardian has also agreed.</span></label>
+    <p class="err" id="perr" role="alert"></p>
+  </section>
+  ${(()=>{const pr=batLoadProgress();return pr?`<section class="card spread"><div><p class="eyebrow">Unfinished battery</p><h3>${esc(pr.p.name)} · ${pr.i} of ${BAT_SUBS.length} subtests done</h3></div><div class="row"><button class="btn" id="bres">Resume battery</button><button class="btn ghost" id="bdiscard">Discard</button></div></section>`:"";})()}
+  <section class="card stack feature">
+    <div class="spread"><div><p class="eyebrow">Step 2 · Full assessment</p><h2>Cognitive Profile Battery (Wechsler-style)</h2></div><span class="pill">FSIQ + 5 indices</span></div>
+    <p class="muted">Ten subtests in the same five-index structure as the WAIS and WISC: Verbal Comprehension, Visual Spatial, Fluid Reasoning, Working Memory and Processing Speed. Includes interactive block patterns, digit and spatial span, and timed speed tasks. Gives a Full Scale IQ, General Ability Index, index profile with strengths and weaknesses, and subtest scaled scores.</p>
+    <div class="facts"><span><b>10</b> subtests</span><span><b>45–55</b> minutes, can pause between subtests</span><span>Ages <b>11+</b></span><span>Best on a laptop or tablet</span></div>
+    <div><button class="btn" data-start="bat">Start cognitive battery</button></div>
+  </section>
+  <div class="grid2">
+    <section class="card stack">
+      <div><p class="eyebrow">Step 2 · Personality</p><h2>Personality &amp; career interests</h2></div>
+      <p class="muted">50 IPIP Big Five statements plus 36 RIASEC activities. Untimed. Gives a five-trait profile, a three-letter Holland career code and a response-quality check.</p>
+      <div class="facts"><span><b>88</b> items</span><span><b>12–18</b> minutes</span><span>Ages <b>12+</b></span></div>
+      <div><button class="btn" data-start="pers">Start personality test</button></div>
+    </section>
+    <section class="card stack">
+      <div><p class="eyebrow">Step 2 · Quick screen</p><h2>Reasoning test (IQ estimate)</h2></div>
+      <p class="muted">40 items across matrix reasoning, number &amp; letter series, verbal reasoning and spatial rotation, ordered easy to hard. Scored with item response theory.</p>
+      <div class="facts"><span><b>40</b> items</span><span><b>${IQ_TIME_MIN}</b> minutes, timed</span><span>Ages <b>11+</b></span></div>
+      <div><button class="btn" data-start="iq">Start reasoning test</button></div>
+    </section>
+  </div>
+  <p class="note">Use a quiet room, one participant per device, and no help from others. For school-wide use, run the tests on a device signed in to this page so every result lands in <b>Results &amp; norms</b>.</p>
+  </div>`;
+}
+function readParticipant(){
+  const name=$("#pname").value.trim(),age=parseInt($("#page").value,10),consent=$("#pcons").checked;
+  const p={name,age,cls:$("#pcls").value,gender:$("#pgen").value,consent};S.participant=p;
+  if(!name)return "Enter the participant's name or an ID code.";
+  if(!(age>=10&&age<=80))return "Enter an age between 10 and 80.";
+  if(!consent)return "Tick the consent box to continue.";
+  return null;
+}
+
+/* ----- personality runner ----- */
+function startPers(){
+  const seq=personalitySequence().map(x=>({...x,sec:"bf"})).concat(RIASEC_ITEMS.map((it,i)=>({kind:"ri",idx:i,text:it[0],sec:"ri"})));
+  const pages=[];for(let i=0;i<52;i+=9)pages.push(seq.slice(i,Math.min(i+9,52)));for(let i=52;i<seq.length;i+=9)pages.push(seq.slice(i,i+9));
+  S.run={type:"pers",pages,page:0,bf:Array(50).fill(0),ac:[0,0],ri:Array(36).fill(0),times:[],enter:Date.now(),missing:false,start:Date.now()};
+  setView("pers");
+}
+function getResp(it){const r=S.run;return it.kind==="bf"?r.bf[it.idx]:it.kind==="ac"?r.ac[it.idx]:r.ri[it.idx];}
+function persView(){
+  const r=S.run,pg=r.pages[r.page],isRi=pg[0].sec==="ri";
+  const done=r.bf.filter(Boolean).length+r.ac.filter(Boolean).length+r.ri.filter(Boolean).length,total=88;
+  const anchors=isRi?LIKE:LIK;
+  return `<div class="stack"><section class="card stack">
+    <div class="spread"><div><p class="eyebrow">Part ${isRi?"2 of 2 · Career interests":"1 of 2 · Personality"} · Page ${r.page+1} of ${r.pages.length}</p>
+    <h2>${isRi?"How much would you like doing each activity?":"How accurately does each statement describe you?"}</h2></div><span class="muted small">${done} of ${total} answered</span></div>
+    <div class="progress" aria-hidden="true"><i style="width:${done/total*100}%"></i></div>
+    <p class="muted small">${isRi?"Don't think about education or pay. Just whether you would enjoy the activity.":"Describe yourself as you generally are now, not as you wish to be. Answer honestly; there are no right or wrong answers."}</p>
+    <div>${pg.map((it,j)=>{const v=getResp(it);return `<div class="likert-row ${r.missing&&!v?"missing":""}" role="group" aria-label="${esc(it.text)}">
+      <div class="stmt">${isRi?"":"I… "}${esc(it.text)}</div>
+      <div class="scale">${anchors.map((a,k)=>`<button type="button" data-q="${j}" data-v="${k+1}" aria-pressed="${v===k+1}">${a}</button>`).join("")}</div></div>`;}).join("")}</div>
+    <p class="err" role="alert">${r.missing?"Answer the statements marked in red to continue.":""}</p>
+    <div class="spread"><button class="btn ghost" id="pprev" ${r.page===0?"disabled":""}>Previous page</button>
+    <button class="btn" id="pnext">${r.page===r.pages.length-1?"Finish and see results":"Next page"}</button></div>
+  </section></div>`;
+}
+
+/* ----- IQ runner ----- */
+function startIQ(){S.run={type:"iq",i:0,choices:Array(IQ_BANK.length).fill(-1),times:Array(IQ_BANK.length).fill(0),start:null,enter:null};setView("iqintro");}
+function iqIntroView(){
+  const ex={opts:["4","5","6","7","8"],a:2};
+  return `<section class="card stack prose" style="max-width:none">
+    <p class="eyebrow">Reasoning test · Instructions</p><h2>Before you begin</h2>
+    <ul>
+      <li>There are <b>${IQ_BANK.length} questions</b> and <b>${IQ_TIME_MIN} minutes</b>. The timer starts when you press Start.</li>
+      <li>Questions get harder as you go. Most people will not finish every one, and that is expected.</li>
+      <li>If a question is too hard, skip it and come back using the numbered boxes. Unanswered questions count as wrong, so a sensible guess is better than a blank.</li>
+      <li>No calculators, phones or help from others. Rough paper is fine.</li>
+    </ul>
+    <div class="card stack" style="background:var(--bg)"><p class="eyebrow">Practice example (not scored)</p><p class="series">1, 2, 3, 4, 5, ?</p>
+    <div class="opts txt">${ex.opts.map((o,k)=>`<button class="opt" data-ex="${k}" aria-pressed="false"><span class="lbl">${LETTERS[k]}</span>${o}</button>`).join("")}</div><p class="small muted" id="exfb">Pick an answer to see how it works.</p></div>
+    <div class="row"><button class="btn" id="iqgo">Start the ${IQ_TIME_MIN}-minute test</button><button class="btn ghost" id="iqback">Back</button></div>
+  </section>`;
+}
+function remaining(){return Math.max(0,IQ_TIME_MIN*60-(Date.now()-S.run.start)/1000);}
+function fmt(sec){sec=Math.ceil(sec);return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;}
+function stopTimer(){if(timerId){clearInterval(timerId);timerId=null;}}
+function logTime(){const r=S.run;if(r&&r.enter){r.times[r.i]+=(Date.now()-r.enter)/1000;r.enter=Date.now();}}
+function iqView(){
+  const r=S.run,it=IQ_BANK[r.i],ch=r.choices[r.i];
+  let fig="",prompt="";
+  if(it.type==="matrix"){const def=MATRIX_DEFS[it.def];prompt="Which option completes the pattern?";
+    fig=`<div class="matrix" aria-label="3 by 3 pattern with the bottom-right cell missing">${[0,1,2].map(rr=>[0,1,2].map(cc=>rr===2&&cc===2?`<div class="q">?</div>`:`<div>${cellSVG(def.f(rr,cc))}</div>`).join("")).join("")}</div>`;}
+  else if(it.type==="rot"){prompt="Which option is this same shape, only turned around? (Flipped-over shapes are wrong.)";fig=`<div class="target" style="display:grid;place-items:center;color:var(--ink)">${polySVG(it.cells)}</div>`;}
+  else{prompt=it.dom==="Gf-S"?"What comes next in the series?":"";fig=it.dom==="Gf-S"?`<p class="series" style="text-align:center">${esc(it.q)}</p>`:`<p class="qtext">${esc(it.q)}</p>`;}
+  const opts=it.type==="matrix"?it.opts.map(cellSVG):it.type==="rot"?it.opts.map(polySVG):it.opts.map(esc);
+  const answered=r.choices.filter(x=>x!==-1).length;
+  return `<div class="stack"><section class="card stack">
+    <div class="spread"><div><p class="eyebrow">Question ${r.i+1} of ${IQ_BANK.length} · ${it.domName}</p>${prompt?`<h2>${prompt}</h2>`:""}</div>
+    <span class="timer ${remaining()<120?"low":""}" id="timer" aria-live="off">${fmt(remaining())}</span></div>
+    <div class="progress" aria-hidden="true"><i style="width:${answered/IQ_BANK.length*100}%"></i></div>
+    <div style="padding:8px 0">${fig}</div>
+    <div class="opts ${it.type==="text"?"txt":"fig"}">${opts.map((o,k)=>`<button class="opt" data-opt="${k}" aria-pressed="${ch===k}" aria-label="Option ${LETTERS[k]}" style="color:var(--ink)"><span class="lbl">${LETTERS[k]}</span>${o}</button>`).join("")}</div>
+    <div class="spread"><button class="btn ghost" id="qprev" ${r.i===0?"disabled":""}>Previous</button>
+      <div class="row"><button class="btn ghost" id="qfinish">Finish test</button><button class="btn" id="qnext">${r.i===IQ_BANK.length-1?"Review":"Next"}</button></div></div>
+  </section>
+  <section class="card stack"><div class="spread"><h3>Jump to a question</h3><span class="small muted">${answered} answered · ${IQ_BANK.length-answered} left</span></div>
+  <div class="palette">${IQ_BANK.map((q,k)=>`<button data-jump="${k}" class="${r.choices[k]!==-1?"done":""} ${k===r.i?"cur":""}" aria-label="Question ${k+1}${r.choices[k]!==-1?", answered":""}">${k+1}</button>`).join("")}</div></section></div>`;
+}
+async function finishIQ(){
+  logTime();stopTimer();const r=S.run;
+  const sc=scoreIQ(r.choices,r.times.map(t=>+t.toFixed(1)));
+  const rec={id:"iq-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:Date.now(),type:"iq",p:pubP(),
+    choices:r.choices,times:r.times.map(t=>+t.toFixed(1)),durationSec:Math.round((Date.now()-r.start)/1000),...sc,version:"1.0"};
+  S.run=null;await saveRecord(rec);S.report=rec;setView("report");
+}
+async function finishPers(){
+  const r=S.run;const sc=scorePersonality(r.bf,r.ac,r.ri,r.times);
+  const rec={id:"ps-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:Date.now(),type:"personality",p:pubP(),
+    bf:r.bf,ac:r.ac,ri:r.ri,durationSec:Math.round((Date.now()-r.start)/1000),...sc,version:"1.0"};
+  S.run=null;await saveRecord(rec);S.report=rec;setView("report");
+}
+function pubP(){const p=S.participant;return {name:p.name,age:p.age,band:ageBand(p.age),cls:p.cls,gender:p.gender};}
+
+/* ---------- norms ---------- */
+function validIQ(){return allRecords().filter(r=>r.type==="iq"&&r.validity&&r.validity.valid);}
+function validPers(){return allRecords().filter(r=>r.type==="personality"&&r.validity&&r.validity.valid);}
+const NORM_MIN=30;
+function localIQ(rec){
+  const pool=validIQ().filter(r=>r.p.band===rec.p.band);if(pool.length<NORM_MIN)return {n:pool.length};
+  const th=pool.map(r=>r.theta),m=meanOf(th),sd=Math.sqrt(variance(th));
+  const z=(rec.theta-m)/sd,pr=Math.round(pool.filter(r=>r.theta<rec.theta).length/pool.length*100+pool.filter(r=>r.theta===rec.theta).length/pool.length*50);
+  return {n:pool.length,iq:Math.round(100+15*z),pr};
+}
+function persPct(rec,t){const pool=validPers();if(pool.length<NORM_MIN)return null;const v=rec.traits[t].pomp;
+  return Math.round((pool.filter(r=>r.traits[t].pomp<v).length+pool.filter(r=>r.traits[t].pomp===v).length/2)/pool.length*100);}
+
+/* ---------- report ---------- */
+function reportHead(rec){
+  const p=rec.p,d=new Date(rec.ts);
+  return `<div class="spread"><div><p class="eyebrow">${rec.type==="iq"?"Reasoning test report":rec.type==="battery"?"Cognitive profile report":"Personality &amp; career interest report"}</p><h2>${esc(p.name)}</h2>
+  <p class="muted small">Age ${esc(p.age)} · ${esc(p.cls)} · ${d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})} · ${Math.round(rec.durationSec/60)} min</p></div>
+  <span class="pill ${rec.validity.valid?"ok":"warn"}">${rec.validity.valid?"Response quality OK":"Check response quality"}</span></div>`;
+}
+function validityBox(rec){
+  if(rec.validity.valid)return `<p class="small muted">Response-quality checks passed: ${rec.type==="battery"?"speed-task error rates, span-task understanding and answer timing":rec.type==="iq"?"answer timing, completion and answer-pattern consistency":"attention checks, identical-answer runs, answer variation and speed"} all looked normal.</p>`;
+  return `<div class="note"><b>Interpret with caution.</b> ${rec.validity.flags.map(esc).join("; ")}. Results like this often come from rushing, low effort or misunderstanding. Consider re-testing after a conversation with the participant.</div>`;
+}
+function reportView(rec){
+  if(!rec)return `<p>No report selected.</p>`;
+  const body=rec.type==="iq"?iqReport(rec):rec.type==="battery"?batReport(rec):persReport(rec);
+  return `<div class="stack"><div class="row"><button class="btn ghost" id="rback">← ${S.reportFrom==="results"?"Back to results":"New assessment"}</button><button class="btn ghost" id="rdl">Download report</button></div>
+  <div class="stack" id="reportBody">${body}</div></div>`;
+}
+function iqReport(rec){
+  const ln=localIQ(rec),lo=rec.iq-rec.ci,hi=rec.iq+rec.ci,X=v=>Math.max(0,Math.min(100,(v-55)/90*100));
+  const doms=Object.entries(rec.domains);
+  return `<section class="card stack">${reportHead(rec)}
+    <div class="score-hero">
+      <div><p class="eyebrow">Provisional IQ estimate</p><div class="big">${rec.iq}</div><p class="small muted">90% range ${lo}–${hi} · ${rec.band}</p></div>
+      ${ln.iq!=null?`<div><p class="eyebrow">Local norm IQ (age ${esc(rec.p.band)}, n=${ln.n})</p><div class="big">${ln.iq}</div><p class="small muted">Percentile ${ln.pr} in your own sample</p></div>`:""}
+      <div><p class="eyebrow">Raw score</p><div class="big">${rec.raw}<span class="muted" style="font-size:1.2rem">/${IQ_BANK.length}</span></div><p class="small muted">${rec.answered} answered</p></div>
+    </div>
+    <div><div class="ci"><div class="axis"></div><div class="band" style="left:${X(lo)}%;width:${X(hi)-X(lo)}%"></div><div class="pt" style="left:${X(rec.iq)}%"></div></div>
+    <div class="ci-labels"><span>55</span><span>70</span><span>85</span><span>100</span><span>115</span><span>130</span><span>145</span></div></div>
+    ${validityBox(rec)}
+  </section>
+  <section class="card stack"><h3>Ability profile</h3>
+    ${doms.map(([k,d])=>`<div class="trait"><b>${d.name}</b><div class="track"><i style="width:${d.c/d.n*100}%"></i></div><span class="num">${d.c}/${d.n}</span></div>`).join("")}
+    <p class="small muted">Domain scores use few items each, so treat differences under about 3 items as noise. Gf = fluid reasoning, Gc = verbal knowledge and reasoning, Gv = visual-spatial (CHC model).</p>
+  </section>
+  <section class="card stack prose" style="max-width:none"><h3>How to read this score</h3>
+    <p>The provisional score places ability on the standard IQ scale (mean 100, SD 15) using an item response theory model with expert-set item difficulties. ${ln.iq!=null?"The local-norm score compares the participant only with people of the same age band who took this test here, and is the better of the two figures.":`Once ${NORM_MIN} valid results exist for age band ${esc(rec.p.band)} (currently ${ln.n}), a local-norm score appears here automatically and should be preferred.`}</p>
+    <p>The 90% range means the true score very likely lies within it. A single sitting is affected by sleep, anxiety, language and familiarity with this kind of puzzle.</p>
+    <p class="note">This is a screening estimate, not a clinical IQ. Never use it to diagnose intellectual disability, giftedness or a learning disorder, or to make admission decisions alone. Those require an individually administered, nationally normed test (e.g. WISC-V India, MISIC) given by an RCI-registered psychologist.</p>
+  </section>`;
+}
+function persReport(rec){
+  const tr=TRAIT_ORDER.map(t=>{const s=rec.traits[t],pct=persPct(rec,t),lvl=s.pomp>=65?"hi":s.pomp<=35?"lo":"mid";
+    return `<div class="trait"><div><b>${TRAITS[t].name}</b><div class="small muted">${lvl==="hi"?"Higher":lvl==="lo"?"Lower":"Middle range"}${pct!=null?` · percentile ${pct}`:""}</div></div>
+    <div class="track"><span class="mid"></span><i style="width:${s.pomp}%"></i></div><span class="num">${s.pomp}</span><p class="desc">${TRAITS[t][lvl]}</p></div>`;}).join("");
+  const max=30,ri=rec.riasec,code=rec.code.split("");
+  return `<section class="card stack">${reportHead(rec)}${validityBox(rec)}</section>
+  <section class="card stack"><div class="spread"><h3>Big Five personality profile</h3><span class="small muted">0–100 scale · line marks the midpoint</span></div>${tr}
+  <p class="small muted">Scores are percent of the scale maximum. ${validPers().length>=NORM_MIN?"Percentiles compare with valid results collected here.":`Percentiles appear once ${NORM_MIN} valid results are collected.`} No trait is good or bad; each has strengths in different settings.</p></section>
+  <section class="card stack"><div class="spread"><h3>Career interest code</h3><span class="pill" style="font-size:1rem;letter-spacing:.12em">${rec.code}</span></div>
+    ${RIASEC_ORDER.map(k=>`<div class="trait"><b>${RIASEC[k].name} <span class="muted small">(${k})</span></b><div class="track"><i style="width:${(ri[k]-6)/(max-6)*100}%;${code.includes(k)?"":"opacity:.45"}"></i></div><span class="num">${ri[k]}</span></div>`).join("")}
+    <div class="grid2">${code.map((k,i)=>`<div class="stack" style="gap:6px"><p class="eyebrow">${["Strongest","Second","Third"][i]} · ${RIASEC[k].tag}</p><h3>${RIASEC[k].name}</h3><p class="small">${RIASEC[k].desc}</p><p class="small muted"><b>Fields to explore:</b> ${RIASEC[k].careers}</p></div>`).join("")}</div>
+    <p class="small muted">${rec.differentiation<6?"Interests are fairly flat across types (low differentiation), which is common in younger students. Encourage exposure to varied activities before narrowing choices.":"Interests are clearly differentiated, so the code is a useful starting point for subject and career discussions."} Scores range 6–30.</p>
+  </section>
+  <section class="card stack prose" style="max-width:none"><h3>Using this report</h3>
+    <p>Personality and interests are relatively stable but still develop through adolescence. Use the profile as a conversation starter in counselling: discuss which descriptions feel accurate, link interests to subject choices, and revisit after a year.</p>
+  </section>`;
+}
+
+/* ---------- results & analytics ---------- */
+function resultsView(){
+  const all=allRecords(),iq=validIQ(),ps=validPers(),vb=validBat();
+  const list=all.filter(r=>S.filter==="all"||r.type===S.filter);
+  const conn={connecting:"Connecting to saved results…",live:"Showing results saved to this page. Only you and editors of this page can read them.",slow:"Saved results can't be reached yet; what's shown may be out of date.",error:"Saved results couldn't be loaded. Results from this device are shown.",off:"Results are saved on this device only (sign in to this page to collect results in one place)."}[S.dbState];
+  /* IQ analytics */
+  let iqA="";if(iq.length>=5){const M=iq.map(r=>r.correct),kr=cronbach(M),ia=itemAnalysis(M);
+    iqA=`<div class="facts"><span>Valid results <b>${iq.length}</b></span><span>Reliability KR-20 <b>${kr==null?"–":kr.toFixed(2)}</b></span><span>Mean raw <b>${meanOf(iq.map(r=>r.raw)).toFixed(1)}</b></span><span>SD raw <b>${Math.sqrt(variance(iq.map(r=>r.raw))).toFixed(1)}</b></span></div>
+    <details><summary class="small" style="cursor:pointer">Item analysis (${IQ_BANK.length} items)</summary><div class="tablebox"><table><thead><tr><th>Item</th><th>Domain</th><th>Set difficulty b</th><th>% correct</th><th>Item–rest r</th><th>Status</th></tr></thead><tbody>
+    ${ia.map((s,j)=>{const it=IQ_BANK[j],bad=s.rit<0.15||s.p>0.95||s.p<0.15;return `<tr><td>${it.id}</td><td>${it.domName}</td><td>${it.b.toFixed(1)}</td><td>${Math.round(s.p*100)}%</td><td>${s.rit.toFixed(2)}</td><td>${bad?'<span class="pill warn">Review</span>':'<span class="pill ok">OK</span>'}</td></tr>`;}).join("")}</tbody></table></div>
+    <p class="small muted">Items flagged when fewer than 15% or more than 95% pass, or item–rest correlation is below .15. Results are stable after about 100 participants.</p></details>`;}
+  else iqA=`<p class="muted small">Reliability and item statistics appear after 5 valid results (${iq.length} so far).</p>`;
+  const bands=["11–12","13–14","15–16","17–18","19–25","26+"];
+  const normT=`<div class="tablebox"><table><thead><tr><th>Age band</th><th>n</th><th>Mean provisional IQ</th><th>SD</th><th>Local norms</th></tr></thead><tbody>${bands.map(b=>{const g=iq.filter(r=>r.p.band===b);const v=g.map(r=>r.iq);
+    return `<tr><td>${b}</td><td>${g.length}</td><td>${g.length?meanOf(v).toFixed(1):"–"}</td><td>${g.length>1?Math.sqrt(variance(v)).toFixed(1):"–"}</td><td>${g.length>=100?'<span class="pill ok">Established</span>':g.length>=NORM_MIN?'<span class="pill">Provisional</span>':`<span class="small muted">needs ${NORM_MIN-g.length} more</span>`}</td></tr>`;}).join("")}</tbody></table></div>`;
+  let psA="";if(ps.length>=5){psA=`<div class="facts"><span>Valid results <b>${ps.length}</b></span>${TRAIT_ORDER.map(t=>{const idx=BF_ITEMS.map((x,i)=>x[1]===t?i:-1).filter(i=>i>=0);const M=ps.map(r=>idx.map(i=>BF_ITEMS[i][2]>0?r.bf[i]:6-r.bf[i]));const a=cronbach(M);return `<span>${TRAITS[t].name} α <b>${a==null?"–":a.toFixed(2)}</b></span>`;}).join("")}</div>`;}
+  else psA=`<p class="muted small">Cronbach's alpha per trait appears after 5 valid results (${ps.length} so far).</p>`;
+  return `<div class="stack">
+  <section class="card stack"><div class="spread"><h2>Results &amp; norms</h2><button class="btn ghost" id="csv" ${all.length?"":"disabled"}>Export all results (CSV)</button></div><p class="small muted">${conn}</p></section>
+  <section class="card stack"><h3>Cognitive battery: reliability, norms &amp; structure</h3>${batAnalytics()}</section>
+  <section class="card stack"><h3>Reasoning test: reliability &amp; norms</h3>${iqA}${normT}</section>
+  <section class="card stack"><h3>Personality: internal consistency</h3>${psA}<p class="small muted">Published IPIP-50 alphas are about .76–.87 per trait; values below .70 in your sample suggest translation or comprehension problems.</p></section>
+  <section class="card stack"><div class="spread"><h3>All participants</h3><div class="row">${[["all","All"],["battery","Battery"],["iq","Reasoning"],["personality","Personality"]].map(([k,l])=>`<button class="btn ${S.filter===k?"":"ghost"}" data-filter="${k}" style="padding:6px 12px">${l}</button>`).join("")}</div></div>
+  ${list.length?`<div class="tablebox"><table><thead><tr><th>Date</th><th>Name</th><th>Age</th><th>Class</th><th>Test</th><th>Result</th><th>Quality</th><th></th></tr></thead><tbody>
+  ${list.map(r=>`<tr><td>${new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</td><td>${esc(r.p.name)}</td><td>${esc(r.p.age)}</td><td>${esc(r.p.cls)}</td><td>${{iq:"Reasoning",battery:"Battery",personality:"Personality"}[r.type]}</td><td>${r.type==="iq"?`IQ ${r.iq} (raw ${r.raw})`:r.type==="battery"?`FSIQ ${scoreBattery(r,vb).FSIQ.score}`:`${esc(r.code)} · C ${r.traits.C.pomp}`}</td><td>${r.validity.valid?'<span class="pill ok">OK</span>':'<span class="pill warn">Check</span>'}</td><td><button class="btn ghost" data-open="${esc(r.id)}" style="padding:5px 10px">Open</button></td></tr>`).join("")}</tbody></table></div>`
+  :`<p class="muted">No results yet. Completed tests appear here.</p>`}</section></div>`;
+}
+function toCSV(){
+  const rows=[["id","date","test","name","age","age_band","class","gender","quality_ok","flags","duration_sec","prov_iq","ci90","raw","theta","se","matrix","series","verbal","spatial","O","C","E","A","S_stability","R","I","A_art","S_soc","E_ent","C_conv","holland_code",...BAT_SUBS.map(s=>"bat_raw_"+s.key),...BAT_SUBS.map(s=>"bat_ss_"+s.key),...BAT_INDEX_ORDER,"FSIQ","GAI","CPI","bat_norms",...IQ_BANK.map(i=>i.id),...BF_ITEMS.map((_,i)=>"bf"+(i+1)),...RIASEC_ITEMS.map((_,i)=>"ri"+(i+1))]];
+  const vb=validBat();
+  allRecords().forEach(r=>{const iq=r.type!=="personality",d=r.domains||{},bt=r.type==="battery",bs=bt?scoreBattery(r,vb):null;
+    rows.push([r.id,new Date(r.ts).toISOString(),r.type,r.p.name,r.p.age,r.p.band,r.p.cls,r.p.gender,r.validity.valid?1:0,r.validity.flags.join(" | "),r.durationSec,
+      ...(r.type==="iq"?[r.iq,r.ci,r.raw,r.theta,r.se,d["Gf-M"].c,d["Gf-S"].c,d["Gc"].c,d["Gv"].c]:["","","","","","","","",""]),
+      ...TRAIT_ORDER.map(t=>iq?"":r.traits[t].pomp),...RIASEC_ORDER.map(k=>iq?"":r.riasec[k]),iq?"":r.code,...BAT_SUBS.map(s=>bt?r.raw[s.key]:""),...BAT_SUBS.map(s=>bt?bs.ss[s.key]:""),...BAT_INDEX_ORDER.map(k=>bt?bs.idx[k].score:""),bt?bs.FSIQ.score:"",bt?bs.GAI.score:"",bt?bs.CPI.score:"",bt?(bs.local?"local":"provisional"):"",
+      ...IQ_BANK.map((_,i)=>r.type==="iq"?r.correct[i]:""),...BF_ITEMS.map((_,i)=>iq?"":r.bf[i]),...RIASEC_ITEMS.map((_,i)=>iq?"":r.ri[i])]);});
+  return rows.map(r=>r.map(v=>{v=String(v??"");return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;}).join(",")).join("\n");
+}
+
+/* ---------- science ---------- */
+function scienceView(){
+  return `<div class="stack">
+  <section class="card prose" style="max-width:none;gap:14px"><p class="eyebrow">Evidence base</p><h2>What each test measures and why it is credible</h2>
+  <div class="grid2">
+    <div class="stack" style="gap:8px"><h3>Big Five personality (IPIP-50)</h3><p class="small">Uses the 50 public-domain Big-Five Factor Markers published by Goldberg (1992) through the International Personality Item Pool, with original wording and scoring keys. The five-factor model is the most replicated structure of personality across cultures, including India. In published samples each 10-item scale has internal consistency around α = .76–.87. Conscientiousness is the strongest personality predictor of academic performance (Poropat, 2009) and of later life outcomes (Roberts et al., 2007).</p></div>
+    <div class="stack" style="gap:8px"><h3>Career interests (RIASEC)</h3><p class="small">Holland's six-type model is the basis of most career-guidance tools worldwide, including the US Department of Labor's O*NET Interest Profiler. Interest–occupation fit predicts job performance and persistence (Nye et al., 2012). The 36 activity items here are written for this suite in the O*NET style with Indian school examples. Their reliability should be confirmed on your own data (Results tab).</p></div>
+    <div class="stack" style="gap:8px"><h3>Reasoning test</h3><p class="small">Item types follow the International Cognitive Ability Resource (Condon &amp; Revelle, 2014): matrix reasoning, series completion, verbal reasoning and mental rotation. These sample three broad abilities in the Cattell-Horn-Carroll model (fluid reasoning Gf, crystallised knowledge Gc, visual processing Gv), whose shared variance is general intelligence (g). g measured this way correlates about .8 with later national exam results (Deary et al., 2007). All 40 items are original, so they need local calibration before the score is treated as normed.</p></div>
+    <div class="stack" style="gap:8px"><h3>Response-quality checks</h3><p class="small">Careless answers are a major threat to validity in self-report tests. The personality test uses two instructed-response items, long-string analysis, answer variance and time per item (Curran, 2016). The reasoning test flags very fast answers, low completion and Guttman errors (passing hard items while failing easy ones), a standard person-fit signal.</p></div>
+  </div></section>
+  <section class="card prose" style="max-width:none"><p class="eyebrow">Cognitive Profile Battery</p><h2>How it relates to the WAIS and WISC</h2>
+  <p>The Wechsler scales (WAIS-5 for adults, WISC-V for ages 6–16) are the most widely used IQ tests. They report a Full Scale IQ plus five index scores, each built from two or more subtests scored on a mean-10, SD-3 scale. This battery copies that <b>structure and scoring method</b>, not the test itself.</p>
+  <div class="tablebox"><table><thead><tr><th>Index</th><th>Subtests here</th><th>Comparable Wechsler subtests</th></tr></thead><tbody>
+  <tr><td>Verbal Comprehension</td><td>Similarities, Vocabulary</td><td>Similarities, Vocabulary</td></tr>
+  <tr><td>Visual Spatial</td><td>Block Patterns, Shape Rotation</td><td>Block Design, Visual Puzzles</td></tr>
+  <tr><td>Fluid Reasoning</td><td>Matrix Reasoning, Balance Puzzles</td><td>Matrix Reasoning, Figure Weights</td></tr>
+  <tr><td>Working Memory</td><td>Digit Span (forward, backward, sequencing), Spatial Span</td><td>Digit Span, Picture Span</td></tr>
+  <tr><td>Processing Speed</td><td>Symbol Coding, Symbol Search</td><td>Coding, Symbol Search</td></tr></tbody></table></div>
+  <p>As in the WISC-V, the Full Scale IQ uses seven core subtests (Block Patterns, Similarities, Matrix Reasoning, Digit Span, Symbol Coding, Vocabulary, Balance Puzzles). The General Ability Index uses the five reasoning subtests; the Cognitive Proficiency Index uses the four memory and speed subtests. Composites come from summed scaled scores: 100 + 15 × (sum − expected sum) ÷ SD of the sum, where the SD allows for the usual correlation between subtests. An index 12 or more points from the participant's own index average is flagged as a relative strength or weakness.</p>
+  <p><b>What is different from a real Wechsler test.</b> The items here are original, because Wechsler items are copyrighted by Pearson. The real tests are normed on large samples stratified by age, sex, region and education, and given one-to-one by a trained examiner who scores spoken answers. This battery is self-administered on a screen, uses multiple-choice verbal items, and starts with estimated norms. Treat it as a well-structured screening and counselling tool until your own norms are built.</p></section>
+  <section class="card prose" style="max-width:none"><p class="eyebrow">Scoring</p><h2>How the reasoning-screen IQ estimate is calculated</h2>
+  <ol>
+    <li>Each item has a difficulty <i>b</i> on the ability scale (–2 = easy, +2 = hard) and a guessing floor <i>c</i> = 1 ÷ number of options.</li>
+    <li>The probability of a correct answer follows the three-parameter logistic model: P(θ) = c + (1 − c) / (1 + e<sup>−1.7·a·(θ − b)</sup>), with a = 1.2.</li>
+    <li>Ability θ is the expected a-posteriori (EAP) estimate given the full answer pattern, with a standard normal prior. Its posterior SD is the standard error.</li>
+    <li>Provisional IQ = 100 + 15θ, and the 90% range is ±1.645 × 15 × SE. Raw scores of 20/40 map to about 100.</li>
+    <li>Once 30 or more valid results exist in an age band, a <b>local deviation IQ</b> is computed as 100 + 15 × (θ − band mean) ÷ band SD. This is the same principle Wechsler tests use, applied to your own population.</li>
+  </ol>
+  <p class="note">Honest limits: no test becomes “scientifically validated” by design alone. Validity comes from evidence collected on real participants. Until your sample is large enough, report the provisional IQ as an estimate with its range, never as a fixed number.</p></section>
+  <section class="card prose" style="max-width:none"><p class="eyebrow">Validation roadmap</p><h2>Turning this into a normed test for your school</h2>
+  <ol>
+    <li><b>Pilot (n ≈ 100–200 across Classes 6–12).</b> Run both tests under standard conditions. Check that KR-20 for the reasoning test reaches .85 or higher and each Big Five alpha .70 or higher.</li>
+    <li><b>Item review.</b> Replace or reword any item the Results tab flags (pass rate below 15% or above 95%, or item–rest r below .15).</li>
+    <li><b>Re-calibrate difficulties.</b> Fit a Rasch or 2PL model to the CSV export (e.g. R package <i>mirt</i>) and update each item's <i>b</i>.</li>
+    <li><b>Norms.</b> Aim for 100+ valid results per age band. Below 30, show only the provisional score.</li>
+    <li><b>Validity evidence.</b> Correlate reasoning scores with term marks in maths and science (expect r ≈ .4–.6) and Conscientiousness with homework completion and attendance. Retest a sub-group after 2–4 weeks (target r ≥ .80).</li>
+    <li><b>Fairness.</b> Compare item pass rates by gender and Hindi- vs English-medium background. If translating, use forward–back translation.</li>
+  </ol></section>
+  <section class="card prose" style="max-width:none"><p class="eyebrow">Ethics</p><h2>Responsible use</h2>
+  <ul><li>Get written consent from parents for students under 18, and explain how results will be used.</li>
+  <li>Share results in a feedback conversation, not as a printout alone. Avoid labels like “low IQ” in front of students or parents.</li>
+  <li>Use these results for guidance only. Admission, streaming or diagnostic decisions require multiple sources of evidence and, for diagnosis, a licensed psychologist (AERA, APA &amp; NCME Standards, 2014).</li>
+  <li>Keep reports confidential. Results saved on this page are visible only to you and anyone you make an editor.</li></ul></section>
+  <section class="card prose refs" style="max-width:none"><p class="eyebrow">References</p><ol>
+  <li>Jaeger, J. (2018). Digit Symbol Substitution Test: The case for sensitivity over specificity in neuropsychological testing. <i>Journal of Clinical Psychopharmacology, 38</i>, 513–519.</li>
+  <li>Kessels, R. P. C., van Zandvoort, M. J. E., Postma, A., Kappelle, L. J., &amp; de Haan, E. H. F. (2000). The Corsi block-tapping task: Standardization and normative data. <i>Applied Neuropsychology, 7</i>, 252–258.</li>
+  <li>Wechsler, D. (2014). <i>Wechsler Intelligence Scale for Children, Fifth Edition (WISC-V).</i> Bloomington, MN: Pearson.</li>
+  <li>Wechsler, D. (2024). <i>Wechsler Adult Intelligence Scale, Fifth Edition (WAIS-5).</i> Bloomington, MN: Pearson.</li>
+  <li>AERA, APA &amp; NCME (2014). <i>Standards for Educational and Psychological Testing.</i> Washington, DC: AERA.</li>
+  <li>Condon, D. M., &amp; Revelle, W. (2014). The International Cognitive Ability Resource: Development and initial validation of a public-domain measure. <i>Intelligence, 43</i>, 52–64.</li>
+  <li>Curran, P. G. (2016). Methods for the detection of carelessly invalid responses in survey data. <i>Journal of Experimental Social Psychology, 66</i>, 4–19.</li>
+  <li>Deary, I. J., Strand, S., Smith, P., &amp; Fernandes, C. (2007). Intelligence and educational achievement. <i>Intelligence, 35</i>, 13–21.</li>
+  <li>Embretson, S. E., &amp; Reise, S. P. (2000). <i>Item Response Theory for Psychologists.</i> Mahwah, NJ: Erlbaum.</li>
+  <li>Goldberg, L. R. (1992). The development of markers for the Big-Five factor structure. <i>Psychological Assessment, 4</i>, 26–42.</li>
+  <li>Goldberg, L. R., et al. (2006). The International Personality Item Pool and the future of public-domain personality measures. <i>Journal of Research in Personality, 40</i>, 84–96.</li>
+  <li>Holland, J. L. (1997). <i>Making Vocational Choices</i> (3rd ed.). Odessa, FL: PAR.</li>
+  <li>McGrew, K. S. (2009). CHC theory and the human cognitive abilities project. <i>Intelligence, 37</i>, 1–10.</li>
+  <li>Nye, C. D., Su, R., Rounds, J., &amp; Drasgow, F. (2012). Vocational interests and performance. <i>Perspectives on Psychological Science, 7</i>, 384–403.</li>
+  <li>Poropat, A. E. (2009). A meta-analysis of the five-factor model of personality and academic performance. <i>Psychological Bulletin, 135</i>, 322–338.</li>
+  <li>Roberts, B. W., Kuncel, N. R., Shiner, R., Caspi, A., &amp; Goldberg, L. R. (2007). The power of personality. <i>Perspectives on Psychological Science, 2</i>, 313–345.</li>
+  </ol><p class="small muted">IPIP items: <a href="https://ipip.ori.org">ipip.ori.org</a> (public domain). ICAR: <a href="https://icar-project.org">icar-project.org</a>.</p></section></div>`;
+}
+
+/* ---------- events ---------- */
+function bind(){
+  const app=$("#app");
+  app.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>{const e=readParticipant();if(e){$("#perr").textContent=e;$("#perr").scrollIntoView({block:"center"});return;}
+    S.reportFrom="home";const k=b.dataset.start;k==="pers"?startPers():k==="bat"?startBattery(false):startIQ();});
+  if($("#bres"))$("#bres").onclick=()=>{S.reportFrom="home";startBattery(true);};
+  if($("#bdiscard"))$("#bdiscard").onclick=()=>confirmBox("Discard the unfinished battery?","The completed subtests will be deleted from this device.","Discard",()=>{batClearProgress();render();});
+  if(S.view==="bat"){
+    if(S.run.phase==="sub")batMount();
+    else{$("#bgo").onclick=()=>{S.run.phase="sub";render();window.scrollTo(0,0);};$("#bexit").onclick=()=>{S.run=null;setView("home");toast("Progress saved on this device. Resume from the home page.");};}
+  }
+  if(S.view==="pers"){
+    app.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{const r=S.run,it=r.pages[r.page][+b.dataset.q],v=+b.dataset.v;
+      if(it.kind==="bf")r.bf[it.idx]=v;else if(it.kind==="ac")r.ac[it.idx]=v;else r.ri[it.idx]=v;
+      b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));b.closest(".likert-row").classList.remove("missing");
+      const done=r.bf.filter(Boolean).length+r.ac.filter(Boolean).length+r.ri.filter(Boolean).length;app.querySelector(".progress i").style.width=done/88*100+"%";});
+    $("#pprev").onclick=()=>{S.run.page--;S.run.missing=false;render();window.scrollTo(0,0);};
+    $("#pnext").onclick=()=>{const r=S.run;if(r.pages[r.page].some(it=>!getResp(it))){r.missing=true;render();app.querySelector(".missing")?.scrollIntoView({block:"center"});return;}
+      r.times[r.page]=(r.times[r.page]||0)+(Date.now()-r.enter)/1000;r.enter=Date.now();r.missing=false;
+      if(r.page===r.pages.length-1)finishPers();else{r.page++;render();window.scrollTo(0,0);}};
+  }
+  if(S.view==="iqintro"){
+    app.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{app.querySelectorAll("[data-ex]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+      $("#exfb").textContent=b.dataset.ex==="2"?"Correct: each number is one more than the last. In the real test you'll get no feedback.":"Not quite: each number goes up by one, so the answer is 6 (C). In the real test you'll get no feedback.";});
+    $("#iqgo").onclick=()=>{S.run.start=Date.now();S.run.enter=Date.now();S.view="iq";render();
+      timerId=setInterval(()=>{const t=$("#timer");const rem=remaining();if(t){t.textContent=fmt(rem);t.classList.toggle("low",rem<120);}if(rem<=0){finishIQ();toast("Time is up. Your answers have been submitted.");}},1000);};
+    $("#iqback").onclick=()=>{S.run=null;setView("home");};
+  }
+  if(S.view==="iq"){
+    const go=i=>{logTime();S.run.i=i;render();};
+    app.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{S.run.choices[S.run.i]=+b.dataset.opt;app.querySelectorAll("[data-opt]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+      const pb=app.querySelector(`[data-jump="${S.run.i}"]`);pb&&pb.classList.add("done");});
+    app.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>go(+b.dataset.jump));
+    $("#qprev").onclick=()=>go(S.run.i-1);
+    $("#qnext").onclick=()=>{if(S.run.i<IQ_BANK.length-1)go(S.run.i+1);else{const left=S.run.choices.filter(x=>x===-1).length;confirmBox("Submit your answers?",left?`${left} question${left>1?"s are":" is"} still unanswered and will count as wrong. You have ${fmt(remaining())} left.`:"You have answered every question.","Submit test",finishIQ);}};
+    $("#qfinish").onclick=()=>{const left=S.run.choices.filter(x=>x===-1).length;confirmBox("Finish the test now?",`${left} unanswered question${left===1?"":"s"} will count as wrong. You have ${fmt(remaining())} left.`,"Submit test",finishIQ);};
+  }
+  if(S.view==="report"){
+    $("#rback").onclick=()=>setView(S.reportFrom==="results"?"results":"home");
+    $("#rdl").onclick=()=>{const r=S.report,css=document.querySelector("style").textContent;
+      const html=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${esc(r.p.name)} – ${r.type} report</title><style>${css}</style></head><body><main><div class="wrap stack">${$("#reportBody").innerHTML}</div></main>${document.querySelector("svg").outerHTML}</body></html>`;
+      offerFile(`${r.p.name.replace(/[^\w-]+/g,"_")}_${r.type}_report.html`,html);};
+  }
+  if(S.view==="results"){
+    app.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;render();});
+    app.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{S.report=allRecords().find(r=>r.id===b.dataset.open);S.reportFrom="results";setView("report");});
+    const c=$("#csv");if(c)c.onclick=()=>offerFile(`assessment_results_${new Date().toISOString().slice(0,10)}.csv`,toCSV());
+  }
+}
+render();
+
+function batAnalytics(){
+  const vb=validBat();
+  if(vb.length<5)return `<p class="muted small">Subtest reliability and correlations appear after 5 valid batteries (${vb.length} so far). Local norms take over from estimated norms at ${BAT_NORM_MIN} per age band.</p>`;
+  const itemKeys={SI:1,VC:1,MR:1,FW:1,SR:1,BD:1};
+  const rows=BAT_SUBS.map(s=>{const v=vb.map(r=>r.raw[s.key]);const a=itemKeys[s.key]?cronbach(vb.map(r=>r.res[s.key].items)):null;
+    return `<tr><td>${s.name}</td><td>${BAT_INDEX[s.idx].name}</td><td>${meanOf(v).toFixed(1)}</td><td>${Math.sqrt(variance(v)).toFixed(1)}</td><td>${a==null?'<span class="small muted">retest needed</span>':a.toFixed(2)}</td></tr>`;}).join("");
+  let cm="";if(vb.length>=10){const K=BAT_SUBS.map(s=>s.key);
+    cm=`<details><summary class="small" style="cursor:pointer">Subtest correlation matrix (n = ${vb.length})</summary><div class="tablebox"><table class="cm"><thead><tr><th></th>${K.map(k=>`<th>${k}</th>`).join("")}</tr></thead><tbody>${K.map(a=>`<tr><th>${a}</th>${K.map(b=>{if(a===b)return "<td>–</td>";const r=corr(vb.map(x=>x.raw[a]),vb.map(x=>x.raw[b]));const same=BAT_SUBS.find(s=>s.key===a).idx===BAT_SUBS.find(s=>s.key===b).idx;return `<td style="${same?"background:var(--accent-soft);font-weight:600":""}">${r.toFixed(2)}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="small muted">Highlighted cells pair subtests from the same index. If the battery measures what it claims, these should usually be higher than the other correlations, and all correlations should be positive (the “positive manifold” behind g).</p></details>`;}
+  const bands=["11–12","13–14","15–16","17–18","19–25","26+"];
+  return `<div class="facts"><span>Valid batteries <b>${vb.length}</b></span>${bands.map(b=>{const n=vb.filter(r=>r.p.band===b).length;return n?`<span>${b}: <b>${n}</b>${n>=BAT_NORM_MIN?" (local norms)":""}</span>`:"";}).join("")}</div>
+  <div class="tablebox"><table><thead><tr><th>Subtest</th><th>Index</th><th>Mean raw</th><th>SD</th><th>Reliability (α)</th></tr></thead><tbody>${rows}</tbody></table></div>${cm}`;
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1668 @@
+# **Virat Student 360° — Complete Product Overview**
+
+## **The vision, architecture, modules, workflows, intelligence systems and commercial SaaS roadmap**
+
+[Study Space | School Management Dashboard :: Behance](https://images.openai.com/static-rsc-4/hOXjGzCEdbORrZaEhoSJuYmGj90kJlMGLqVIppd0kczpBHI9gWAqdeYIvF1PRK9bA37XqVt2OOXleO5buQmYnX-NthdzSbFqVZIK8Fpl8Kbtu7romp7Y24tU0gJV_ld3HQEboDEAwdczKJOU6vO1vvq7NfLl7LFy1HPe3ARuCb0?purpose=inline)
+
+[behance.net](https://www.behance.net/gallery/214693693/Study-Space-School-Management-Dashboard?utm_source=chatgpt.com)
+
+# **Virat Student 360°**
+
+**One integrated intelligence platform for schools, students, teachers, parents and management.**
+
+Multi-school SaaS
+
+Student 360°
+
+AI-assisted development
+
+Web + mobile-ready
+
+Your project has evolved beyond a conventional School ERP. The objective is to build a comprehensive school operating and intelligence system that connects academic performance, student development, teacher performance, school administration, parent engagement and institutional management.
+
+It should serve two purposes:
+
+1. **For schools:** A complete operating system to manage daily activities, administration, academics, parents and students.
+2. **As a business:** A commercial multi-school SaaS product that other schools can subscribe to and use independently.
+
+The central philosophy is:
+
+**Every student has one connected profile. Every school has its own independent environment. Every important activity generates useful, traceable information.**
+
+I will distinguish between:
+
+- **Built/reported:** Features that previous Claude Code updates reported as implemented and tested.
+- **In progress:** Features with implementation or validation underway.
+- **Planned/approved:** Features included in the product vision but not yet confirmed complete.
+- **Blocked:** Features requiring your decisions, migrations or external dependencies.
+
+This is a consolidated overview based on our project discussions and the supplied product blueprint, not a fresh inspection of the current Git repository.
+
+# **1. Overall product architecture**
+
+[Home](https://images.openai.com/static-rsc-4/pvTb1ZjaOHhWB0mCVDY7XvUhM8tL4iIQNCzVrP73bdmLFAPfAlaEznvaMxaqkBoqiLcMsPiU-Iamp-D343iNebtBMRmCjvcK45A9B5HX2G2sj9VZnvymrjAMkw9blMjrfm204PTd7so0WnegDoeRay6yeP8-LiqwiWvuRrQYkaY?purpose=inline)
+
+[goa.samarthx.ac.in](https://goa.samarthx.ac.in/?utm_source=chatgpt.com)
+
+The platform can be organised into six major intelligence systems.
+
+**1. Student Intelligence**
+
+Student 360°, academics, Learners Score, OLQs, growth plans
+
+**2. Teacher Intelligence**
+
+Teacher dashboard, homework, notebook checking, workload, timetable
+
+**3. School Operations**
+
+Admissions, fees, attendance, transport, staff and administration
+
+**4. Cognitive Intelligence**
+
+Attention games, memory, perception, reasoning and progress
+
+**5. Family Intelligence**
+
+Parent portal, complaints, counselling, communication and home visits
+
+**6. Management Intelligence**
+
+Dashboards, analytics, retention indicators, reports and SaaS controls
+
+These systems should not operate as separate applications. They should use shared student, family, school, staff and academic records, while maintaining separate permissions and scoring dimensions.
+
+# **2. Multi-school SaaS architecture**
+
+Core product direction confirmed
+
+This is one of the most important decisions in the entire project.
+
+The platform is not intended exclusively for Virat International School. It must support multiple independent schools using the same software.
+
+[EMIS | PPTX](https://images.openai.com/static-rsc-4/E33GZoYy_GbF8lqzKHAGfv81wc7NFXHKRLQAjOf51xrY6WbOaATWyQ71_VD-9okxCKi3OWxGz1OeaT0HbESjj1K9NdCvK8HPPJzfZJuMsfLK0iiskH3ofsgZ_PZomw5SKubUL0s4FREuh4KmP4hxuaDDfMKVPG96VcbJ6x_Gz2w?purpose=inline)
+
+[slideshare.net](https://www.slideshare.net/slideshow/emis-68315093/68315093?utm_source=chatgpt.com)
+
+### **How it will work**
+
+Imagine three schools using the same platform:
+
+| School                     | Environment        |
+| -------------------------- | ------------------ |
+| Virat International School | Independent tenant |
+| School B                   | Independent tenant |
+| School C                   | Independent tenant |
+
+Each school gets:
+
+- Its own logo, branding and school identity.
+- Its own administrator and staff.
+- Its own students and parents.
+- Its own classes, sections and subjects.
+- Its own academic sessions.
+- Its own fee structure.
+- Its own admission settings.
+- Its own reports and dashboards.
+- Its own permissions and operational configuration.
+
+The underlying application is shared, but school records must be isolated at the database and application levels.
+
+### **Recommended ownership hierarchy**
+
+**SaaS Platform Owner / Super Admin**
+
+Controls the entire commercial platform
+
+**School A Owner**
+
+Independent school
+
+**School B Owner**
+
+Independent school
+
+School A Staff
+
+School B Staff
+
+The roles we should support include:
+
+1. SaaS Super Admin.
+2. SaaS Operations Admin.
+3. School Owner.
+4. School Administrator.
+5. Principal.
+6. Deputy Director.
+7. Admission Manager.
+8. Accounts Manager.
+9. Teachers.
+10. Counsellors.
+11. Transport Manager.
+12. Parents.
+13. Students, where an appropriate student login is enabled.
+
+Role-specific access must be configurable without allowing users to cross school boundaries.
+
+The owner-role architecture and complete staff-account management are still subject to the implementation and approval process discussed earlier.
+
+# **3. Login and website structure**
+
+The website should provide a unified entry point for all schools and their users.
+
+[Vision Smart School Portal | Built with Blink](https://images.openai.com/static-rsc-4/X4TfqVCB_f61Cgv8a7VhrRUElMaw9TYmnspJDelIMQVdZZaajHO6ipaXx5wUcOW6aE7HP3OGJF28lfkaIBVLjSILNktKGJyfcICRE9JKpbR_agyaPSC6j_vqTonMY7R6tma8CBMVdOL_SRs-vSyO3SpoTH7PEknbEOKncCV93g4?purpose=inline)
+
+[blink.new](https://blink.new/p/vision-school-portal-dygn424e?utm_source=chatgpt.com)
+
+### **Public website**
+
+The commercial website should eventually contain:
+
+- Home page.
+- Product overview.
+- Features and modules.
+- Solutions for schools.
+- Pricing and subscription plans.
+- Demo request.
+- School registration.
+- Contact and support.
+- Privacy policy and terms.
+
+### **Application login**
+
+The login experience should allow users to enter through the appropriate school and account identity.
+
+| User                   | Destination                              |
+| ---------------------- | ---------------------------------------- |
+| SaaS administrator     | Platform management                      |
+| School owner           | School management dashboard              |
+| Principal / management | Management dashboard                     |
+| Teacher                | Teacher workspace                        |
+| Parent                 | Parent portal                            |
+| Student                | Student learning environment, if enabled |
+
+A user's authenticated role determines which pages and actions they can access.
+
+### **Language**
+
+The existing language decision is:
+
+- English is the default for everyone.
+- Staff interfaces remain English.
+- Parents can choose English or Hindi.
+- Parent language preference is remembered on their device/browser.
+- Schools cannot force a starting language.
+
+# **4. Student 360° — The heart of the platform**
+
+Central product concept
+
+[Halo Education Analytics | AI-Powered Student Risk & Wellbeing Analytics – Dataclysm | Smart AI-Driven Solutions](https://images.openai.com/static-rsc-4/24ESeP4SzEANn3LwZOkERUrMzD_U5NHyMh1J2t1JO1CD9pPUYD44ZonSNXLyqzHFmhd0onvrK2ohnFzQrqY6-zQx6s4eNy-ONTVdgGiKAf4yHP7L30fGwt7zgPuj_PMTKUEVUNwnJyihnMR4h2FDEjOj6QCEcBEtbcGjAXml-Ow?purpose=inline)
+
+[dataclysm.com.au](https://dataclysm.com.au/halo-education-ai-analytics/?utm_source=chatgpt.com)
+
+Student 360° should be the single consolidated record of a student's school journey.
+
+Instead of maintaining disconnected information in different registers, the platform should bring the authorised information together.
+
+### **A. Student identity and family profile**
+
+- Student name and photograph.
+- Admission number.
+- Class and section.
+- Date of birth.
+- Admission date.
+- Previous school.
+- Academic session.
+- Parent and guardian details.
+- Emergency contacts.
+- Sibling information.
+- Family account linkage.
+
+### **B. Academic performance**
+
+- Subject-wise marks.
+- Unit tests.
+- Half-yearly examinations.
+- Annual examinations.
+- Academic improvement.
+- Learning gaps.
+- Remedial records.
+- Subject-wise performance trends.
+- Reading fluency.
+- Mathematics proficiency.
+- Assessment history.
+
+### **C. Attendance**
+
+- Daily attendance.
+- Present, absent and leave records.
+- Monthly attendance percentage.
+- Late arrival.
+- Attendance trends.
+- Parent follow-up.
+- Attendance-related alerts.
+
+### **D. Notebook checking history**
+
+The Notebook Checking Report is a particularly important part of the system.
+
+It has been implemented and reported as committed, with whole-class entry, history and CSV export.
+
+Its structure is:
+
+| Parameter        | Information recorded                            |
+| ---------------- | ----------------------------------------------- |
+| Date             | Date of notebook checking                       |
+| Chapter number   | Chapter being checked                           |
+| Chapter name     | Optional descriptive name                       |
+| Notebook checked | Yes / pending                                   |
+| Handwriting      | Not Assessed / Satisfactory / Needs Improvement |
+| Work quality     | Not Assessed / Grade A / B / C                  |
+| Remarks          | Optional teacher observation                    |
+
+**The critical design decision:** teachers see the entire class on one page, not one student at a time.
+
+[Registro Elettronico, accesso con SPID o CIE per i genitori](https://images.openai.com/static-rsc-4/tduaY6TVwM4ifnxGCyMjgoAjue1EnQH-I7OVK8ah7kqLTe1uAte99g9SoV4-yiPgG8U2WZK0oPOuFsp4MZLzvNIUmRZhO_Y_xhg8_zNtl3ZlJcK-8KqmIwVE0BdIEtaH3E-u6Cnd_ALYjl-7tG-H8xwM3_CT8p1W-pH7HHS9WZI?purpose=inline)
+
+[newsistruzione.it](https://www.newsistruzione.it/2026/01/22/registro-elettronico-accesso-con-spid-o-cie?utm_source=chatgpt.com)
+
+The three work-quality grades have distinct meanings:
+
+- **Grade A:** Independent and correct work.
+- **Grade B:** Independent attempt with mistakes.
+- **Grade C:** Reasonable evidence of copying or completing work merely as a formality.
+
+Grade A and B indicate evidence of active learning in that particular task. Grade C indicates a possible passive-learning pattern requiring further observation.
+
+A single entry must never become a permanent personality label or automatically alter OLQ scores.
+
+### **E. Homework management**
+
+Reported built and verified
+
+The homework module connects teachers, students and parents.
+
+**Teacher functionality:**
+
+- Create homework.
+- Select class and subject.
+- Enter title and instructions.
+- Add chapter number and topic.
+- Set assignment and due dates.
+- View all students in one roster.
+- Mark handed in or missing.
+- Record submission dates.
+- Review work.
+- Provide feedback.
+- Bulk mark submissions.
+- Edit or cancel assignments with a reason.
+- View homework reports and history.
+
+**Parent functionality:**
+
+- See their child's homework.
+- Check due dates.
+- View submission status.
+- Read teacher feedback.
+
+The reported implementation includes autosave, recovery after network interruptions, reporting and Student 360° integration.
+
+### **F. Student growth and counselling**
+
+Proposed capabilities include:
+
+- Individual development goals.
+- Counselling history.
+- Home visit history.
+- Remedial plans.
+- Follow-up dates.
+- Parent concerns.
+- Intervention progress.
+- Personalised learning recommendations.
+
+### **G. DMIT and learning profile**
+
+The platform blueprint also includes:
+
+- DMIT profile information.
+- Learning preferences.
+- Personalised counselling.
+- Learning support recommendations.
+
+These should be treated as separate profile information, not as scientifically validated intelligence or personality scores without appropriate evidence.
+
+# **5. Learners Score — Overall student development measurement**
+
+Formula requires final approval
+
+This is one of the most distinctive parts of your product.
+
+The Learners Score is intended to measure the broader development of a child, not just examination marks.
+
+The supplied blueprint describes it as a measurable student-development framework, combining academic performance and observable learning behaviours.&#x20;
+
+Pasted text(3).txt
+
+
+
+### **Proposed components**
+
+[Whole Child Solution: Measure Whole Student Growth | ERB](https://images.openai.com/static-rsc-4/pOKu71JHTNXnWZZz9Bpa3Bx1uHzaxtpSdthu2rWQ2UO6Kxy8XQZKssLb3oH2GCPZthM8SpDf7IEqB-xiO1e6V9slrHVN0A-sDIipWpNn87_w2h00I3QfyOgTO3Vv9_qaut8itCfM3kG8x6Lv1WTEENXnSOVubLVfhJL5PVywtYw?purpose=inline)
+
+[erblearn.org](https://erblearn.org/educators/whole-child-solution/?utm_source=chatgpt.com)
+
+| Dimension             | What it measures                            |
+| --------------------- | ------------------------------------------- |
+| Academics             | Subject-wise academic achievement           |
+| Homework              | Completion, quality and independence        |
+| Attendance            | Regularity and punctuality                  |
+| Reading               | Fluency, comprehension and pronunciation    |
+| Numeracy              | Mathematical understanding                  |
+| Participation         | Classroom and extracurricular participation |
+| Behaviour             | Observable school behaviours                |
+| Cognitive development | Game-based task performance and progress    |
+| Responsibility        | Completion of assigned duties               |
+
+### **How it should work**
+
+A student's profile should display:
+
+1. Overall Learners Score, when the formula is approved.
+2. Individual domain scores.
+3. Previous assessment.
+4. Current assessment.
+5. Improvement or decline.
+6. Supporting evidence.
+7. Teacher observations.
+8. Areas requiring attention.
+
+For example, a student might show:
+
+**Illustrative student development dashboard**
+
+# **78**
+
+Illustrative overall score / 100
+
+# **+8**
+
+Illustrative improvement
+
+| Development area | Example |
+| ---------------- | ------- |
+| Academics        | 82      |
+| Reading          | 75      |
+| Numeracy         | 85      |
+| Homework         | 78      |
+| Participation    | 70      |
+
+All figures are illustrative, not an approved scoring calculation.
+
+**Important distinction:** Learners Score and OLQ Score must remain separate. They may exchange relevant evidence, but they should not become the same numerical score.
+
+# **6. OLQ — Officer Like Qualities assessment engine**
+
+Approved development programme: P3–P6
+
+This is another major differentiator.
+
+Your intention is to bring the SSB-oriented Officer Like Qualities framework into everyday school activities through observable behaviour.
+
+The system should not merely ask a teacher whether a child possesses a particular quality. It should collect evidence from repeated, relevant activities.
+
+### **The 15 OLQs**
+
+[OLQ - Officer Like Qualities in SSB Interview (Complete Details)](https://images.openai.com/static-rsc-4/bTPU_ULIX9ixBoPCDfdnfqcHXtSXS-R24yw6TEdzXFwR09ge5q7ERo0Elkwufi33bpkuL7-rXcpJ0jCGkLtE6hibrYErxkHoJFt07icAovicEMKFi86LH9MjTksiepwCYWBGG5w2uGjcuj0rMaVDIV-j4kmfwnpbAe6Yw7Tv7cs?purpose=inline)
+
+[linkedin.com](https://www.linkedin.com/pulse/olq-officer-like-qualities-ssb-interview-complete-rg7jf?utm_source=chatgpt.com)
+
+| No. | OLQ                            | School-based observation                   |
+| --- | ------------------------------ | ------------------------------------------ |
+| 1   | Effective Intelligence         | Applying knowledge to solve problems       |
+| 2   | Reasoning Ability              | Explaining decisions logically             |
+| 3   | Organizing Ability             | Managing time and resources                |
+| 4   | Power of Expression            | Expressing thoughts clearly                |
+| 5   | Social Adaptability            | Adjusting to different situations          |
+| 6   | Cooperation                    | Working effectively in groups              |
+| 7   | Sense of Responsibility        | Completing assigned duties                 |
+| 8   | Initiative                     | Taking appropriate action independently    |
+| 9   | Self-Confidence                | Expressing ideas and attempting challenges |
+| 10  | Speed of Decision Making       | Making timely decisions                    |
+| 11  | Ability to Influence the Group | Guiding others positively                  |
+| 12  | Liveliness                     | Participating actively                     |
+| 13  | Determination                  | Continuing despite difficulties            |
+| 14  | Courage                        | Taking appropriate and safe action         |
+| 15  | Stamina                        | Sustaining effort during activities        |
+
+### **Example: How notebook checking contributes evidence**
+
+Consider the work-quality observations:
+
+- Grade A: Independent and correct work.
+- Grade B: Independent work with mistakes.
+- Grade C: Possible copying or formal completion.
+
+The platform can retain these as task-specific observations.
+
+Potential associations include:
+
+| Observation | Possible OLQ evidence                                                                      |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Grade A     | Effective Intelligence, Reasoning Ability, Sense of Responsibility                         |
+| Grade B     | Initiative, Determination, Sense of Responsibility                                         |
+| Grade C     | Requires further observation of Initiative, Responsibility and independent problem-solving |
+
+These are potential evidence associations, not approved scoring weights.
+
+### **The complete OLQ development workflow**
+
+[The Thrive Approach: Supporting Emotional Development in Schools](https://images.openai.com/static-rsc-4/Rrev1JRHgGRETnuhi1HFQUmzeLhOIboHUCELlWag4M9Z9lCPOAVkS8Li_lT-1sfL3Mrhxb6OR_Tm11Yx-9-puTRUSLIT8GLxXJFZJYE7pKMOjaTGIrB5mwh9h41vmxSSnH90Gjn5Wo-KOkCXxXPY881R58w7656MinIG0K1XhOk?purpose=inline)
+
+[structural-learning.com](https://www.structural-learning.com/post/thrive-approach-a-teachers-guide?utm_source=chatgpt.com)
+
+The approved development scope is:
+
+| Work package | Function                          |
+| ------------ | --------------------------------- |
+| P3-1         | Handwriting options               |
+| P4-1         | Observation context and incidents |
+| P4-2         | Activity and duty register        |
+| P4-3         | Accommodations                    |
+| P5-1         | Data loader                       |
+| P5-2         | Recalculation                     |
+| P5-3         | Integration hooks                 |
+| P5-4         | Periods and rule sets             |
+| P5-5         | Performance and speed checks      |
+| P5-6         | Security review                   |
+| Phase 6      | Staff-facing OLQ screens          |
+
+The latest instruction is to complete all these packages together using parallel specialist agents under one Main Orchestrator.
+
+### **Important OLQ safeguards**
+
+- Existing `PILOT_RULES` must not change.
+- Existing formulas must remain unchanged.
+- Scoring mode stays OFF.
+- No automatic change to Learners Score or academic marks.
+- All evidence must be traceable.
+- Teachers should not assign permanent personality labels from isolated incidents.
+- Accommodations must be considered when interpreting observations.
+- The founder applies database migrations.
+
+Phases 7 and 8 remain blocked.
+
+# **7. Cognitive Gym — Intelligence and attention games**
+
+Core game functionality previously reported built
+
+This is potentially one of the most attractive features for students and parents.
+
+The purpose is to create a practice environment that develops attention, perception, memory, response control, reasoning and problem-solving skills.
+
+[Cognitive stimulation therapy for kids- Specialized online exercises and material for kids- CogniFit](https://images.openai.com/static-rsc-4/Ys3xzfGtEw_d9BmbX2RYAM4a3CZSIa8R8yvYgcZ81JJeaSiZ8exHPN-tovMySNp7gVWwt1FzUyHSIVBaOLxYxvFH7EUI6WB7POXgLUeHhWcOHZSjHvOsKwlgDS-QEh83SBPAsOY3ufT3yoyVxLYSeY6D146rCcJN-oZax-5isH8?purpose=inline)
+
+[BrainFit CognitiveMAP by BrainFit](https://images.openai.com/static-rsc-4/4eJZz-MGR78B6Lgvmzgr56XqnCNI2-vo9owXri4GDQGBKHI-IMMPNrejRCaXqynSmISm8RPMQQZPhvgBWhOLPb7TqmwjiyyCK3mgHr3zFUXt5Sc9pSRkrSsskimok7xBW4VFUZSUGIzkGC3lvWn0X0MO4KOGRI7y4AdybfOThzM?purpose=inline)
+
+[Reaction Go/No-go | Präzises kognitives Reaktionstraining](https://images.openai.com/static-rsc-4/Uv6FggI_BNRiQHimCHnXxtHw9c0_dyr7B-QHM9pHIvs4FM5xdZbZ0dUQSImq-jbHX58Qcg57cMei4zR8P0yXOLS-ajZZPwRq8ffLfHkDiyXJpS6XxJVmW1y4gGZw30LFQrh78v2MHaA6fv16HRdo_sHLbHGSG0upm6givolHfYw?purpose=inline)
+
+11
+
+### **Game categories**
+
+| Category         | Games and activities             | Main skill practised         |
+| ---------------- | -------------------------------- | ---------------------------- |
+| Visual attention | Target finding, visual scanning  | Selective attention          |
+| Working memory   | Number sequences, pattern recall | Short-term memory            |
+| Response control | Go / No-Go challenges            | Inhibition                   |
+| Perception       | Shape and pattern identification | Visual processing            |
+| Reasoning        | Logic and sequence puzzles       | Logical thinking             |
+| Planning         | Step-based challenges            | Planning and problem-solving |
+
+### **How the game engine works**
+
+Each game session can capture:
+
+- Accuracy.
+- Response time.
+- Correct responses.
+- Errors.
+- Missed targets.
+- Difficulty level.
+- Attempts.
+- Progress over multiple sessions.
+
+For example:
+
+**Illustrative cognitive game progress**
+
+# **78%**
+
+Accuracy in a sample visual-attention activity
+
+Illustrative practice-session accuracy, not actual student results.
+
+0%25%50%75%100%123456
+
+Example only. Improvement in game performance does not automatically establish improved classroom attention or intelligence.
+
+### **Game access and safeguards**
+
+The previously reported implementation includes:
+
+- Three accessible games for a child through the parent login.
+- School switching.
+- Daily time limit.
+- Game activity counts restricted to staff.
+- Browser-tested gameplay.
+
+The long-term plan should include age-appropriate difficulty, personal-baseline comparisons and game-performance history.
+
+It should not present games as IQ tests or clinical diagnoses.
+
+# **8. Teacher Intelligence System**
+
+Partially planned; timetable development deferred
+
+The teacher module should become a complete workspace rather than a collection of separate forms.
+
+[EduNova AI ERP – School & Coaching Center Dashboard UI Design by TechX Solutions  on Dribbble](https://images.openai.com/static-rsc-4/iNb33-Glgwmh89VOHfM9xsEBfnUr21irxASSKk3sgk8SKVoC3ivhtdYbXTL98tgRieL7hAPUXL69eXeL8Pb-Wb4PLE5J-693_cjvTp92x5yfNoYKt-Lgj9dhA6oNfZqikXJWcO3q1sTv7kYVerRGwNSAvtK_DsvzYE31Ha1gZCw?purpose=inline)
+
+[dribbble.com](https://dribbble.com/shots/27412464-EduNova-AI-ERP-School-Coaching-Center-Dashboard-UI-Design?utm_source=chatgpt.com)
+
+### **A. Teacher dashboard — Today**
+
+The first screen should answer:
+
+- What classes do I have today?
+- Which homework needs review?
+- Which notebooks need checking?
+- Which students need attention?
+- Which assignments are overdue?
+- Which follow-ups are pending?
+- What activities must I complete?
+
+### **B. Teacher timetable engine**
+
+Planned functionality:
+
+- Class-wise timetable.
+- Subject allocation.
+- Teacher availability.
+- Period allocation.
+- Double-booking detection.
+- Empty-period detection.
+- Substitution management.
+- Timetable changes and history.
+- Teacher workload distribution.
+
+The previously discussed school timetable requirements can inform the configuration, but the platform must allow each subscribing school to define its own schedule.
+
+### **C. Teacher planner**
+
+- Daily lesson planning.
+- Chapter coverage.
+- Homework allocation.
+- Revision planning.
+- Assessment scheduling.
+- Remedial teaching.
+- Student follow-ups.
+- Lesson completion records.
+
+### **D. Teacher productivity**
+
+Potential indicators:
+
+| Indicator         | Measurement                       |
+| ----------------- | --------------------------------- |
+| Lesson completion | Planned versus completed          |
+| Notebook checking | Checking records and turnaround   |
+| Homework review   | Review completion                 |
+| Academic coverage | Syllabus progress                 |
+| Student support   | Follow-up completion              |
+| Workload          | Assigned versus available periods |
+
+Teacher productivity must not be reduced to a simplistic numerical ranking. Quality, workload and context should be considered separately.
+
+# **9. Academic Management System**
+
+This is the academic backbone of the application.
+
+[Yuva Career Academy ERP Dashboard UI Design | CRM & ERP Portfolio | TechX Solutions Ahmedabad | TechX Solutions Ahmedabad](https://images.openai.com/static-rsc-4/Y5YIU4Y45RP7xUlEnr_UR7X6iMx6V6EGBzCrdIhCApVEJ3rqGn6NjKBotFBDOzQpsgBfWMw1xsU3p7JbChL_gBFeR42ok8qGAXQE2FJzDLaNSis91cfglFZrDfWKHkuHGzeor_wuc8THpm0dSMcB9jJKFiZ7rYxTeDKk88Sde_U?purpose=inline)
+
+[techxsolutions.in](https://techxsolutions.in/crm-erp/yuva-career-academy-erp/?utm_source=chatgpt.com)
+
+### **Main components**
+
+**1. Academic sessions**
+
+- Multiple academic sessions.
+- Session start and end dates.
+- School-specific calendar.
+- Holidays.
+- Examination schedule.
+- PTM dates.
+
+**2. Classes and subjects**
+
+- Classes and sections.
+- Subject allocation.
+- Teacher allocation.
+- Student enrolment.
+- Class strength.
+- Academic structure.
+
+**3. Examination management**
+
+- Unit tests.
+- Half-yearly examinations.
+- Annual examinations.
+- Subject-wise marks.
+- Grades.
+- Report cards.
+- Comparative academic analysis.
+
+**4. Syllabus management**
+
+- Subject-wise chapters.
+- Chapter completion.
+- Planned versus actual coverage.
+- Revision schedules.
+- Teacher progress.
+
+**5. Reading and mathematics development**
+
+- Reading fluency.
+- Pronunciation.
+- Comprehension.
+- Reading levels.
+- Numeracy.
+- Mathematical competency.
+- Remedial records.
+
+Your existing academic planning concepts, including the 1-4-7-15-30 revision method, can be incorporated as configurable revision schedules rather than hardcoded rules.
+
+**6. Curriculum configuration**
+
+The platform should accommodate different education boards and school-specific requirements.
+
+For your own school, the existing CBSE/NCERT and Haryana curriculum context can guide initial configuration. Other schools must be able to use their own curriculum structures.
+
+# **10. Parent Portal — Family 360°**
+
+Parent homework and language capabilities previously reported
+
+[School Parent App | School ERP & Management Software India](https://images.openai.com/static-rsc-4/WQ6zFG1HkFHmatuqRUBYiyO1Hc1wv67gxDrvbSJcDpIQ5tW5jR8_a2hvX0muKk1JLBezj3tiDcWbUlwcOfJ2_Yak0_mCY7IIqtoJ6nLzI6owbSLHq9wXP409xltxOgmF_jejsNokmegPe3aXWyYV_2EojtBAfR1yKosJbpU4JpM?purpose=inline)
+
+[schoolparentapp.com](https://schoolparentapp.com/?utm_source=chatgpt.com)
+
+The parent portal should become the primary communication interface between families and the school.
+
+### **Parent dashboard**
+
+Parents should be able to view:
+
+- Child profile.
+- Attendance.
+- Homework.
+- Examination results.
+- Academic progress.
+- Teacher feedback.
+- Fee details.
+- School announcements.
+- Messages.
+- Complaint status.
+- Counselling and meeting information where authorised.
+- Cognitive game access.
+
+### **Multiple children**
+
+One parent account should be able to manage multiple children enrolled in the same or supported schools.
+
+For example:
+
+- Child 1: Class 3.
+- Child 2: Class 7.
+- Child 3: Class 10.
+
+The parent can switch between children without logging out.
+
+Each child's records remain separate.
+
+### **A. Complaint Management — Important feature**
+
+This is one of the most important parent-handling requirements you specified.
+
+The complaint system should be simple for parents but structured for management.
+
+[School Management App by Burak on Dribbble](https://images.openai.com/static-rsc-4/xwky5i99cf2XN9S_Xbi9yjukEUc2JIUM2fzvuPw9GdHZwr853T3pJuYZGtjO3PQ7UdhMwbV1iPwr9ybMYtw93wkcIpNHwebXbMYY8ZgnEhn1w4_brNpyt3ARoR2rpdgjS28TcHJpmSmF9j81OU_Rzr4Qc5cOIES50lRzjW6-0-s?purpose=inline)
+
+[dribbble.com](https://dribbble.com/shots/22708319-School-Management-App?utm_source=chatgpt.com)
+
+**Parent complaint workflow:**
+
+1. **Parent opens Complaint Management**
+
+   Selects the child and enters the complaint section.
+2. **Selects nature of problem**
+
+   For example:
+   - Academic issue.
+   - Teacher-related concern.
+   - Transport issue.
+   - Behaviour or bullying concern.
+   - Infrastructure.
+   - Safety concern.
+   - Fee-related concern.
+   - Other.
+3. **Uploads photographs**
+
+   The parent can upload one or more images to provide evidence. A short description can be optional.
+4. **Complaint reaches school management**
+
+   The complaint is recorded with a unique reference number and appropriate urgency.
+5. **Management assigns a dedicated coordinator**
+
+   The coordinator is selected by authorised management, not automatically exposed to the parent as a self-assigned staff member.
+6. **Coordinator investigates and responds**
+
+   Adds progress updates, internal notes, action taken and supporting evidence.
+7. **Resolution and closure**
+
+   The parent receives a resolution update and can provide feedback.
+
+### **Management complaint dashboard**
+
+It should show:
+
+- New complaints.
+- Unassigned complaints.
+- Assigned coordinator.
+- Priority.
+- Pending complaints.
+- Overdue complaints.
+- Resolved complaints.
+- Reopened complaints.
+- Average resolution time.
+- Complaint history.
+
+**Important safeguards:**
+
+- Parents can only see complaints relating to their own children.
+- Uploaded images must be securely stored and authorised.
+- Sensitive complaints should have restricted visibility.
+- Bullying and safeguarding concerns should have escalation procedures.
+- Complaint records should have an audit trail.
+- Internal staff discussions must not automatically be visible to parents.
+
+This module should eventually be connected to the school management dashboard so that no complaint gets lost.
+
+### **B. Parent communication**
+
+Planned capabilities:
+
+- School notices.
+- Teacher-parent communication.
+- Fee reminders.
+- Attendance notifications.
+- Homework notifications.
+- Complaint updates.
+- PTM scheduling.
+- Home visit communication.
+
+SMS/WhatsApp/email integration remains dependent on provider selection, consent and approval. The platform should be designed to support these channels without assuming that they are already enabled.
+
+### **C. Home visits and counselling**
+
+The parent/family engagement module should include:
+
+- Planned home visits.
+- Actual visit dates.
+- Visiting staff.
+- Parent concerns.
+- Agreed actions.
+- Next review date.
+- Counselling notes.
+- Three-month progress reviews where applicable.
+
+# **11. Admission CRM — Complete admission lifecycle**
+
+Phases 1–6 previously reported implemented
+
+This has become one of the most developed administrative modules in the project.
+
+[Admission Management Software for Schools | QuickEnroll AI](https://images.openai.com/static-rsc-4/K_Z8dFdPPDsG2OfGPikdfo99xSLOhQiiB3VLdGhNalIg-6fYTIQrUlpE5U54XxbrYZ3AbeImEIwHLSg9zWNF1-9vXiy7R_UVkl8L8oK1YtInrAoDeCBX27lMid4bOZZUD1b1emLQzPHSY1su6YvMIeRBAREtcAep3WvpVuh4OJ4?purpose=inline)
+
+[inforida.com](https://inforida.com/products/quick-enroll-ai?utm_source=chatgpt.com)
+
+The Admission CRM is intended to manage the entire journey from the first enquiry to confirmed admission.
+
+### **A. Enquiry management**
+
+- Online admission enquiry form.
+- Walk-in enquiries.
+- Phone enquiries.
+- Website enquiries.
+- Bulk enquiry import.
+- Duplicate detection.
+- Enquiry source.
+- Campaign attribution.
+- Counsellor assignment.
+- Follow-up history.
+
+### **B. Admission pipeline**
+
+1. New Enquiry
+2. Contacted
+3. Interested / Follow-up
+4. School Visit
+5. Counselling
+6. Registration
+7. Document Verification
+8. Admission Approval
+9. Admission Confirmed
+
+Illustrative lifecycle. Actual stage configuration is school-specific.
+
+The system also supports Lost, Deferred, Withdrawn and other exception paths.
+
+### **C. Follow-up workspace**
+
+- Due follow-ups.
+- Overdue follow-ups.
+- Assigned counsellor.
+- Last contact.
+- Next contact date.
+- Call history.
+- Visit history.
+- Follow-up outcomes.
+- In-app notices.
+
+### **D. Visit management**
+
+- Book school visits.
+- Assign visit conductors.
+- Record visit outcomes.
+- Track scheduled and completed visits.
+- Maintain visit history.
+
+### **E. Registration and documents**
+
+- Registration forms.
+- Required document checklist.
+- Document upload.
+- Verification status.
+- Missing documents.
+- Approval workflow.
+- Registration conversion to student.
+
+### **F. Admission approval**
+
+- Approval queue.
+- Approver permissions.
+- Seat availability.
+- Class-wise capacity.
+- Approval history.
+- Exception handling.
+
+### **G. Campaign management**
+
+- Admission campaign records.
+- Source-wise enquiries.
+- Campaign performance.
+- Counsellor workload.
+- Admission conversion funnel.
+- CSV reports.
+
+### **H. Recent hardening work**
+
+Previous Claude Code reports also describe:
+
+- Enquiry lifecycle consistency fixes.
+- Seat-allocation concurrency protection.
+- Enquiry correction with history.
+- Document access controls.
+- Tenant isolation testing.
+- Retention preview and guarded execution.
+- Reminder scheduler logic, not installed.
+- Security and audit improvements.
+
+Some decisions remain open, particularly legal consent, retention periods, document disposition, staff MFA, and external messaging.
+
+**Overall:** Admission CRM has a substantial functional foundation, but it should not be considered commercially production-ready until the infrastructure, legal, security and operational blockers are resolved.
+
+# **12. Fee Management and Family Accounts**
+
+Detailed product requirement; implementation completeness needs verification
+
+[Apna School — India's Best School Management Software, ERP & Parent App](https://images.openai.com/static-rsc-4/uvoWs136u0n4dV-AF_EFA9EMYZ2aippI_zZrLRfQ_-HTE9PxP4S_0ulpNpFJIXcUkF-s_W5kwQ-VCPgKIMNJrYDuHm1nGs2BAlZzGqHbGA44AIVwY57uz8G-b50Oj-RmhAwwaeH8-DjPD80Dxlts5iwGta8s5e47QkeZcLnJicY?purpose=inline)
+
+[apnaschool.site](https://apnaschool.site/?utm_source=chatgpt.com)
+
+The fee module should connect each student to a school-specific fee account.
+
+### **Main capabilities**
+
+- Annual fee structure.
+- Monthly or quarterly payment plans.
+- Admission fees.
+- Tuition fees.
+- Transport fees.
+- Other charges.
+- Concessions.
+- Discounts.
+- Sibling concessions.
+- Outstanding balance.
+- Due dates.
+- Receipts.
+- Payment history.
+- Pending fee tracking.
+
+### **Family 360° accounts**
+
+Suppose a family has three children:
+
+| Child     | Annual fee    | Paid        | Outstanding |
+| --------- | ------------- | ----------- | ----------- |
+| Child A   | ₹45,000       | ₹30,000     | ₹15,000     |
+| Child B   | ₹40,000       | ₹30,000     | ₹10,000     |
+| Child C   | ₹35,000       | ₹20,000     | ₹15,000     |
+| **Total** | **₹1,20,000** | **₹80,000** | **₹40,000** |
+
+The authorised accounts staff can view the family-level summary and individual child ledgers.
+
+This is particularly useful for fee collection, sibling management and family communication.
+
+The actual payment gateway and automated payment reconciliation should be separately approved.
+
+# **13. Attendance and Student Monitoring**
+
+[School Management Software for Indian Schools | SchoolDeck](https://images.openai.com/static-rsc-4/2aepPaZLywhHXTI80y5R4piBwAycKdpdmxgJq1phlMQbcJH4P4W7ps94V2EIKMoeJQcaj8Awt87OIOvp7um67DaV87P3DDhywNqYaNAzMKgKP5HEB43EafMs_V1mpsjpQPU3YpDVUg4738FlLaIgz0iKNdRlwtVaY_PvZb3pExQ?purpose=inline)
+
+[databus.co](https://databus.co/schooldeck/?utm_source=chatgpt.com)
+
+The attendance module should support:
+
+- Daily attendance.
+- Class-wise attendance.
+- Individual student attendance.
+- Teacher attendance, if included in the approved scope.
+- Leave management.
+- Late arrivals.
+- Absentee alerts.
+- Monthly attendance.
+- Attendance percentage.
+- Parent communication.
+- Historical reports.
+
+### **Intelligent alerts**
+
+The platform could detect:
+
+- Repeated absences.
+- Sudden attendance decline.
+- Continuous absenteeism.
+- Students requiring parent follow-up.
+
+These should be supportive alerts, not automatic disciplinary decisions.
+
+# **14. Transport Management**
+
+Planned module; detailed completion not confirmed
+
+[School Transport Management Software - Route & Fleet Mgmt | edumerge](https://images.openai.com/static-rsc-4/gyMGqVZDNpHxks1P8X65eN6aj1ky_xTt0e6-uHTQyg5nxFwKpLy4PKXe19xPbkXslBE1rahxlHIt4UTWp0vLsePflyKOys5J5RtUeYXC8itsNUsOJzKFRXjk9nw7gZwHPjkxJ0O2qb_5ozlDkJm2pv8Qjg8hcoH2hO7GZqXTdfU?purpose=inline)
+
+[edumerge.com](https://www.edumerge.com/products/school-erp/transport-management?utm_source=chatgpt.com)
+
+Your school transport requirements can be converted into a configurable module for all subscribing schools.
+
+### **Features**
+
+- Vehicle records.
+- Bus and van details.
+- Driver details.
+- Attendant details.
+- Route management.
+- Stop allocation.
+- Student transport allocation.
+- Route-wise student lists.
+- Transport fee.
+- Vehicle capacity.
+- Fuel records.
+- Maintenance records.
+- Driver attendance.
+- Route changes.
+
+### **Future capabilities**
+
+- GPS tracking.
+- Parent bus tracking.
+- Arrival notifications.
+- Route optimisation.
+- Fuel efficiency analysis.
+
+Live GPS should be treated as an optional integration requiring a suitable provider.
+
+# **15. School Management Dashboard — Management Intelligence**
+
+[CampusConnect - #1 Education Management Software for Schools, Colleges & Universities](https://images.openai.com/static-rsc-4/hcRcRdBV3MPRwTqEzvxXA0Ja1yC03JcCRuywJnjDzlpgVobWu-Ar6Hhlx0O_1eisEqhTCOb--_MlckDUFJyJjVpTvF5uXptna2EAfPmxlSHIfFzoc_ccrciavvfc6UzPxGI5q9R-T-ILwJSwYX82BYWWTrwNq2nmw9IQq_pnO_I?purpose=inline)
+
+[campusconnecthub.com](https://campusconnecthub.com/?utm_source=chatgpt.com)
+
+This should be the control centre for the School Owner, Principal and authorised management staff.
+
+Instead of opening ten different modules, management should see the school's overall operating condition.
+
+### **Main dashboard categories**
+
+| Category          | Key information                         |
+| ----------------- | --------------------------------------- |
+| Admissions        | Enquiries, registrations, conversions   |
+| Students          | Total strength, class-wise distribution |
+| Attendance        | Daily attendance and absence trends     |
+| Academics         | Results, learning gaps, progress        |
+| Teachers          | Workload and lesson completion          |
+| Fees              | Collection, dues, concessions           |
+| Homework          | Assigned, submitted, overdue            |
+| Notebook checking | Coverage and pending notebooks          |
+| Parent complaints | New, pending, overdue, resolved         |
+| Counselling       | Home visits and follow-ups              |
+| Cognitive Gym     | Participation and practice trends       |
+| OLQ               | Observation coverage, once enabled      |
+
+### **Management intelligence and alerts**
+
+Examples:
+
+- A class has low attendance this week.
+- A student has repeated reading difficulties.
+- A teacher has pending notebook checking.
+- An admission enquiry has an overdue follow-up.
+- A complaint is approaching its resolution deadline.
+- Fee follow-up is pending.
+- A home visit has not been completed.
+
+The dashboard should explain why an alert appeared and what action is recommended.
+
+# **16. Student Retention and Family Engagement Intelligence**
+
+Planned intelligence layer
+
+This is an especially valuable feature for school growth.
+
+The objective is to help schools identify families who may need better engagement, counselling or support.
+
+### **Information that can contribute**
+
+- Attendance decline.
+- Academic difficulties.
+- Fee discussions.
+- Parent meetings.
+- Unresolved complaints.
+- Home visit history.
+- Counselling records.
+- Explicitly expressed transfer intentions.
+
+### **Example**
+
+**Illustrative family engagement alert**
+
+Follow-up required
+
+**Student: Example Student**
+
+- Attendance has declined.
+- A parent meeting is pending.
+- An academic support plan needs review.
+- A previous complaint remains unresolved.
+
+**Suggested action:** Assign a counsellor to contact the family, understand the concerns and document an action plan.
+
+This is an example, not an actual student or an approved dropout-probability prediction.
+
+Initially, use transparent rules and human review. Do not make automatic admission, withdrawal or educational-access decisions based on a predictive label.
+
+# **17. Notifications and Communication Engine**
+
+The platform should eventually have a central notification engine.
+
+[Administrator Guide | Henapp Educare Demo School](https://images.openai.com/static-rsc-4/4EcSmiDGmAiTf3bD6wlc75NsJgCTuVWHmV7fCoD2N7n7qp28oO9xgVKPjh9TIfXm9f2YDNEGLON6v3BzgiokAUIAy80PD20PF2noWY5REo-mVdsz9hfBpaJ-wI1SHc1Lxhn3d8Rnz-katp5wqhF17DftQSO0DjNeQ55mzvWUwtY?purpose=inline)
+
+[educare.henapp.org](https://www.educare.henapp.org/user-guide/admin?utm_source=chatgpt.com)
+
+### **Notification categories**
+
+| Event                      | Recipient        |
+| -------------------------- | ---------------- |
+| Homework assigned          | Parent           |
+| Homework overdue           | Parent / teacher |
+| Student absent             | Parent           |
+| Fee due                    | Parent           |
+| New complaint              | Management       |
+| Complaint assigned         | Coordinator      |
+| Complaint updated          | Parent           |
+| Admission enquiry received | Admission team   |
+| Follow-up overdue          | Counsellor       |
+| Visit scheduled            | Assigned staff   |
+| Approval required          | Approver         |
+
+### **Delivery channels**
+
+- In-app notifications.
+- Email.
+- SMS.
+- WhatsApp.
+- Push notifications.
+
+In-app notification functionality exists in parts of the current platform. External messaging remains dependent on provider selection, consent and implementation.
+
+# **18. Reports, Analytics and Exports**
+
+Reporting capabilities exist in several implemented modules
+
+Every major module should have its own reporting system.
+
+[School LMS & ERP Software UAE | ENIT Solutions](https://images.openai.com/static-rsc-4/_MEMBwntUqWC2J1sn-QQnpCalrEn11HTfoHrYgKtE-P17UvIC1quV0QdjvbJOGIX00WYkRS8cW4FHaXTs03sZhLoLwfabrDrkDg9yY8kpFCREWi2rGrDA3uvKeCGAZQA5-safpQ7dYIJWYwO6bUJ1ToFqUdsw4wsq4Sxn1R-C8I?purpose=inline)
+
+[enitsolutionsae.com](https://www.enitsolutionsae.com/solutions/school/?utm_source=chatgpt.com)
+
+### **Academic reports**
+
+- Class performance.
+- Subject performance.
+- Individual progress.
+- Examination comparison.
+- Reading and numeracy.
+- Learning gaps.
+
+### **Teacher reports**
+
+- Homework checking.
+- Notebook checking.
+- Lesson completion.
+- Workload.
+- Follow-up records.
+
+### **Admission reports**
+
+- Enquiry funnel.
+- Campaign performance.
+- Source analysis.
+- Counsellor workload.
+- Conversion statistics.
+
+### **Financial reports**
+
+- Fee collection.
+- Outstanding balances.
+- Class-wise dues.
+- Monthly collection.
+- Family account summary.
+
+### **Student reports**
+
+- Student 360° report.
+- Academic history.
+- Attendance history.
+- Notebook checking history.
+- Homework history.
+- Development observations.
+- Counselling records.
+
+### **Export formats**
+
+- CSV.
+- PDF.
+- Printable student reports.
+- Management summaries.
+
+Exports must follow the same permissions as the underlying reports and must be audited where appropriate.
+
+# **19. School Setup and Onboarding**
+
+Phase 2 work previously reported in progress
+
+A commercial multi-school SaaS cannot depend on manually configuring every school through database commands.
+
+Each new school needs a guided onboarding experience.
+
+[How to setup openSIS Student Information System for the first time](https://images.openai.com/static-rsc-4/SPjTwNtoy9TMJfiDGOv70FVWO-hy5Xv23J48chRUMb7DEwaduKpfdcLHfD8lwywmvb-GfSbfAcbOv-hSOc-N0uPfLhDxzF5ON5fLcP9YP3dqP4ceJQHH31LBeWdEqU7VnUumSOHdGRskux5ceJP8Zc9EzZBx_cV3C_db75DXdwA?purpose=inline)
+
+[help.opensis.com](https://help.opensis.com/portal/en/kb/articles/how-to-setup-opensis-for-the-first-time?utm_source=chatgpt.com)
+
+### **Recommended onboarding journey**
+
+1. Register school
+2. Verify school identity and owner
+3. Create isolated school tenant
+4. Configure school profile and branding
+5. Set academic session
+6. Configure classes and sections
+7. Configure subjects and curriculum
+8. Configure fee structure
+9. Create administrator account
+10. Invite teachers and other staff
+11. Import students and parents
+12. Complete setup checklist
+13. Activate school operations
+
+The Setup Checklist navigation item was recently reported as added. However, the complete onboarding journey still requires end-to-end acceptance testing.
+
+### **Critical multi-school test**
+
+Create two synthetic schools.
+
+- School A should have its own staff, students, fees and configuration.
+- School B should have entirely separate records.
+- School A must never access School B's data, even through altered URLs, API requests or exports.
+
+This is a defining acceptance test for the commercial product.
+
+# **20. UI/UX — How the complete website should look and feel**
+
+You have already made several important design decisions in the UI redesign proposal.
+
+The chosen navigation approach is:
+
+- Desktop: Left navigation rail.
+- Tablet: Collapsed icon navigation.
+- Mobile: Bottom navigation bar.
+- School branding: One primary brand colour per school.
+- Status colours: Consistent across every school.
+- First redesign target: Teacher Today page.
+- Prototype: Static clickable preview before changing the application UI.
+
+[EduCloud SaaS - School Management · Built with Blink](https://images.openai.com/static-rsc-4/gsSkSDkzv8Ej1r6wqtXSanzpSzEwzmKlqhKRTEMC1prXNJjlZtv83BS6V1Xg1UxxD-2TUSXLyglDaBeD3Bv72Myln1Vv4awRymZ8GQ3B0Jvs9j1TwCTejbqB9j6dUYjfr-VKSCasGNtFgDTyH8uQ0AuhWvEb5mT8xXIso1Hka2U?purpose=inline)
+
+[EduNova AI ERP – School & Coaching Center Dashboard UI Design by TechX Solutions  on Dribbble](https://images.openai.com/static-rsc-4/iNb33-Glgwmh89VOHfM9xsEBfnUr21irxASSKk3sgk8SKVoC3ivhtdYbXTL98tgRieL7hAPUXL69eXeL8Pb-Wb4PLE5J-693_cjvTp92x5yfNoYKt-Lgj9dhA6oNfZqikXJWcO3q1sTv7kYVerRGwNSAvtK_DsvzYE31Ha1gZCw?purpose=inline)
+
+[Login - Rayah - ADEK](https://images.openai.com/static-rsc-4/Dfm1HZmGJFIGyUs5V-e_0yxzrfEAufnjD30c8HjWbMZH_WdnqE9cu4P0GJoprGdHzgYZ6ILIFtGkIRfzuP58URg6tAXZ2-F_S6s2eLQYlG1LrnSa3ZYX0BQi-WSrEbemJc-shqjyrk42jCYIQ9ri4Iki-qYBisCA8FR0lfUCPWs?purpose=inline)
+
+18
+
+### **Recommended navigation structure**
+
+This is my proposed consolidated navigation. The actual navigation should change according to the user's permissions.
+
+**SaaS platform**
+
+- Platform Dashboard
+- Schools
+- Subscriptions
+- Platform Users
+- Platform Settings
+- Audit and Security
+
+**School management**
+
+- Today
+- Dashboard
+- Students
+- Academics
+- Attendance
+- Admissions CRM
+- Homework
+- Notebook Checking
+- Fees
+- Transport
+- Teachers
+- Parent Complaints
+- Counselling
+- Cognitive Gym
+- Learners Score
+- OLQ
+- Reports
+- School Settings
+
+**Parent portal**
+
+- Home
+- My Children
+- Attendance
+- Homework
+- Academic Progress
+- Fees
+- Complaints
+- Messages
+- Cognitive Games
+- School Notices
+
+Not every role should see every item.
+
+### **Design principles**
+
+1. Clean and professional interface.
+2. Minimal clicks for teachers.
+3. Data-dense tables for administration.
+4. Mobile-friendly parent experience.
+5. Consistent components and status indicators.
+6. Accessible keyboard navigation.
+7. Fast page loading.
+8. Clear empty states and error recovery.
+9. School-specific branding.
+10. Consistent design across modules.
+
+The UI redesign should happen through shared components and design tokens rather than rebuilding every page independently.
+
+# **21. Technical architecture and security**
+
+This is the foundation that makes the product commercially viable.
+
+[Next.js Multi-Tenant Architecture Patterns for SaaS - Kostra](https://images.openai.com/static-rsc-4/LTzSZRDJwIJb_mCawSCYBucz_vqK9-SEgLtg8OQYx1w1YdgppuRw8jonGYe8L9RMeA23-NUGAUq5H8w-MFbo4jPYlN7iWjLqPcnMgEW1mZbChfhXLm58w4bRrJwUtj6YvtymZUT5nRZjcFkdc53UfFJJnBsQd27lQvwG6S8TSEY?purpose=inline)
+
+[kostra.io](https://kostra.io/blog/what-is-nextjs-multi-tenant-architecture?utm_source=chatgpt.com)
+
+### **Recommended architecture layers**
+
+| Layer               | Responsibility                                       |
+| ------------------- | ---------------------------------------------------- |
+| Presentation        | Website, dashboards and mobile-responsive interfaces |
+| Authentication      | Login, sessions and account security                 |
+| Authorization       | Roles and permissions                                |
+| Tenant isolation    | School-level data boundaries                         |
+| Business logic      | Admissions, fees, academics and OLQ                  |
+| Database            | Student, family, staff and operational records       |
+| File storage        | Documents, complaint images and attachments          |
+| Notification engine | In-app and external communication                    |
+| Analytics           | Reports and performance indicators                   |
+| Integrations        | Payment, messaging and other providers               |
+
+### **Security requirements**
+
+- Role-based permissions.
+- Server-side authorization.
+- Tenant isolation.
+- Database-level tenant policies.
+- Secure password handling.
+- Session management.
+- Audit logs.
+- Secure document access.
+- Upload validation.
+- File scanning.
+- Backup and restore.
+- Rate limiting.
+- Protection against cross-school data leakage.
+- Staff account recovery.
+- Appropriate multi-factor authentication.
+
+### **Data governance**
+
+Different information must have different access policies.
+
+For example:
+
+- Teachers: assigned students and classes.
+- Accounts staff: necessary financial information.
+- Counsellors: authorised counselling records.
+- Parents: their own children's information.
+- Principals: authorised school-wide information.
+- SaaS operators: only platform-level access appropriate to their role.
+
+Sensitive child data should not be available to every school employee simply because they belong to the same school.
+
+# **22. Complete module status — Where the project stands**
+
+The following table is a consolidated status assessment from the latest reports available in our discussions. It is not a fresh repository audit.
+
+Status key: Reported built = previous implementation report; In progress = active development; Planned = not confirmed complete.
+
+| Module                           | Reported status                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------- |
+| Multi-tenant database foundation | Built; further validation ongoing                                             |
+| Authentication and roles         | Built; owner architecture needs approval                                      |
+| Student 360°                     | Built foundation                                                              |
+| Attendance                       | Built                                                                         |
+| Parent complaints                | Built                                                                         |
+| Homework management              | Built                                                                         |
+| Notebook checking                | Built                                                                         |
+| Notebook history and CSV         | Built                                                                         |
+| Cognitive Gym                    | Three games reported built                                                    |
+| Admission CRM                    | Phases 1–6 reported built                                                     |
+| Admission hardening              | Substantial fixes committed                                                   |
+| Admission reminders              | Logic built; scheduler not installed                                          |
+| Retention management             | Preview and safeguards built; execution disabled                              |
+| School onboarding                | Phase 2 additions in progress                                                 |
+| Setup checklist                  | Navigation entry added; full acceptance pending                               |
+| Learners Score                   | Framework planned; final formula unresolved                                   |
+| OLQ engine                       | P3–P6 approved for accelerated implementation; completion not yet established |
+| Teacher timetable                | Deferred                                                                      |
+| Teacher productivity             | Planned                                                                       |
+| Fee management                   | Existing foundation; full scope needs audit                                   |
+| Transport                        | Planned                                                                       |
+| Advanced parent communication    | Provider-dependent                                                            |
+| Staff management                 | Design and ownership decisions required                                       |
+| SaaS subscriptions and billing   | Not confirmed implemented                                                     |
+| UI redesign                      | Proposal and design decisions documented                                      |
+| Production deployment            | Not done                                                                      |
+| Commercial launch                | Not ready                                                                     |
+
+## **What has already been accomplished**
+
+Some important historical milestones:
+
+| Milestone                       | Evidence reported                                        |
+| ------------------------------- | -------------------------------------------------------- |
+| Notebook checking               | Commit `569a601`                                         |
+| Notebook export and history     | Commit `a31331c`                                         |
+| Homework management             | Commit `b4359d6`                                         |
+| Admission CRM Phase 6           | Commit `863556c`                                         |
+| Admission hardening             | Multiple commits                                         |
+| Lifecycle defect fixes          | Commit `a8e498b`                                         |
+| SaaS Phase 1                    | `edd62d3`, `db511db`                                     |
+| Gate 1 and initial Phase 2 work | `fe26dd0`, `08691fd`, `e0effdd`                          |
+| OLQ design approval             | 15 November 2026, as documented in the OLQ design README |
+
+These commits belong to different reported development milestones and branches. They should not be assumed to exist together in the current checkout without Git verification.
+
+# **23. What remains to complete the commercial SaaS?**
+
+I would divide the remaining work into eight major completion programmes.
+
+**Programme 1 — SaaS foundation**
+
+Foundation built
+
+- Finalise owner-role architecture.
+- Finish multi-school onboarding.
+- Complete staff account management.
+- Test tenant provisioning.
+
+  **Programme 2 — Student intelligence**
+
+  Partially complete
+- Complete OLQ P3–P6.
+- Finalise Learners Score methodology.
+- Integrate academic and development evidence.
+- Complete Student 360° reporting.
+
+  **Programme 3 — Teacher intelligence**
+
+  Planned
+- Timetable engine.
+- Daily teacher workspace.
+- Lesson planning.
+- Productivity analytics.
+
+  **Programme 4 — School operations**
+
+  Mixed
+- Complete fee management.
+- Family 360°.
+- Transport management.
+- Academic configuration.
+
+  **Programme 5 — Family experience**
+
+  Partially complete
+- Complete complaint workflows.
+- Parent communications.
+- Notification providers.
+- Counselling and home visits.
+
+  **Programme 6 — Commercial SaaS**
+
+  Pending
+- Subscription plans.
+- Feature entitlements.
+- Billing and renewals.
+- School activation and suspension.
+- Customer support.
+
+  **Programme 7 — UI/UX and analytics**
+
+  Design documented
+- Complete redesign.
+- Shared component system.
+- All-role dashboard consistency.
+- Advanced management analytics.
+
+  **Programme 8 — Launch readiness**
+
+  Not ready
+- Hosting.
+- Backups and restore testing.
+- Object storage and file scanning.
+- Monitoring.
+- Legal and privacy review.
+- Independent penetration test.
+- Real-device accessibility testing.
+
+# **24. My recommended final product structure**
+
+I would package the platform into six commercial product areas.
+
+# **Virat School OS**
+
+The complete operating platform
+
+Administration, admissions, fees, attendance, transport and school management.
+
+# **Virat Student 360°**
+
+Student development and intelligence
+
+Academics, reading, numeracy, notebook checking, Learners Score and student growth.
+
+# **Virat OLQ**
+
+Behavioural observation and development
+
+Fifteen OLQs, activity evidence, incidents, responsibilities and observation history.
+
+# **Virat Cognitive Gym**
+
+Cognitive practice environment
+
+Attention, perception, memory, reasoning and personalised practice.
+
+# **Virat Family Connect**
+
+Parent-school relationship
+
+Complaints, homework, fees, communication, family accounts and counselling.
+
+# **Virat Management Intelligence**
+
+Institutional decision support
+
+Dashboards, analytics, staff workload, admissions and retention indicators.
+
+These are proposed product packages within one platform, not six separate applications or independently deployed systems.
+
+# **25. My proposed 30-day completion strategy**
+
+Your previously stated commercial launch target is one month. That is an aggressive target.
+
+I would not promise that the entire platform can safely become commercially production-ready in 30 days, particularly with OLQ development, commercial billing, legal review, infrastructure and independent security testing still outstanding.
+
+However, a concentrated 30-day completion programme can deliver substantial progress.
+
+| Timeline   | Primary focus                                                   |
+| ---------- | --------------------------------------------------------------- |
+| Days 1–5   | Finish OLQ P3–P6 and SaaS onboarding                            |
+| Days 6–10  | Owner roles, staff management and tenant security               |
+| Days 11–15 | Learners Score, academic integration and fee module gap closure |
+| Days 16–20 | Teacher workspace, parent experience and UI redesign            |
+| Days 21–24 | SaaS subscriptions, entitlements and billing foundation         |
+| Days 25–27 | Integration, performance, accessibility and security testing    |
+| Days 28–30 | Pilot acceptance and commercial release decision                |
+
+This schedule assumes parallel development, rapid founder decisions and no major architectural rework. It does not override the hosting, legal, migration and security approval gates.
+
+# **26. Five decisions that will shape the final product**
+
+I would not reopen every historical decision. I would focus on five strategic questions that determine the remaining architecture.
+
+**Product strategy decisions**
+
+Recommended defaults selected
+
+**1. What should the commercial SaaS subscription model be?**
+
+Per student per month
+
+Per school per month with student limits
+
+Tiered plans: Basic, Professional, Enterprise
+
+Hybrid: base school fee + per-student charge
+
+**2. Should all six product areas be available to every school?**
+
+All modules included in every plan
+
+Basic modules included; advanced modules paid
+
+Schools choose and purchase individual modules
+
+Tiered packages with optional add-ons
+
+**3. How should schools onboard their existing data?**
+
+Excel/CSV import
+
+Dedicated migration assistance
+
+Both self-service import and assisted migration
+
+**4. What should be the first commercial customer experience?**
+
+Self-service school registration and activation
+
+Demo request followed by assisted onboarding
+
+Both options
+
+**5. What should be the primary product positioning?**
+
+Complete School ERP
+
+Student development and intelligence platform
+
+Integrated School Operating System + Student Intelligence
+
+Submit product decisions
+
+# **27. Final vision**
+
+[STEMBridge — Global STEM Education Platform](https://images.openai.com/static-rsc-4/6VCFTK7IhTb0wQ_96u_bY06a9Yf4AlkFji-oNom4hzEmN8WC6Ul_4xCqt6-vtO6Lo3qNdB4Byxi_T6rrjq8RU9Fp76Wy35NgSjtlzYOy_kmtxMBSaHrPMsYl1ri2Un5jpTUGrEK5rbcjxO0hzAGaj3YxqARYF_BKIsOBmoO5qC4?purpose=inline)
+
+[stembridge.io](https://stembridge.io/?utm_source=chatgpt.com)
+
+I see Virat Student 360° becoming much more than a school database or fee management application.
+
+Its biggest competitive advantage can come from connecting five things that conventional school ERP systems usually handle separately:
+
+1. **Academic performance:** What is the student learning?
+2. **Behavioural development:** How is the student demonstrating responsibility, initiative and other observable qualities?
+3. **Cognitive practice:** How is the student performing on attention, memory and reasoning activities?
+4. **Family engagement:** What does the school need to communicate or resolve with the family?
+5. **Institutional intelligence:** What should management do to improve the school?
+
+And all of this must operate within a secure multi-school commercial SaaS architecture.
+
+**My strongest recommendation:** Build one unified platform with Student 360° at its centre, not multiple disconnected products. Admissions, fees, academics, complaints, notebook checking, homework, cognitive games and OLQ observations should all contribute relevant information to the same student journey, without mixing their individual scoring rules.
+
+That is the product vision I would use to guide every remaining development decision.
+
+*The next major milestone should be a consolidated Master Product Requirements Document (PRD), Master Architecture Blueprint and Completion Roadmap, reconciled against the current repository, so that every developer agent works toward the same final product rather than independently expanding modules.*

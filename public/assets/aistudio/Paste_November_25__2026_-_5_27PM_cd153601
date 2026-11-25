@@ -1,0 +1,911 @@
+Before publishing your **Rai Plus / Virat Student 360° Website, School ERP and Mobile Application**, you should conduct a complete pre-launch audit covering security, functionality, performance, database integrity, user experience, compatibility and business operations.
+
+Since your objective is to launch this as a **commercial, multi-school SaaS platform**, testing must go beyond checking whether buttons and pages work. You must ensure that one school's data can never be accessed by another school, student information remains protected, and the application can handle real-world school operations.
+
+Below is a comprehensive **Pre-Launch Quality Assurance (QA), Security & Testing Master Checklist** that you can give to your AI development team.
+
+# **Rai Plus – Complete Pre-Launch Testing Master Checklist**
+
+# **Pre-Launch Quality Gate**
+
+# **15**
+
+Major testing categories
+
+# **150+**
+
+Recommended test checkpoints
+
+# **100%**
+
+Critical security tests passed
+
+# **0**
+
+Known critical or high vulnerabilities at launch
+
+Release requirement
+
+No production launch until critical security, data isolation, backup recovery and payment-related tests pass.
+
+## **1. Security Testing – Highest Priority**
+
+Critical
+
+These tests protect the application against hackers, unauthorized access, data theft and cyberattacks.
+
+| No. | Security test              | What must be verified                                                           |
+| --- | -------------------------- | ------------------------------------------------------------------------------- |
+| 1   | SQL Injection              | Malicious SQL cannot access or manipulate database records.                     |
+| 2   | Cross-Site Scripting (XSS) | Malicious scripts cannot execute through inputs or displayed content.           |
+| 3   | CSRF Protection            | Unauthorized requests cannot be submitted using another user's session.         |
+| 4   | Broken Authentication      | Login mechanisms cannot be bypassed.                                            |
+| 5   | Password Security          | Passwords are securely hashed, never stored in plain text.                      |
+| 6   | Brute Force Protection     | Repeated login attempts trigger rate limits or temporary blocking.              |
+| 7   | Session Hijacking          | Stolen or manipulated sessions cannot be used to access accounts.               |
+| 8   | Session Expiry             | Sessions expire appropriately after inactivity or logout.                       |
+| 9   | JWT Security               | Tokens have appropriate expiry, signing and validation.                         |
+| 10  | Privilege Escalation       | Teachers cannot gain admin permissions.                                         |
+| 11  | File Upload Security       | Malicious files cannot be uploaded and executed.                                |
+| 12  | API Security               | APIs reject unauthorized and malformed requests.                                |
+| 13  | Sensitive Data Exposure    | Passwords, tokens and private student information are not exposed.              |
+| 14  | HTTPS Enforcement          | All production traffic uses HTTPS.                                              |
+| 15  | Security Headers           | CSP, HSTS, X-Content-Type-Options and other appropriate headers are configured. |
+| 16  | Directory Traversal        | Users cannot access restricted server files.                                    |
+| 17  | Remote Code Execution      | User inputs cannot execute arbitrary server-side code.                          |
+| 18  | Open Redirect              | Attackers cannot redirect users to malicious websites through trusted links.    |
+| 19  | CORS Security              | Only authorized origins can access protected APIs.                              |
+| 20  | Dependency Vulnerabilities | Third-party libraries do not contain known exploitable vulnerabilities.         |
+
+**Important:** Use the OWASP Top 10 and OWASP ASVS as security testing references. For mobile apps, also follow OWASP MASVS.
+
+References:
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/?utm_source=chatgpt.com)
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/?utm_source=chatgpt.com)
+- [OWASP Mobile Application Security](https://mas.owasp.org/MASVS/?utm_source=chatgpt.com)
+
+## **2. Multi-School Data Isolation Testing**
+
+Most critical for Rai Plus
+
+Your platform will serve multiple schools. This is one of the most important testing categories.
+
+Imagine:
+
+- School A: Virat International School
+- School B: Karan Public School
+- School C: Another customer school
+
+All three schools must operate independently.
+
+| No. | Test                                        | Expected result                          |
+| --- | ------------------------------------------- | ---------------------------------------- |
+| 1   | School A accessing School B student records | Access denied                            |
+| 2   | School B accessing School A fee records     | Access denied                            |
+| 3   | Changing school ID in API requests          | Access denied                            |
+| 4   | Manipulating URL parameters                 | No cross-school data exposure            |
+| 5   | Changing tenant ID in browser storage       | No unauthorized access                   |
+| 6   | Accessing another school's documents        | Access denied                            |
+| 7   | Searching students globally                 | Only authorized school results           |
+| 8   | Downloading another school's reports        | Access denied                            |
+| 9   | Accessing another school's dashboard        | Access denied                            |
+| 10  | Background jobs and scheduled tasks         | Process data within the correct school   |
+| 11  | School-specific settings                    | No cross-school modification             |
+| 12  | School-specific notifications               | No cross-school notification leakage     |
+| 13  | Cache isolation                             | Cached information is tenant-specific    |
+| 14  | Exporting Excel/CSV                         | Only authorized tenant data exported     |
+| 15  | Database queries                            | Tenant restrictions enforced server-side |
+
+**Mandatory scenario:** Log in as a teacher from School A, manually modify API requests, student IDs and school IDs, and attempt to retrieve School B's records.
+
+The test must fail at the server/API level, not merely hide the information on the screen.
+
+## **3. Role-Based Access Control (RBAC) Testing**
+
+Test every user role separately.
+
+| Role              | Testing requirements                                                    |
+| ----------------- | ----------------------------------------------------------------------- |
+| Super Admin       | Can manage authorized schools and platform-wide settings                |
+| School Admin      | Can manage only their own school                                        |
+| Principal         | Can access authorized academic and administrative functions             |
+| Teacher           | Can access assigned classes and students                                |
+| Accountant        | Can access authorized fee and financial functions                       |
+| Admission Manager | Can access admission enquiries and workflows                            |
+| Transport Manager | Can manage buses, routes and tracking                                   |
+| Parent            | Can access only their linked children                                   |
+| Student           | Can access only their permitted academic information                    |
+| Management Team   | Can manage only features and settings permitted by platform permissions |
+
+Test these scenarios:
+
+- Direct URL access without permission.
+- Access through API without permission.
+- Editing another user's records.
+- Deleting another user's records.
+- Changing role permissions.
+- Revoking permissions while a user is logged in.
+- Multiple roles assigned to one user.
+- Suspended and deactivated accounts.
+- Unauthorized access after password reset.
+
+## **4. Functional Testing – Complete Website and App**
+
+Every feature must be tested from input to final output.
+
+| Module              | What to test                                |
+| ------------------- | ------------------------------------------- |
+| Registration        | New school registration and validation      |
+| Login               | All user roles and login methods            |
+| Password reset      | OTP/email verification and expiry           |
+| Dashboard           | Correct figures, statistics and widgets     |
+| Student Management  | Add, edit, search, delete and archive       |
+| Admission CRM       | Enquiry, follow-up, visits and conversion   |
+| Attendance          | Daily attendance and corrections            |
+| Timetable           | Periods, teachers, subjects and clashes     |
+| Examination         | Marks entry, calculations and results       |
+| Report Cards        | Correct totals, grades and formatting       |
+| Fee Management      | Fee structures, payments, receipts and dues |
+| Notifications       | Push, SMS, email and in-app notifications   |
+| Homework            | Assignment creation and submission          |
+| Learning Management | Lessons, videos, quizzes and assessments    |
+| AI Learning         | Generated content, explanations and answers |
+| Gamification        | Points, badges, leaderboards and rewards    |
+| Transport           | Bus allocation, routes and live location    |
+| Complaints          | Submission, attachments and resolution      |
+| Counselling         | Student records and authorized access       |
+| Reports             | PDF, Excel and CSV exports                  |
+| Settings            | School configuration and permissions        |
+| Admin Portal        | Add, disable, enable and remove features    |
+
+For every module, test:
+
+1. Valid input.
+2. Invalid input.
+3. Empty input.
+4. Duplicate input.
+5. Extremely long input.
+6. Special characters.
+7. Unauthorized input.
+8. Update and deletion.
+9. Data persistence after refresh.
+10. Correct output and reporting.
+
+## **5. Database and Data Integrity Testing**
+
+This is essential because the application will manage academic, financial and personal student information.
+
+| Test                        | Expected result                                  |
+| --------------------------- | ------------------------------------------------ |
+| Duplicate student records   | Duplicate prevention or controlled merging       |
+| Duplicate admission numbers | Rejected                                         |
+| Duplicate fee receipts      | Prevented                                        |
+| Concurrent updates          | No unintended data overwriting                   |
+| Missing mandatory fields    | Validation error                                 |
+| Invalid relationships       | Rejected                                         |
+| Deleted student             | Correct archival or deletion policy              |
+| Foreign key integrity       | No orphaned records                              |
+| Transaction rollback        | Failed transactions do not leave partial records |
+| Database migration          | Existing data remains intact                     |
+| Backup restoration          | Complete data restored                           |
+| Timezone handling           | Dates and attendance remain accurate             |
+| Academic year change        | Historical records remain accessible             |
+| Bulk import                 | Valid records imported, invalid records reported |
+
+**Special test:** Import 10,000 student records and verify that all records, parent relationships, fee records and academic details remain accurate.
+
+## **6. API Testing**
+
+Test all APIs independently of the website and mobile interface.
+
+- API authentication.
+- API authorization.
+- Invalid tokens.
+- Expired tokens.
+- Missing parameters.
+- Invalid data types.
+- Large payloads.
+- Malformed JSON.
+- Rate limiting.
+- API response codes.
+- API response structure.
+- Pagination.
+- Filtering and sorting.
+- Duplicate requests.
+- Concurrent requests.
+- API version compatibility.
+- Sensitive data in responses.
+- Unauthorized cross-tenant API access.
+
+Recommended tools:
+
+[Интеграция Test IT с Postman | Test IT](https://images.openai.com/static-rsc-4/eDP46jptZbnrWrR7zdRQ_a47ByE88fitRbLlFI16GmDbyWlR_BUfmp8_urnDoPlziz1P5HubgTJ8AkwXok_re-iHHpe2bRuS5D-qxhT1gvg3vdHKrSMSKAxc0tqI4e_a7cf2SDfnAJsNFjtDhuUzm7Klvar4WZl8vTA6NzrdNGA?purpose=inline)
+
+**Postman**
+
+API testing and automated collections
+
+[Website](https://www.postman.com/?utm_source=chatgpt.com)
+
+[The Owasp Zed Attack Proxy Is One Of The World's Most - Owasp Zap Transparent PNG - 1024x1024 - Free Download on NicePNG](https://images.openai.com/static-rsc-4/Mnnu0RBQnmd4Qv0lF2WzXLRGA2OqSogPpIdXYuafbz2eZ0NyVKp_tC8QYDiQ0wp-ay7kkXZKDU9S2tbzw8o2pJVHAXMeaJhbD0EPBW5718WGwOzEqrLHjSd_-iyly8oBpkmk65u1aLEyAd2vopdvYkFx7Iw9jvLgFUZNZg8ivv0?purpose=inline)
+
+**OWASP ZAP**
+
+Automated web security scanning
+
+[Website](https://www.zaproxy.org/?utm_source=chatgpt.com)
+
+## **7. Performance and Load Testing**
+
+Your system should not crash when hundreds of schools and thousands of parents access it simultaneously.
+
+| Test              | Suggested test scenario                       |
+| ----------------- | --------------------------------------------- |
+| Normal load       | 100 concurrent users                          |
+| Moderate load     | 500 concurrent users                          |
+| Heavy load        | 1,000 concurrent users                        |
+| Stress test       | Gradually increase users until system failure |
+| Spike test        | Sudden increase from 100 to 1,000 users       |
+| Endurance test    | Continuous usage for 12–24 hours              |
+| Database load     | Large simultaneous database queries           |
+| File upload       | Multiple simultaneous uploads                 |
+| Report generation | Multiple report cards generated together      |
+| Dashboard loading | Multiple schools opening dashboards together  |
+| API performance   | Concurrent API requests                       |
+| Memory usage      | Check memory leaks                            |
+| CPU usage         | Monitor server resource utilization           |
+
+These are suggested initial test levels, not guarantees of production capacity. Set final thresholds based on your expected school count and user load.
+
+Recommended tools:
+
+- [k6 – Load testing](https://k6.io/?utm_source=chatgpt.com)
+- [Apache JMeter](https://jmeter.apache.org/?utm_source=chatgpt.com)
+- [Locust](https://locust.io/?utm_source=chatgpt.com)
+
+Suggested initial performance targets:
+
+| Metric                 | Target                                        |
+| ---------------------- | --------------------------------------------- |
+| API response time      | Under 500 ms for common requests              |
+| Dashboard loading      | Under 3 seconds                               |
+| Page loading           | Under 3 seconds on typical broadband          |
+| Error rate             | Below 1% under target load                    |
+| Failed transactions    | 0 for critical financial operations           |
+| Availability objective | 99.9% after launch, subject to infrastructure |
+
+## **8. Mobile Application Testing**
+
+Android and iOS
+
+If Rai Plus has a mobile application, test it independently from the website.
+
+**Device compatibility**
+
+- Android phones of different screen sizes.
+- Older and newer Android versions.
+- iPhone models and supported iOS versions.
+- Tablets.
+- Low-resolution screens.
+- Different screen orientations.
+
+**Application behaviour**
+
+- Installation and uninstallation.
+- First-time login.
+- Logout and session expiry.
+- Background and foreground transitions.
+- App termination and restart.
+- Slow internet.
+- No internet.
+- Wi-Fi to mobile data switching.
+- Incoming calls during app usage.
+- Low battery conditions.
+- Push notifications.
+- Deep links.
+- App updates.
+- Permissions for camera, location and storage.
+- Offline data handling.
+- Device change and account recovery.
+
+**Mobile security**
+
+- Secure local storage.
+- No exposed access tokens.
+- Certificate validation and network security.
+- Screenshot/privacy controls where appropriate.
+- Rooted or jailbroken device risk assessment.
+- No sensitive data in logs.
+- Secure backup behaviour.
+
+## **9. UI/UX and Accessibility Testing**
+
+Check that the application is easy to use for school administrators, teachers and parents.
+
+- Every button works.
+- Every link works.
+- No broken pages.
+- No overlapping elements.
+- No cut-off text.
+- Consistent fonts and colours.
+- Correct logo and branding.
+- Proper mobile responsiveness.
+- Clear error messages.
+- Loading indicators.
+- Empty-state messages.
+- Confirmation before destructive actions.
+- Consistent navigation.
+- Accessible forms.
+- Keyboard navigation.
+- Screen-reader support.
+- Proper contrast.
+- Readable text sizes.
+- Appropriate labels for form fields.
+
+Recommended standard: WCAG 2.2 AA accessibility testing.
+
+## **10. Browser and Device Compatibility**
+
+Test on the following browsers:
+
+[Google Chrome for iOS Updated With Drag and Drop Support, New Today Widgets - MacRumors](https://images.openai.com/static-rsc-4/cRvygcV-LH2yEhF74Ym1cwHLyykE5u78SfMfOC29MfK-sF369YTSU2UOnbHiGtqdnWQyLF4JB1YOGwoy32rJFOx7ReEY8hqv6p1CsQsEcW8Jc7AlIl2gJDkr_ISZJW0uMc-IpLG9F-Rx5QTm_TTwBETrMP5fDKEjHDIKOIcx5IU?purpose=inline)
+
+**Google Chrome**
+
+Priority
+
+[Microsoft Edge - SteamGridDB](https://images.openai.com/static-rsc-4/hfN-MvRqsrxFHJCFqvMo0QZHgCou1Up_Etrv_GJZZmrPl3bQug1MaZ0dQAG8WLFZclkiiF5KMTBLbX36fjGtpNmYbT491lmm5f9rL53Nu1v8Qxnidv9VNZfCxlQmp9dtzenyS2mfYxZlVrpfEIF6RHST9JkSGPQmrH71rodtA9A?purpose=inline)
+
+**Microsoft Edge**
+
+[Firefox for iPhone - APP DOWNLOAD](https://images.openai.com/static-rsc-4/HKG2J1Tmuig-Zg510_M21IvHfBHWTkBQaRWLhOSc1R_59Y6mNX9Int7JTJ01wfuOdeM3Y2UKpe2v4QNkLdKN5XMtoQGgVmjKs500GOn-B9mPt6s2qDNkk1VOwtv30mExypzNa2qMLnRmpGzcxaJvxIB9Uevw-StODHSYWr5Dtas?purpose=inline)
+
+**Mozilla Firefox**
+
+[Come personalizzare le impostazioni dei siti web in Safari su Mac](https://images.openai.com/static-rsc-4/GrFUnh8pV-jbhcvgIcJBvR61gdeICQ02Dp0N2ZLPMRV7fspRYi2VwQNYqpS7LU4mH2onhKUCStN3IH-IKpRD5CqFV1GjqCRkLhYbCgcZXpC52VT78h9Rb_gm9zVEQwxWqPiMH7sjGHoeXfDq3Js7cXNowGxPpHAn2xiUTN-Cftw?purpose=inline)
+
+**Apple Safari**
+
+Also verify:
+
+- Windows desktop.
+- macOS.
+- Android.
+- iOS.
+- Tablets.
+- Different display resolutions.
+- Slow network connections.
+
+## **11. Backup, Disaster Recovery and Reliability Testing**
+
+Do not publish without testing recovery procedures.
+
+| Test                      | Expected result                                            |
+| ------------------------- | ---------------------------------------------------------- |
+| Automated database backup | Runs as scheduled                                          |
+| Manual backup             | Can be created                                             |
+| Backup encryption         | Sensitive backups protected                                |
+| Backup restoration        | Data restored successfully                                 |
+| Accidental deletion       | Recovery according to retention policy                     |
+| Server crash              | Recovery procedure works                                   |
+| Database failure          | No silent data corruption                                  |
+| Storage failure           | Files recoverable                                          |
+| Deployment rollback       | Previous stable version restored                           |
+| Disaster recovery         | Recovery time and data loss stay within defined objectives |
+
+Establish two important targets:
+
+- **RPO:** How much data loss is acceptable? For example, 15 minutes.
+- **RTO:** How quickly must the service recover? For example, 2 hours.
+
+These are proposed targets and must be aligned with the actual backup architecture.
+
+## **12. Privacy and Compliance Testing**
+
+Because the platform will handle children's educational information, privacy deserves special attention.
+
+Test:
+
+- Parent consent and authorization workflows.
+- Collection of only necessary personal data.
+- Secure student information.
+- Restricted access to counselling records.
+- Secure document storage.
+- Parent access limited to their own children.
+- Data retention and deletion policies.
+- Account deactivation.
+- Data export requests.
+- Privacy policy and terms of service.
+- Third-party integrations and data sharing.
+- Audit trails for sensitive operations.
+- Breach detection and incident response.
+- Age-appropriate safeguards for children.
+
+Review applicable Indian requirements, including the Digital Personal Data Protection Act and rules in force at the time of launch, as well as relevant contractual and education-sector requirements.
+
+Official reference: [Ministry of Electronics and Information Technology](https://www.meity.gov.in/?utm_source=chatgpt.com).
+
+## **13. AI and Gamification Testing**
+
+This is especially important because Rai Plus includes AI-assisted learning, chapter visualizations and gamified education.
+
+| Test                  | What to verify                                   |
+| --------------------- | ------------------------------------------------ |
+| AI accuracy           | Answers match approved curriculum                |
+| Hallucination testing | AI does not confidently provide fabricated facts |
+| Age appropriateness   | Content suits the student's class                |
+| Language testing      | English and Hindi outputs are correct            |
+| Prompt injection      | Students cannot override system instructions     |
+| Data privacy          | AI cannot expose another student's data          |
+| Harmful content       | Unsafe responses are filtered                    |
+| AI availability       | Graceful failure if AI service is unavailable    |
+| AI cost controls      | Usage limits and budget monitoring work          |
+| Gamification          | Points are awarded correctly                     |
+| Leaderboards          | Only authorized school/class data appears        |
+| Reward calculation    | Rewards match actual rules                       |
+| Abnormal activity     | Automated score manipulation is detected         |
+| Learning analytics    | Scores and progress are calculated correctly     |
+
+Also test:
+
+- Abacus calculations.
+- Motion graphics and animations.
+- Interactive simulations.
+- Experiential learning modules.
+- Quizzes and adaptive assessments.
+- Video playback.
+- Learning progress tracking.
+
+## **14. Integrations and Third-Party Services Testing**
+
+Test all external integrations before production.
+
+- Payment gateway.
+- SMS gateway.
+- Email services.
+- Push notifications.
+- Google Maps.
+- Live bus tracking.
+- AI APIs.
+- File storage.
+- Analytics.
+- Authentication providers.
+- PDF generation.
+- Excel export.
+- WhatsApp integrations, if used.
+
+For payments specifically, test successful payments, failed payments, duplicate callbacks, refunds, payment reconciliation and webhook signature verification.
+
+For live bus tracking, test location permission, GPS loss, delayed updates, incorrect coordinates and unauthorized location access.
+
+## **15. SEO, Deployment and Production Readiness**
+
+The website must be technically ready for public launch.
+
+**Website testing**
+
+- Page titles and meta descriptions.
+- Sitemap.
+- Robots.txt.
+- Canonical URLs.
+- Broken links.
+- 404 and 500 pages.
+- Social sharing previews.
+- Structured data where appropriate.
+- Image optimization.
+- Core Web Vitals.
+- Mobile SEO.
+- Search engine indexing.
+
+**Production deployment testing**
+
+- Production environment variables.
+- No test credentials.
+- No development debug mode.
+- No exposed API keys.
+- Secure domain and SSL.
+- Database migration verification.
+- Error monitoring.
+- Server logging.
+- Firewall configuration.
+- Rate limiting.
+- Monitoring and alerting.
+- Rollback procedure.
+- Production backup schedule.
+
+# **Master QA Execution Tracker**
+
+Use this as the central testing register for your development and management team.
+
+**Testing progress**
+
+# **0%**
+
+0 of 185 test checkpoints marked complete
+
+**Security and penetration testing**
+
+20 checkpoints
+
+Critical
+
+**Multi-school data isolation**
+
+15 checkpoints
+
+Critical
+
+**Role-based access control**
+
+9 checkpoints
+
+Critical
+
+**Functional testing**
+
+10 checkpoints
+
+High
+
+**Database and data integrity**
+
+13 checkpoints
+
+Critical
+
+**API testing**
+
+15 checkpoints
+
+High
+
+**Performance and load testing**
+
+12 checkpoints
+
+High
+
+**Mobile application testing**
+
+15 checkpoints
+
+High
+
+**UI/UX and accessibility**
+
+10 checkpoints
+
+Medium
+
+**Browser compatibility**
+
+8 checkpoints
+
+Medium
+
+**Backup and disaster recovery**
+
+10 checkpoints
+
+Critical
+
+**Privacy and compliance**
+
+10 checkpoints
+
+Critical
+
+**AI and gamification**
+
+14 checkpoints
+
+High
+
+**Third-party integrations**
+
+12 checkpoints
+
+High
+
+**SEO and deployment**
+
+12 checkpoints
+
+High
+
+&#x20;Copy testing registerReset checklistThese are category-level completion controls. Your QA team should maintain individual test cases and evidence separately.
+
+# **Recommended Testing Tools**
+
+Here is the testing stack I recommend for your development team.
+
+**Playwright**
+
+Website end-to-end and browser automation
+
+Official website
+
+**Vitest**
+
+Unit and component testing
+
+Official website
+
+**Postman**
+
+API testing
+
+Official website
+
+**OWASP ZAP**
+
+Web vulnerability scanning
+
+Official website
+
+**Burp Suite**
+
+Manual security and penetration testing
+
+Official website
+
+**k6**
+
+Performance and load testing
+
+Official website
+
+**Lighthouse**
+
+Performance, accessibility and SEO auditing
+
+Official website
+
+**Snyk**
+
+Dependency and code vulnerability scanning
+
+Official website
+
+**Semgrep**
+
+Static application security analysis
+
+Official website
+
+**OWASP Dependency-Check**
+
+Third-party dependency vulnerability detection
+
+Official website
+
+# **Final Release Approval Criteria**
+
+Before publishing, enforce the following release gates:
+
+| Area              | Minimum release condition                 |
+| ----------------- | ----------------------------------------- |
+| Critical security | No unresolved critical vulnerabilities    |
+| High security     | No unresolved high-risk vulnerabilities   |
+| Multi-tenancy     | All isolation tests pass                  |
+| Authentication    | All role and session tests pass           |
+| Functional        | All critical workflows pass               |
+| Database          | No critical integrity issues              |
+| Performance       | Meets agreed load targets                 |
+| Mobile            | All critical mobile workflows pass        |
+| Backup            | Successful restoration demonstrated       |
+| Privacy           | Required safeguards and policies verified |
+| AI                | Safety and accuracy acceptance tests pass |
+| Deployment        | Rollback and monitoring verified          |
+
+**Do not accept a developer's statement that testing is complete without evidence.** Require:
+
+1. Test case ID.
+2. Test scenario.
+3. Expected result.
+4. Actual result.
+5. Pass/Fail status.
+6. Screenshot, video or test execution log.
+7. Bug ID, if failed.
+8. Retest result.
+9. Approval from the responsible reviewer.
+
+# **Instructions for Your AI Development Team**
+
+I recommend using the following as a master prompt for Claude Code or your AI development agent.
+
+# MASTER PROMPT: RAI PLUS COMPLETE PRE-LAUNCH SECURITY & QA AUDIT
+
+Act as a Principal Software Architect, Senior QA Automation Engineer, Application Security Engineer, DevSecOps Engineer and SaaS Release Manager.
+
+Your responsibility is to perform a comprehensive pre-production audit of the existing Rai Plus / Virat Student 360° platform.
+
+## 1. NON-NEGOTIABLE PROJECT RULES
+
+- First inspect the entire existing codebase, architecture, database schema, APIs, authentication system and deployment configuration.
+- Do not rebuild the application.
+- Do not unnecessarily modify the existing architecture.
+- Preserve existing features, database structures and business logic.
+- Preserve multi-tenant SaaS architecture.
+- Never compromise existing school data.
+- Do not perform destructive tests on production.
+- Perform security testing only on authorized environments.
+- Create backups before any database migration or destructive testing.
+- Never expose production secrets, API keys or personal information in test logs.
+
+## 2. AUDIT PHASES
+
+Execute the following phases sequentially:
+
+PHASE 1: Architecture and infrastructure audit.
+
+PHASE 2: Authentication and authorization testing.
+
+PHASE 3: Multi-school tenant isolation testing.
+
+PHASE 4: OWASP security audit and penetration testing.
+
+PHASE 5: Database integrity and migration testing.
+
+PHASE 6: API security and functional testing.
+
+PHASE 7: Website end-to-end testing.
+
+PHASE 8: Android/iOS mobile application testing.
+
+PHASE 9: Performance, stress, spike and endurance testing.
+
+PHASE 10: AI learning and gamification testing.
+
+PHASE 11: Privacy, data protection and compliance assessment.
+
+PHASE 12: Backup, disaster recovery and rollback testing.
+
+PHASE 13: Browser, accessibility and device compatibility.
+
+PHASE 14: Third-party integration testing.
+
+PHASE 15: Production deployment and final release audit.
+
+## 3. TESTING METHODOLOGY
+
+For each test:
+
+- Assign a unique test ID.
+- Define the testing objective.
+- Document prerequisites.
+- Define test inputs.
+- Define expected outputs.
+- Execute the test.
+- Record actual results.
+- Mark PASS, FAIL, BLOCKED or NOT TESTED.
+- Capture evidence.
+- Create a bug report for failures.
+- Fix defects according to priority.
+- Repeat failed tests after fixes.
+- Run regression tests.
+
+## 4. SECURITY PRIORITIES
+
+Pay particular attention to:
+
+- SQL injection.
+- XSS.
+- CSRF.
+- Authentication bypass.
+- Privilege escalation.
+- Broken access control.
+- IDOR.
+- API vulnerabilities.
+- JWT security.
+- Session security.
+- File upload vulnerabilities.
+- Dependency vulnerabilities.
+- Exposed secrets.
+- SSRF.
+- Rate limiting.
+- Encryption.
+- Security headers.
+- Cross-school data leakage.
+
+Follow OWASP Top 10, OWASP ASVS and OWASP MASVS where applicable.
+
+## 5. MULTI-TENANT SECURITY
+
+Create at least three isolated test schools with different administrative users, teachers, parents and students.
+
+Attempt to access records across tenants through:
+
+- Website URLs.
+- API requests.
+- Query parameters.
+- Request bodies.
+- File URLs.
+- Search.
+- Reports.
+- Exports.
+- Notifications.
+- Background jobs.
+- Cache.
+- Database access paths.
+
+Every unauthorized cross-tenant operation must be denied at the server side.
+
+## 6. AUTOMATION REQUIREMENTS
+
+Use the existing project testing stack wherever possible.
+
+Add or improve:
+
+- Unit tests.
+- Integration tests.
+- API tests.
+- End-to-end tests.
+- Security regression tests.
+- Tenant isolation tests.
+- Database tests.
+- Performance tests.
+- Mobile tests where applicable.
+
+Integrate automated checks into the CI/CD pipeline.
+
+Prevent production deployment if critical security checks or required automated tests fail.
+
+## 7. REQUIRED DELIVERABLES
+
+Create the following audit documents:
+
+1. SYSTEM_ARCHITECTURE_AUDIT.md
+2. SECURITY_AUDIT.md
+3. MULTI_TENANT_ISOLATION_REPORT.md
+4. RBAC_TEST_REPORT.md
+5. FUNCTIONAL_TEST_REPORT.md
+6. API_TEST_REPORT.md
+7. DATABASE_INTEGRITY_REPORT.md
+8. PERFORMANCE_TEST_REPORT.md
+9. MOBILE_COMPATIBILITY_REPORT.md
+10. PRIVACY_COMPLIANCE_REPORT.md
+11. BACKUP_RECOVERY_REPORT.md
+12. AI_TESTING_REPORT.md
+13. DEPENDENCY_VULNERABILITY_REPORT.md
+14. BUGS_AND_FIXES_REGISTER.md
+15. PRODUCTION_READINESS_REPORT.md
+
+Also provide a consolidated machine-readable test results file.
+
+## 8. FINAL RELEASE DECISION
+
+Provide one of these outcomes:
+
+- APPROVED FOR PRODUCTION
+- APPROVED WITH DOCUMENTED LOW-RISK ISSUES
+- NOT APPROVED FOR PRODUCTION
+
+Never declare the application production-ready merely because the build succeeds or automated tests pass.
+
+Critical security vulnerabilities, cross-tenant data exposure, broken authorization, unrecoverable data loss or critical financial errors must block release.
+
+Start by inspecting the current architecture and preparing an audit plan. Do not make code changes until the audit findings and proposed remediation plan are documented and reviewed.
+
+## **My recommendation: Use a three-stage launch process**
+
+1. **Stage 1 – Internal Testing**
+
+   Development team
+
+   Run automated tests, code scanning, API testing, database tests and security testing in a staging environment.
+2. **Stage 2 – Real School Pilot**
+
+   Controlled users
+
+   Test with Virat International School. Include management, teachers, parents and students. Use realistic data with appropriate privacy safeguards.
+3. **Stage 3 – Commercial Launch**
+
+   Production
+
+   Onboard multiple independent schools, conduct final tenant-isolation tests, verify backups, enable monitoring and approve the release.
+
+**One additional suggestion:** Keep a permanent automated security and regression testing system rather than conducting these tests only once before launch. Every new feature, code change, database migration or AI-generated modification should trigger the relevant tests before deployment.
+
+This will be particularly important when your management team starts adding and removing features through the Rai Plus Admin Portal.

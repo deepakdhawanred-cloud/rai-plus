@@ -1,0 +1,6 @@
+{
+  "name": "Virat Student 360°",
+  "description": "AI-enabled multi-tenant School ERP, Student Development Evidence Engine, 15 OLQ Assessment, Learners Score, and Career Counselling platform for Indian schools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

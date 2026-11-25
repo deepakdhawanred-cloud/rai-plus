@@ -1,0 +1,1053 @@
+I recommend developing this as a major expansion of your existing **Virat Student 360° platform**, rather than creating separate tools for each feature.
+
+Your requirements connect three important systems:
+
+1. **Student Development System:** SSB Thinking Tests + OLQs + Personality Development.
+2. **School Operations System:** Smart Timetable + Teacher Leave + Productivity Dashboard.
+3. **Career Intelligence System:** Career Discovery + Aptitude + Detailed Career Roadmaps.
+
+I have also reviewed your uploaded timetable screenshot. It provides a useful UI/UX reference for the timetable engine, particularly the class-wise grid, teacher assignments, vacant periods, breaks, unscheduled lessons and publishing controls.
+
+Below is a master prompt you can give to Claude Code or Codex.
+
+# **Master development prompt — Virat Student 360°**
+
+
+
+Ready to use
+
+Existing application enhancement
+
+
+
+# MASTER DEVELOPMENT PROMPT
+
+## VIRAT STUDENT 360° — STUDENT INTELLIGENCE, OLQ, SMART TIMETABLE, TEACHER PRODUCTIVITY & CAREER INTELLIGENCE
+
+Act as a Principal Software Architect, Senior Full-Stack Developer, Educational Psychologist, SSB Assessment Specialist, Career Counselling Expert, Data Analyst and UI/UX Designer.
+
+Your responsibility is to extend my existing **Virat Student 360° multi-school SaaS platform** by implementing the following integrated modules.
+
+IMPORTANT: This is an existing application. Do not rebuild the website, replace its architecture, or create disconnected modules.
+
+First inspect the complete codebase, database, existing modules, authentication, role permissions, design system and current implementation status.
+
+Preserve all existing functionality.
+
+## PART 1 — STUDENT THINKING TEST & PERSONALITY DEVELOPMENT SYSTEM
+
+Create a comprehensive Student Thinking Assessment Module based on the four SSB-style assessment formats:
+
+1. Situation Reaction Test (SRT)
+2. Word Association Test (WAT)
+3. Thematic Apperception Test (TAT)
+4. Picture Perception and Discussion Test (PPDT)
+
+### A. SRT — Situation Reaction Test
+
+Features:
+
+- Create question banks with real-life situations.
+- Different difficulty levels.
+- Age/class-wise question categorisation.
+- Timed and untimed tests.
+- Students submit short, natural responses.
+- Automatic response analysis with configurable assessment rules.
+- Teacher/counsellor review and feedback.
+- Historical performance tracking.
+
+Evaluate responses on:
+
+- Speed of response.
+- Practical thinking.
+- Decision-making.
+- Responsibility.
+- Initiative.
+- Positive attitude.
+- Problem-solving.
+- Emotional maturity.
+- Team orientation.
+- Self-awareness.
+
+### B. WAT — Word Association Test
+
+Features:
+
+- Display words one by one.
+- Configurable response time.
+- Students write the first meaningful thought that comes to mind.
+- Save response time and response text.
+- Evaluate sentence construction and underlying thinking patterns.
+- Identify constructive, positive, practical, responsible and self-centred patterns.
+- Allow counsellors to review AI-generated observations.
+
+### C. TAT — Thematic Apperception Test
+
+Features:
+
+- Image-based storytelling.
+- Students interpret a situation and write a story.
+- Record protagonist, objective, challenges, actions and outcome.
+- Analyse initiative, planning, confidence, responsibility, empathy and problem-solving.
+- Maintain a historical record of stories.
+
+### D. PPDT — Picture Perception and Discussion Test
+
+Features:
+
+- Display an ambiguous picture.
+- Students identify characters, approximate age, mood and situation.
+- Students prepare a story.
+- Record individual narration.
+- Record group discussion observations.
+- Teacher/counsellor can evaluate communication, cooperation, initiative, listening and leadership.
+
+Include individual and group assessment workflows.
+
+### E. THINKING LEVEL CLASSIFICATION
+
+Create a configurable Thinking Development Framework with these four categories:
+
+1. FAST THINKING — Speed of understanding and responding.
+2. BETTER THINKING — Quality, practicality and effectiveness of decisions.
+3. POSITIVE THINKING — Constructive, optimistic and solution-oriented approach.
+4. SELF-CENTRED THINKING — Ability to recognise excessive self-focused, individualistic or non-cooperative response patterns.
+
+Do not automatically treat fast thinking as good thinking or self-centred thinking as a clinical diagnosis.
+
+Display these as separate development dimensions.
+
+Provide:
+
+- Individual scores.
+- Improvement trends.
+- Strengths.
+- Development areas.
+- Teacher observations.
+- Counsellor recommendations.
+- Suggested improvement exercises.
+
+Use evidence-based observations rather than making definitive psychological diagnoses.
+
+## PART 2 — INTEGRATION WITH OLQ FRAMEWORK
+
+Integrate all four thinking tests directly with the existing OLQ (Officer Like Qualities) module.
+
+Do not build a separate or disconnected OLQ system.
+
+The assessment engine must connect test responses with the existing 15 OLQs and their established assessment structure.
+
+Requirements:
+
+1. Each test question and assessment criterion should be mapped to relevant OLQs.
+2. A single response may provide evidence for multiple OLQs.
+3. Store the evidence behind each assessment.
+4. Track development across multiple assessment dates.
+5. Compare SRT, WAT, TAT and PPDT results.
+6. Generate an individual OLQ development report.
+7. Identify consistently demonstrated strengths and areas requiring further observation.
+8. Generate personalised improvement activities.
+
+Maintain configurable scoring rules and the existing Learners Score framework.
+
+Avoid assigning an OLQ score based on a single response.
+
+### Student OLQ Dashboard
+
+Display:
+
+- Overall development profile.
+- Individual OLQ scores.
+- Thinking levels.
+- Test completion history.
+- Improvement graph.
+- Strongest qualities.
+- Development priorities.
+- Teacher and counsellor observations.
+- Recommended exercises.
+
+Provide downloadable PDF reports.
+
+## PART 3 — SMART TIMETABLE & TEACHER PRODUCTIVITY ENGINE
+
+Develop a complete timetable management system.
+
+Use the uploaded timetable screenshot as the primary UI/UX reference.
+
+The screenshot demonstrates:
+
+- Monthly timetable selection.
+- Class, Teacher and Room views.
+- Day-wise timetable grid.
+- Subject and teacher cards.
+- Break periods.
+- Vacant and unscheduled periods.
+- Auto Generate functionality.
+- Publishing and unpublishing controls.
+- Filters and timetable management.
+
+Recreate and improve this experience within our existing website.
+
+### A. TIMETABLE MASTER
+
+The timetable master should contain:
+
+- School working days.
+- School opening and closing times.
+- Period duration.
+- Number of periods.
+- Assembly.
+- Lunch breaks.
+- Short breaks.
+- Classes and sections.
+- Subjects.
+- Teachers.
+- Teacher subject qualifications.
+- Teacher availability.
+- Room and laboratory availability.
+- Weekly subject requirements.
+- Teacher workload limits.
+- Fixed and flexible periods.
+
+The master timetable must become the source of truth for all timetable operations.
+
+### B. VACANT PERIOD AUTO-ASSIGNMENT
+
+Develop an intelligent vacant-period identification and assignment engine.
+
+When a teacher is absent or a period becomes vacant, automatically identify eligible replacement teachers.
+
+Use these assignment rules in priority order:
+
+1. Teacher is available during that period.
+2. Teacher is qualified to teach the subject.
+3. Teacher has the appropriate class/subject expertise.
+4. Teacher has not exceeded the configured workload.
+5. Teacher has no timetable conflict.
+6. Teacher is not on approved leave.
+7. Prefer teachers with lower current workload.
+8. Maintain continuity and avoid unnecessary teacher changes.
+
+Provide configurable assignment priorities.
+
+The system must identify:
+
+- Vacant classes.
+- Vacant periods.
+- Available teachers.
+- Teachers already occupied.
+- Unassigned lessons.
+- Teacher workload distribution.
+
+### C. CUSTOM ASSIGNMENT
+
+Allow coordinators to manually assign teachers to vacant periods.
+
+Features:
+
+- Drag-and-drop teacher assignment.
+- Search teachers.
+- Filter by subject and availability.
+- Manual override of automatic recommendations.
+- Assignment reason.
+- Conflict warning.
+- Assignment history.
+- Notification to the assigned teacher.
+
+Never silently override a manually approved assignment.
+
+### D. TEACHER LEAVE MANAGEMENT
+
+Introduce a complete teacher leave module.
+
+Features:
+
+- Teacher leave application.
+- Leave type.
+- Start and end date.
+- Reason.
+- Supporting document, where applicable.
+- Leave approval by authorised management.
+- Leave calendar.
+- Leave balance.
+- Approved, rejected and pending statuses.
+
+When leave is approved:
+
+1. Identify all affected classes and periods.
+2. Identify vacant lessons.
+3. Run the vacant-period assignment engine.
+4. Generate replacement teacher recommendations.
+5. Allow coordinator approval or manual adjustment.
+6. Notify affected teachers.
+7. Update the timetable.
+
+Maintain a complete audit trail.
+
+### E. TEACHER PRODUCTIVITY REPORTING
+
+Build a dedicated Teacher Productivity Dashboard.
+
+This dashboard should be accessible to:
+
+- Coordinator.
+- Principal.
+- Vice Principal.
+- School Administrator.
+- Higher Management, according to permissions.
+
+Include:
+
+**Teaching workload**
+
+- Total periods assigned.
+- Total periods conducted.
+- Classes handled.
+- Subjects handled.
+- Substitution periods.
+- Vacant periods.
+- Weekly and monthly workload.
+
+**Academic productivity**
+
+- Syllabus completion.
+- Lesson planning.
+- Notebook checking.
+- Homework checking.
+- Assessment completion.
+- Marks submission.
+- Student performance improvement.
+- Remedial teaching.
+- Parent communication.
+- Follow-up activities.
+
+**Operational productivity**
+
+- Attendance.
+- Punctuality.
+- Leave records.
+- Period utilisation.
+- Timetable adherence.
+- Substitution acceptance.
+
+**Management reports**
+
+- Teacher-wise productivity.
+- Subject-wise productivity.
+- Class-wise productivity.
+- Monthly comparisons.
+- Workload imbalance.
+- Pending responsibilities.
+- Performance trends.
+
+Create configurable KPIs rather than assuming that the number of periods alone represents teacher performance.
+
+Provide downloadable Excel and PDF reports.
+
+Do not create an unfair automatic teacher ranking. Reports must provide contextual information and allow authorised management to review the evidence.
+
+## PART 4 — CAREER COUNSELLING & CAREER INTELLIGENCE PLATFORM
+
+Transform the existing Career Counselling section into a comprehensive career exploration and planning platform.
+
+The objective is to help students understand career opportunities, educational requirements, financial requirements, competition and future employability.
+
+### A. CAREER EXPLORATION
+
+Students must be able to explore careers through:
+
+**After Class 10**
+
+- Science.
+- Commerce.
+- Humanities/Arts.
+- Vocational education.
+- Diploma and skill-based pathways.
+- Other recognised educational pathways.
+
+**After Class 12 — Science**
+
+- Medical.
+- Engineering.
+- Pure sciences.
+- Research.
+- Defence.
+- Agriculture.
+- Biotechnology.
+- Computer science.
+- Allied health sciences.
+- Other emerging careers.
+
+**After Class 12 — Commerce**
+
+- CA.
+- CS.
+- CMA.
+- BBA.
+- B.Com.
+- Economics.
+- Finance.
+- Banking.
+- Business and entrepreneurship.
+- Management.
+
+**After Class 12 — Humanities/Arts**
+
+- Psychology.
+- Law.
+- Civil services.
+- Journalism.
+- Design.
+- Social sciences.
+- Teaching.
+- Languages.
+- Public policy.
+- Creative industries.
+
+Also include interdisciplinary, vocational and emerging careers.
+
+Create a searchable career library with filters for stream, qualification, interests, skills, budget and location.
+
+### B. DETAILED CAREER ROADMAP FOR EVERY CAREER
+
+Every career option must have its own detailed roadmap.
+
+Do not display only a short description of a career.
+
+Every roadmap should contain these sections:
+
+**1. Career Overview**
+
+- What is this career?
+- What does a professional actually do?
+- Nature of work.
+- Daily responsibilities.
+- Working environment.
+- Industry sectors.
+- Career progression.
+
+**2. Educational Roadmap**
+
+- Required subjects.
+- Required stream.
+- Eligibility after Class 10.
+- Eligibility after Class 12.
+- Relevant undergraduate courses.
+- Postgraduate options.
+- Professional qualifications.
+- Entrance examinations.
+- Required certifications.
+- Alternative pathways.
+
+Show the complete journey from Class 10 to employment and further specialisation.
+
+**3. Student Aptitude and Capability Requirements**
+
+Explain the importance of:
+
+- IQ — Logical reasoning and intellectual ability.
+- EQ — Emotional intelligence and interpersonal understanding.
+- AQ — Adaptability and resilience.
+- CQ — Creativity and innovative thinking.
+
+For every career, explain:
+
+- Which capabilities are particularly useful.
+- Why they matter.
+- How students can develop them.
+- Practical exercises and activities.
+
+Do not invent scientifically unsupported minimum IQ or EQ cut-offs.
+
+**4. Job Nature and Working Life**
+
+Explain:
+
+- Actual job responsibilities.
+- Day-to-day work.
+- Office, field, laboratory or remote work.
+- Individual versus teamwork.
+- Public-facing versus behind-the-scenes work.
+- Work pressure.
+- Working hours.
+- Travel requirements.
+- Professional responsibilities.
+
+**5. Financial Roadmap and Budget**
+
+Include:
+
+- Estimated course fees.
+- Government college options.
+- Private college options.
+- Hostel and living expenses.
+- Examination fees.
+- Coaching expenses, where applicable.
+- Certification costs.
+- Total estimated educational investment.
+
+Show budget-friendly, moderate and premium pathways.
+
+Clearly distinguish estimated costs from verified official fees.
+
+Include Indian rupee values and last-updated dates.
+
+**6. Market Study and Industry Analysis**
+
+Explain:
+
+- Current industry demand.
+- Major employers.
+- Employment sectors.
+- Government opportunities.
+- Private sector opportunities.
+- Self-employment possibilities.
+- Emerging market trends.
+- Geographic opportunities.
+- Future skill requirements.
+
+Use credible and dated sources.
+
+**7. Competition Analysis**
+
+Explain:
+
+- Entrance examination competition.
+- Selection processes.
+- Available seats where reliable data exists.
+- Required preparation.
+- Common challenges.
+- Industry competition.
+- Employability factors.
+
+Do not invent placement rates, selection ratios or salary figures.
+
+**8. Skills Required to Excel**
+
+Identify the most important skills for succeeding in the career.
+
+Categorise them into:
+
+- Technical skills.
+- Communication skills.
+- Analytical skills.
+- Leadership.
+- Creativity.
+- Problem-solving.
+- Digital skills.
+- Professional behaviour.
+
+Explain exactly what students should practise to outperform average candidates.
+
+**9. Personalised Student Action Plan**
+
+Generate a roadmap for the student:
+
+- What to do in Class 9.
+- What to do in Class 10.
+- What to do in Class 11.
+- What to do in Class 12.
+- What to do during graduation.
+- What to do before entering the job market.
+
+Include recommended books, projects, activities, internships and examinations where relevant.
+
+### C. CAREER COMPARISON TOOL
+
+Allow students to compare multiple careers side by side.
+
+Compare:
+
+- Educational duration.
+- Total educational cost.
+- Entrance examination difficulty.
+- Competition.
+- Skill requirements.
+- Work nature.
+- Employment opportunities.
+- Career growth.
+- Salary ranges where reliable data exists.
+- Further education options.
+
+### D. PERSONAL CAREER COUNSELLING
+
+Connect the career exploration platform with:
+
+- Student academic performance.
+- Subject preferences.
+- Interests.
+- Aptitude assessments.
+- Personality observations.
+- Existing OLQ development profile.
+- Thinking assessment results.
+- IQ, EQ, AQ and CQ development indicators.
+
+Generate career suggestions with transparent reasoning.
+
+Never make a career decision automatically on behalf of the student.
+
+Allow counsellors to:
+
+- Review suggestions.
+- Add observations.
+- Recommend alternative pathways.
+- Create student-specific career plans.
+- Record counselling sessions.
+- Share reports with parents.
+
+## PART 5 — PRESENTATION REDESIGN & VISUAL LEARNING LIBRARY
+
+Redesign the entire existing Presentations section.
+
+The objective is to replace text-heavy presentations with modern, visually engaging, educationally effective presentations.
+
+Use NotebookLM as a source-grounded research, synthesis and presentation-planning assistant wherever appropriate.
+
+### A. PRESENTATION AUDIT
+
+First inspect all existing presentations.
+
+Categorise them by:
+
+- Class.
+- Subject.
+- Chapter.
+- Topic.
+- Learning objectives.
+- Difficulty level.
+- Language.
+- Teacher.
+
+Identify:
+
+- Text-heavy slides.
+- Repeated information.
+- Missing diagrams.
+- Poor visual hierarchy.
+- Unclear explanations.
+- Missing real-life examples.
+- Topics that require animations or visual demonstrations.
+
+Do not delete the original presentations.
+
+### B. NEW PRESENTATION DESIGN STANDARDS
+
+Use a consistent professional design system.
+
+Prioritise:
+
+1. Infographics.
+2. Flowcharts.
+3. Concept maps.
+4. Mind maps.
+5. Process diagrams.
+6. Comparison diagrams.
+7. Timelines.
+8. Labelled scientific illustrations.
+9. Real-life applications.
+10. Step-by-step visual explanations.
+11. Interactive questions.
+12. Summary diagrams.
+
+Use:
+
+- Modern typography.
+- Consistent colours.
+- Clear visual hierarchy.
+- Appropriate whitespace.
+- High-quality illustrations.
+- Age-appropriate graphics.
+- Minimal text per slide.
+
+### C. NOTEBOOKLM WORKFLOW
+
+For every presentation:
+
+1. Identify the relevant NCERT/SCERT/CBSE/HBSE source material.
+2. Upload or reference the relevant approved educational sources in NotebookLM.
+3. Generate a structured chapter summary.
+4. Identify key concepts and misconceptions.
+5. Create infographic and diagram suggestions.
+6. Develop a slide-by-slide storyboard.
+7. Generate a redesigned presentation.
+8. Verify factual accuracy against the original sources.
+9. Review language and class suitability.
+10. Export the approved presentation.
+
+Use bilingual English-Hindi presentation content for subjects where our existing language policy requires it.
+
+Mathematics presentations must remain in English.
+
+Preserve curriculum accuracy. Visual creativity must never change the meaning of a concept.
+
+### D. PRESENTATION LIBRARY MANAGEMENT
+
+Provide:
+
+- Original presentation.
+- Redesigned presentation.
+- Version history.
+- Teacher approval.
+- Principal approval, where required.
+- Download and classroom presentation.
+- Chapter-wise organisation.
+
+Keep original files available for comparison.
+
+Do not claim a NotebookLM integration exists unless an officially supported integration is available. Otherwise, support an export/import workflow.
+
+## PART 6 — INTEGRATED ADMINISTRATION AND MANAGEMENT DASHBOARD
+
+Create a consolidated management dashboard covering all the above modules.
+
+### Principal Dashboard
+
+Display:
+
+- School-wide timetable utilisation.
+- Vacant periods.
+- Teacher availability.
+- Teacher productivity.
+- Pending leave applications.
+- OLQ development trends.
+- Student thinking assessment participation.
+- Career counselling coverage.
+- Presentation completion and approval.
+- Class-wise and teacher-wise reports.
+
+### Coordinator Dashboard
+
+Display:
+
+- Daily teacher availability.
+- Substitute teacher requirements.
+- Vacant periods.
+- Timetable conflicts.
+- Teacher workload.
+- Pending lesson responsibilities.
+- Notebook checking.
+- Academic completion.
+- Teacher leave calendar.
+
+### Counsellor Dashboard
+
+Display:
+
+- Student assessment records.
+- SRT/WAT/TAT/PPDT history.
+- OLQ development profiles.
+- Thinking level analysis.
+- Career interests.
+- Career recommendations.
+- Counselling history.
+- Student improvement plans.
+
+## PART 7 — USER ROLES AND ACCESS CONTROL
+
+Integrate all modules with existing role-based access control.
+
+Suggested access:
+
+- Super Admin: Multi-school configuration and authorised cross-school reporting.
+- School Admin: School-wide management.
+- Principal: School-wide academic and productivity monitoring.
+- Vice Principal: Assigned management responsibilities.
+- Coordinator: Timetable and teacher productivity.
+- Teacher: Assigned classes, leave, assessments and student observations.
+- Counsellor: Career counselling, thinking assessments and OLQ evaluation.
+- Student: Own assessments and career exploration.
+- Parent: Approved student reports and career progress.
+
+Respect existing role names and permission architecture. Do not create duplicate roles unnecessarily.
+
+All data must remain isolated by school/tenant.
+
+## PART 8 — DATABASE AND TECHNICAL ARCHITECTURE
+
+Before implementing:
+
+1. Audit existing database tables.
+2. Identify reusable tables and relationships.
+3. Identify existing OLQ, student, teacher, timetable and counselling modules.
+4. Prepare an additive database migration plan.
+5. Document relationships between the new modules.
+6. Identify required indexes and reporting queries.
+7. Define RLS policies and tenant isolation.
+8. Prepare API and service architecture.
+
+Do not introduce destructive schema changes.
+
+Maintain compatibility with the existing Next.js, TypeScript, Supabase and PostgreSQL architecture wherever that is what the current codebase uses.
+
+Use shared components, existing design tokens and existing authentication.
+
+Avoid duplicate student, teacher, subject and class records.
+
+## PART 9 — QUALITY ASSURANCE AND ACCEPTANCE CRITERIA
+
+Before declaring completion, verify:
+
+- All existing functionality remains operational.
+- All modules work with multiple schools.
+- Role permissions are correctly enforced.
+- Students can complete all four thinking tests.
+- Test evidence maps correctly to OLQs.
+- Historical student assessment data is retained.
+- Vacant periods are correctly identified.
+- Automatic teacher assignment respects constraints.
+- Manual assignment works.
+- Leave approval updates affected periods.
+- Teacher productivity reports use correct source data.
+- Career roadmaps contain all required sections.
+- Career comparison works.
+- Original and redesigned presentations remain accessible.
+- All reports export correctly.
+- Mobile and desktop interfaces are responsive.
+- Accessibility and security checks pass.
+
+Write unit, integration, permission, tenant-isolation and end-to-end tests.
+
+Run the complete existing verification process.
+
+Do not mark a feature complete simply because its UI exists.
+
+## PART 10 — EXECUTION STRATEGY
+
+Work systematically.
+
+PHASE 0: Complete codebase and database audit.
+
+PHASE 1: Submit the architecture blueprint, feature dependencies, database changes, UI structure and implementation plan.
+
+PHASE 2: Implement the integrated thinking assessment and OLQ system.
+
+PHASE 3: Implement timetable master, vacant-period assignment, custom assignment and teacher leave management.
+
+PHASE 4: Implement teacher productivity dashboards.
+
+PHASE 5: Implement the career intelligence platform and detailed career roadmaps.
+
+PHASE 6: Redesign the presentation library and implement the NotebookLM-assisted workflow.
+
+PHASE 7: Integrate dashboards, reports, permissions and notifications.
+
+PHASE 8: Complete testing, performance optimisation, documentation and release verification.
+
+You may execute independent approved workstreams in parallel, but coordinate shared database and application changes.
+
+### NON-NEGOTIABLE INSTRUCTIONS
+
+1. Do not rebuild the website.
+2. Do not replace the existing architecture.
+3. Do not break existing modules.
+4. Do not compromise multi-tenant security.
+5. Do not create disconnected duplicate modules.
+6. Do not use fake data in production.
+7. Do not invent career market statistics.
+8. Do not use AI-generated psychological observations as definitive diagnoses.
+9. Do not automatically publish timetable changes.
+10. Do not deploy or make destructive database changes without approval.
+
+### FINAL EXPECTATION
+
+The result should be a unified school intelligence platform in which:
+
+- Student thinking development connects with OLQs.
+- OLQs connect with student development reports.
+- Career counselling uses academic, aptitude and personality evidence.
+- The timetable master powers vacant-period allocation.
+- Teacher leave automatically triggers substitution planning.
+- Teacher productivity is visible to authorised management.
+- Presentations become visual, engaging and curriculum-aligned.
+
+Build this as a commercially scalable multi-school SaaS product, not a school-specific collection of disconnected features.
+
+Start with a complete audit and architecture blueprint. Do not begin coding until the blueprint and database impact have been reviewed and approved.
+
+# **2. Additional design references for the development team**
+
+These are the important visual and functional directions I would give the team.
+
+## **A. Smart timetable interface**
+
+[Timetable & Substitution Management for Schools — School Timetable Software India | edumerge](https://images.openai.com/static-rsc-4/6Z7vBfuBHcn0vrALOFLZRfz-eRGFAzBWw-BF2wVjW2SHFPVjusSjae95bjdCyac3cQhGM5HqN3UbUnZmzYXJ2bQro0i-UOKYXXw74PM5u2M4vtbQcHAU8Xujvv_IFDLQvEuBbZxaTY-xNMlmVC1sJZn8TJUPLiBku_7T7EXx0Hw?purpose=inline)
+
+[Online Vertretungsplanung - Untis](https://images.openai.com/static-rsc-4/DhKdyHjnl2DzhpRHDE1AqI3Y9Mmm8lbzTG7MQrm9Q6AoBrK6qctJzwYyrdyjYRoV1GTUtGsbAX1Zz3UrfTEbREbsLOmFi9RC6yK2MIzKdGf_U5EO2GWYMJ9OxAClekdYkPz5VVuqmu3SqF3ET0OQrwgl8mzAvDF-nXaeTIMyfeE?purpose=inline)
+
+[School timetables, advanced features | Omniscol](https://images.openai.com/static-rsc-4/a-x45VBI5rI-gING-oE7LvJBQjgrPPdLGnFk9jkg05GhxxfpC4fT4eHco9djGjg-6MPrs-68Tkz7w1tAQRQkd1mN8A_8HVNRPy0S7F4_G99Vel07lznVsBWMwc179g6gzmds7g8bMLRD8mt2kSEFL1XK66QYMA6uW8oIzGWT35U?purpose=inline)
+
+12
+
+Your uploaded screenshot should remain the primary functional reference. The redesigned version should additionally support:
+
+- Class-wise timetable.
+- Teacher-wise timetable.
+- Room-wise timetable.
+- Automatic vacant-period identification.
+- Substitute teacher suggestions.
+- Drag-and-drop assignments.
+- Workload indicators.
+- Published/unpublished states.
+
+## **B. Student thinking and OLQ dashboard**
+
+[Capisa - Global College AI Admission Counselor & AI Essay Helper](https://images.openai.com/static-rsc-4/odnfC7TUueN6_xZB-1D9GWaEF3JlNmDBeVaU_HbZUAR0VD7o-JcLCdo1z_V6IUcf1gRjWqzEsZowAEWc6YsryToNQ-jSpjh_033BJ2cLYTbZ79p1L_FMMCvFXzTYHmXODaCKN2veGOKiwaZE9WGhIXkvCxyUBTtHdfIETdCCvNU?purpose=inline)
+
+[班级管理必备｜班小二：31 + 功能全场景覆盖，永久免费省心管班 - 知乎](https://images.openai.com/static-rsc-4/9_F6Y9JdDeNLxZs_0Wx2nbOwIggRkAO9kbVhJ2brXlM_Mc77Tk5e2hzcltw9H-V-3lO6wqCffq_3aW88lM8ECj1XPlinNG3U9n_apSYugIWRIRqrKFOuLz9qlbb5zWAjCLI4i2BByiRZBVkO02M-gfqHsWpvA8jXzEMycg4yu4E?purpose=inline)
+
+[ISMOJO](https://images.openai.com/static-rsc-4/1vum_95qTSLn0JIllQiAMjc7kXCZRdCs9-S5KcfWycbeNGaZunAMEqF4KwjtrsKh1Cve5-odTC6225Y1JPoDMTCawwDqXVU2pDcqDd3uee9MixF9qOgXEn36c9sSrWotLXvXocMpxbDWAdwH1w2kJKFjGQEmETVHJ5oVAZ2P0vE?purpose=inline)
+
+12
+
+I suggest one combined student profile with four thinking dimensions and the 15 OLQs, rather than separate reports that cannot communicate with each other.
+
+## **C. Career intelligence dashboard**
+
+[The Standard | Engineering Readiness](https://images.openai.com/static-rsc-4/UsXL7MVXDc90rxPczB5gP8ffb6lqXM4jyzRVAM11zwKIAhLYkzLQs78MzHLOHxsoKRrvWCKmuy9RxlSxY7GicQtSeePqaJKA3A-AqcQQTuZafxjtf9KjaFvGA5-XK2g8im4PJNjsTR9--eDTAwDT_niuaAB_w0Mz_shRaIKNMug?purpose=inline)
+
+[TalentGro — Career Counselling & Skilling Platform India](https://images.openai.com/static-rsc-4/8GyPsMu2ENvUoAf5LWQLweMaFXY6RsCkiycHRVP8zrQH3VRTchvd1diGJ-lsJ1YWdxGFtu8txNj83yPeF_u4jCWvNPwdO0Ei3171zQQb_ODHOQnTrP-F0OCQr5Yc2p5KB-hoGPxAcSvBxZfw5YPEU9i5LhiGrmD7D0n00KmsiiQ?purpose=inline)
+
+[PathIQ | Devpost](https://images.openai.com/static-rsc-4/R4hkqR_OKrFcYONZsUJU9OzJW7jUQYuMUuHHqZXIf-NNHu22pspAZ_vvX1Ffnv05s78YLs4fMMv7-LHcoJdkVg5PatD7AJdAmmz7FABxpmMB0pD65RHcM0rdOczlAdtXX0SdGZurYTzuZDLHulVw6tBkFcbtYFlMXsgTHV2mOdI?purpose=inline)
+
+11
+
+Each career should have its own dedicated page with a visual educational pathway, financial breakdown, industry analysis and skill development plan.
+
+# **3. NotebookLM — redesigning your entire presentation library**
+
+Yes. NotebookLM can be used as an important part of this process, particularly for source-based research, extracting chapter concepts, structuring slide narratives and generating visual presentation drafts.
+
+[NotebookLMの新機能が革命的！インフォグラフィック・スライド自動生成でプレゼン作成が劇的に変わる - 生成AIビジネス活用研究所        生成AIビジネス活用研究所](https://images.openai.com/static-rsc-4/JCfl3rGugyqTlKVOkLcKoMm_P7Hq4DulVACclNbgYGKRQKt6eF9-l3c9WJFQpHCwzDhvEIpRZtKAaVBHhO_8sqXmzKGIpOM2hQ0hO39UOw_hIgfzTFI9bUQHJvzeTSdq7MBTSOWz4_AcfNBiJSjtEOJ5t-HBVVp4cAI9Wxeklnk?purpose=inline)
+
+[The NotebookLM slide deck feature: powerful, but far from perfect](https://images.openai.com/static-rsc-4/EAlnu_rXbibqvvih_5SQH-dOAP367igbU0KI_ywSo94F_14_m8uKIj2v4hf8PoJk8LjFeoGbuVFze9Igjx2xxaeGPIeMpnaSBp2VCajBVgC16I4psbwGXUBwyiYBfgenFHD1iPyrddU3sBKWacy34K73eCbwPlXmMD-9STw8STY?purpose=inline)
+
+[Unsupported client – Canva](https://images.openai.com/static-rsc-4/34GqFhA0rKUkDF8zqn4kQlgy7nnrd-gjeg-syvCrp5JFwASl0vvJoLaOYpDjhm5zoxVm-aPfwjQm2TMd-QGPNiBRfZIGvw0ItV_QnlciOaC4LNiKn47AcvFC2PH0JTVgO5_f0_ymMqpM9gDvGexx-fySWoJZ1b-X-6s-ryquyi8?purpose=inline)
+
+7
+
+I recommend a separate master prompt for NotebookLM.
+
+# NOTEBOOKLM MASTER PROMPT — VIRAT INTERNATIONAL SCHOOL PRESENTATION REDESIGN
+
+Act as an expert instructional designer, educational psychologist, curriculum specialist, infographic designer and presentation architect.
+
+Your task is to redesign our existing educational presentations into visually engaging, conceptually clear and curriculum-aligned teaching resources.
+
+School: Virat International School\
+Tagline: READ | LEAD | SUCCEED
+
+## OBJECTIVE
+
+Transform text-heavy presentations into visual learning experiences using:
+
+- Infographics.
+- Concept maps.
+- Mind maps.
+- Flowcharts.
+- Scientific diagrams.
+- Timelines.
+- Comparison charts.
+- Process illustrations.
+- Real-life applications.
+- Visual summaries.
+- Knowledge checks.
+
+## SOURCE RULE
+
+Use the uploaded NCERT, SCERT, CBSE or HBSE reference materials as the primary academic sources.
+
+Do not invent facts, change definitions or introduce concepts beyond the prescribed learning level without clearly identifying them as additional enrichment.
+
+## SLIDE-BY-SLIDE STRUCTURE
+
+For every chapter:
+
+1. Chapter introduction and learning objectives.
+2. Interesting real-life opening question.
+3. Concept introduction.
+4. Visual explanation.
+5. Detailed infographic.
+6. Step-by-step process or flowchart.
+7. Examples and applications.
+8. Important terminology.
+9. Common misconceptions.
+10. Practice questions.
+11. Application-based questions.
+12. Mind map of the chapter.
+13. Quick revision summary.
+14. Assessment and reflection.
+
+Adapt the number of slides to the complexity of the chapter.
+
+## DESIGN PRINCIPLES
+
+- One major concept per slide.
+- Avoid unnecessary paragraphs.
+- Use diagrams wherever they improve understanding.
+- Use age-appropriate illustrations.
+- Maintain consistent visual hierarchy.
+- Use readable typography.
+- Ensure accurate labels and terminology.
+- Prefer visual explanations over decorative graphics.
+- Include classroom discussion prompts.
+- Make every diagram educationally meaningful.
+
+## LANGUAGE POLICY
+
+Mathematics: English only.
+
+Other subjects: English and Hindi, with correct translations and consistent terminology.
+
+## DELIVERABLES
+
+For each chapter, prepare:
+
+1. Chapter analysis.
+2. Learning objectives.
+3. Slide-by-slide storyboard.
+4. Recommended infographic for each suitable concept.
+5. Flowcharts and diagrams.
+6. Redesigned presentation.
+7. Teacher explanation notes.
+8. Student revision summary.
+9. Source verification checklist.
+
+The final presentation must be suitable for digital classroom teaching and interactive explanation.
+
+Do not simply summarise the chapter. Design a teaching experience that helps students understand, remember and apply the concepts.
+
+# **4. Recommended implementation priority**
+
+Although these modules are interconnected, I would prioritise them as follows:
+
+| Priority | Module                            | Main reason                                        |
+| -------- | --------------------------------- | -------------------------------------------------- |
+| 1        | Thinking Tests + OLQ              | Builds the student development foundation          |
+| 2        | Timetable Master + Vacant Periods | Establishes the operational foundation             |
+| 3        | Teacher Leave + Productivity      | Makes the timetable useful for management          |
+| 4        | Career Intelligence               | Creates a strong counselling offering              |
+| 5        | Presentation Redesign             | Improves teaching quality and classroom experience |
+
+## **5. Three important architectural decisions**
+
+**1. One student profile, not multiple profiles.**
+
+SRT, WAT, TAT, PPDT, OLQs, career interests and counselling records must connect to the same student identity.
+
+**2. One timetable master, not separate timetables.**
+
+Vacant-period allocation, teacher workload, leave management and productivity reporting must all use the same timetable data.
+
+**3. Evidence-based reporting, not just AI-generated scores.**
+
+Every student and teacher report should be traceable to actual observations, assessments and recorded activities.
+
+## **My final recommendation**
+
+The most valuable outcome here is creating a platform that does more than manage school administration. It should also measure student development, help students make informed career decisions and improve the productivity of the institution.
+
+Before implementation, I would like to establish one important distinction:
+
+**For the Thinking Levels module, should FAST, BETTER, POSITIVE and SELF-CENTRED be four independent assessment dimensions, or should SELF-CENTRED be treated as a negative thinking pattern identified within the other three dimensions?**
+
+My recommendation is to keep them as four separately recorded dimensions initially, with SELF-CENTRED treated as an observation requiring context rather than a positive or negative personality label.

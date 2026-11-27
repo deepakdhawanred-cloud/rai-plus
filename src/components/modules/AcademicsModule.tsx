@@ -207,6 +207,7 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
     }
     if (isParentOrStudent) {
       if (
+        viewTab === 'learning_portal' ||
         viewTab === 'study_game' ||
         viewTab === 'interactive_lab' ||
         viewTab === 'hub' ||
@@ -215,7 +216,7 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
       ) {
         return viewTab;
       }
-      return 'study_game';
+      return 'learning_portal';
     }
     return viewTab;
   })();

@@ -285,7 +285,7 @@ window.addEventListener('hashchange',route);
 /* ---------- events ---------- */
 document.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.cls){homeCls=b.dataset.cls;viewHome();return}
+  if(b.dataset.cls){if(!isClassAllowed(b.dataset.cls))return;homeCls=b.dataset.cls;viewHome();return}
   if(b.id==='pfSave'){const cls=$('#pfCls').value,sec=($('#pfSec').value||'A').trim().toUpperCase().replace(/[^A-Z0-9]/g,'')||'A',roll=($('#pfRoll').value||'').replace(/\D/g,'');APP.profile={cls,section:sec,roll,t:Date.now()};homeCls=cls;setSync('Saving…');try{await Store.set('profiles/'+Store.uid,APP.profile);setSync('Saved')}catch(err){setSync('Not saved')}APP.progress.cls=cls;APP.progress.section=sec;APP.progress.roll=roll;queueWrite('progress/'+Store.uid,()=>APP.progress,100);route();return}
   if(b.id==='pfEdit'){APP.profile=null;viewMe();return}
   if(b.id==='secSave'){const s={};$$('[data-secs]').forEach(i=>{const v=i.value.split(',').map(x=>x.trim().toUpperCase().replace(/[^A-Z0-9]/g,'')).filter(Boolean);s[i.dataset.secs]=v.length?v:['A']});APP.config.sections=s;setSync('Saving…');try{await Store.set('config/school',APP.config);setSync('Saved')}catch(err){setSync('Not saved: only the owner can change setup')}return}

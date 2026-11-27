@@ -25,8 +25,8 @@ test('Learning Portal static asset bundle integrity: 127 chapters, 3D viewer, 39
   assert.ok(fs.existsSync(path.join(portalDir, 'vis', 'index.js')), 'vis/index.js must exist');
 
   const html = fs.readFileSync(path.join(portalDir, 'index.html'), 'utf-8');
-  const bridgeIdx = html.indexOf('src="raiplus-bridge.js"');
-  const engineIdx = html.indexOf('src="engine.js"');
+  const bridgeIdx = html.indexOf('src="raiplus-bridge.js');
+  const engineIdx = html.indexOf('src="engine.js');
   assert.ok(bridgeIdx > 0, 'index.html must load raiplus-bridge.js');
   assert.ok(engineIdx > bridgeIdx, 'raiplus-bridge.js must load before engine.js');
   assert.ok(html.includes('ui/fun.css'), 'index.html must load ui/fun.css');

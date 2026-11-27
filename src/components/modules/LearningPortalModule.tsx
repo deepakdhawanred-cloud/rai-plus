@@ -225,7 +225,7 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({
         <iframe
           key={`${data.activeSchool.id}-${data.user.id}-${reloadKey}`}
           ref={iframeRef}
-          src="/learning-portal/index.html"
+          src={`/learning-portal/index.html?u=${encodeURIComponent(data.user.id)}&r=${encodeURIComponent(data.user.role)}&v=20261127`}
           data-token={token}
           title="Rai Plus Learning Portal — Classes 6 to 12 Interactive Lessons, Visuals, 3D Models & Syllabus Monitor"
           className="h-full w-full border-0 block"

@@ -1,5 +1,5 @@
-﻿/* Rai Plus ERP â†” Learning Portal Bridge
-   Connects the embedded Classes 6â€“12 Learning Portal directly to Rai Plus's
+﻿/* Rai Plus ERP <-> Learning Portal Bridge
+   Connects the embedded Classes 6-12 Learning Portal directly to Rai Plus's
    authenticated, multi-tenant backend (/api/learning-portal/*). */
 (function () {
   function getAuthHeaders() {
@@ -46,10 +46,10 @@
       var parts = [user.schoolName];
       var boardSession = [user.schoolBoard, user.schoolSession].filter(Boolean).join(' ');
       if (boardSession) parts.push(boardSession);
-      el.textContent = parts.join(' Â· ');
+      el.textContent = parts.join(' \u00b7 ');
     }
     if (user.schoolName) {
-      document.title = 'Rai Plus Â· ' + user.schoolName + ' Learning Portal';
+      document.title = 'Rai Plus \u00b7 ' + user.schoolName + ' Learning Portal';
     }
   }
 

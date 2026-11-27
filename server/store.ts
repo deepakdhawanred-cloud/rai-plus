@@ -9,6 +9,8 @@ import {
   loadStateFromSupabase,
   scheduleSupabaseSync,
 } from './supabaseStore.ts';
+import { VIS_FEE_LEDGER_VERSION } from './visFeeLoader.ts';
+import { VIS_SALARY_EXPENSE_VERSION } from './visFinanceSheetLoader.ts';
 
 const PRIMARY_DATA_DIR = path.resolve(process.cwd(), '.data');
 const FALLBACK_DATA_DIR = path.join(os.tmpdir(), 'virat-student-360-data');
@@ -19,10 +21,12 @@ function getDbFilePath(dir = activeDataDir): string {
   return path.join(dir, DB_FILENAME);
 }
 
-const CURRENT_DB_SCHEMA_VERSION = 20261125;
+const CURRENT_DB_SCHEMA_VERSION = 20261126;
 
 type PersistedDatabaseState = DatabaseState & {
   _schemaVersion?: number;
+  _visFeeLedgerVersion?: string;
+  _visSalaryExpenseVersion?: string;
 };
 
 let cachedDb: PersistedDatabaseState | null = null;
@@ -32,30 +36,169 @@ export function getDbRevision(): number {
   return dbRevision;
 }
 
-export function getDb(): DatabaseState {
-  if (cachedDb) return cachedDb;
+function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
+  if (
+    parsed._schemaVersion === CURRENT_DB_SCHEMA_VERSION &&
+    parsed._visFeeLedgerVersion === VIS_FEE_LEDGER_VERSION &&
+    parsed._visSalaryExpenseVersion === VIS_SALARY_EXPENSE_VERSION &&
+    Array.isArray(parsed.schools) &&
+    Array.isArray(parsed.users)
+  ) {
+    return false;
+  }
 
-  try {
-    const candidateFiles = [getDbFilePath(PRIMARY_DATA_DIR), getDbFilePath(FALLBACK_DATA_DIR)];
-    const existingFile = candidateFiles.find((filePath) => fs.existsSync(filePath));
-    if (existingFile) {
-      activeDataDir = path.dirname(existingFile);
-      const raw = fs.readFileSync(existingFile, 'utf-8');
-      const parsed = JSON.parse(raw) as PersistedDatabaseState;
-      if (parsed._schemaVersion === CURRENT_DB_SCHEMA_VERSION && Array.isArray(parsed.schools) && Array.isArray(parsed.users)) {
-        cachedDb = parsed;
-        return cachedDb;
+  let migrated = false;
+  const fresh = createInitialDatabase();
+  const visLedgerNeedsRefresh = parsed._visFeeLedgerVersion !== VIS_FEE_LEDGER_VERSION;
+  const visSalaryExpenseNeedsRefresh =
+    parsed._visSalaryExpenseVersion !== VIS_SALARY_EXPENSE_VERSION;
+
+  if (visLedgerNeedsRefresh) {
+    // 1. Sync school-vis-jjr CSV students (remove departed/shifted stu-vis-csv-* rows, update balances, add new enrollees)
+    const freshVisStudents = fresh.students.filter((s) => s.schoolId === 'school-vis-jjr');
+    const freshVisStuById = new Map(freshVisStudents.map((s) => [s.id, s]));
+    const staleCsvStudentIds = new Set<string>();
+
+    if (Array.isArray(parsed.students)) {
+      parsed.students = parsed.students.filter((s) => {
+        if (s.schoolId === 'school-vis-jjr' && s.id.startsWith('stu-vis-csv-') && !freshVisStuById.has(s.id)) {
+          staleCsvStudentIds.add(s.id);
+          return false;
+        }
+        return true;
+      });
+      for (const s of parsed.students) {
+        if (s.schoolId === 'school-vis-jjr' && s.id.startsWith('stu-vis-csv-')) {
+          const freshMatch = freshVisStuById.get(s.id);
+          if (freshMatch) {
+            s.feeBalanceInr = freshMatch.feeBalanceInr;
+            s.totalFeeAnnualInr = freshMatch.totalFeeAnnualInr;
+            s.admissionNo = freshMatch.admissionNo;
+            s.guardianName = freshMatch.guardianName;
+            s.guardianPhone = freshMatch.guardianPhone;
+            if (freshMatch.address) s.address = freshMatch.address;
+          }
+        }
       }
-      let migrated = false;
-      const fresh = createInitialDatabase();
-      if (!Array.isArray(parsed.cognitiveAttempts)) {
-        parsed.cognitiveAttempts = fresh.cognitiveAttempts;
-        migrated = true;
+      const existingIdsAfterPrune = new Set(parsed.students.map((s) => s.id));
+      for (const fsStu of freshVisStudents) {
+        if (!existingIdsAfterPrune.has(fsStu.id)) {
+          parsed.students.push(fsStu);
+        }
       }
-      if (!Array.isArray(parsed.cognitiveAssignments)) {
-        parsed.cognitiveAssignments = fresh.cognitiveAssignments;
-        migrated = true;
+    }
+
+    // Prune orphaned auto-seeded academic/attendance rows belonging to removed stu-vis-csv-* IDs
+    if (staleCsvStudentIds.size > 0) {
+      if (Array.isArray(parsed.attendance)) {
+        parsed.attendance = parsed.attendance.filter((a) => !staleCsvStudentIds.has(a.studentId));
       }
+      if (Array.isArray(parsed.monthlyAttendance)) {
+        parsed.monthlyAttendance = parsed.monthlyAttendance.filter((m) => !staleCsvStudentIds.has(m.studentId));
+      }
+      if (Array.isArray(parsed.readingReports)) {
+        parsed.readingReports = parsed.readingReports.filter((r) => !staleCsvStudentIds.has(r.studentId));
+      }
+      if (Array.isArray(parsed.numeracyReports)) {
+        parsed.numeracyReports = parsed.numeracyReports.filter((r) => !staleCsvStudentIds.has(r.studentId));
+      }
+      if (Array.isArray(parsed.examMarks)) {
+        parsed.examMarks = parsed.examMarks.filter((m) => !staleCsvStudentIds.has(m.studentId));
+      }
+    }
+
+    // 2. Replace school-vis-jjr feeAccounts with authoritative updated 2026-27 CSV ledger (preserve all other schools)
+    const freshVisAccounts = fresh.feeAccounts.filter((a) => a.schoolId === 'school-vis-jjr');
+    const nonVisAccounts = Array.isArray(parsed.feeAccounts)
+      ? parsed.feeAccounts.filter((a) => a.schoolId !== 'school-vis-jjr')
+      : fresh.feeAccounts.filter((a) => a.schoolId !== 'school-vis-jjr');
+    parsed.feeAccounts = [...freshVisAccounts, ...nonVisAccounts];
+
+    // 3. Preserve prior Merged/Dismissed sibling decisions by guardian+phone, then refresh VIS siblingGroups & familyAccounts
+    const prevVisGroupDecision = new Map<string, { status: 'Alert' | 'Merged' | 'Dismissed'; updatedBy?: string; updatedAt?: string }>();
+    for (const g of parsed.siblingGroups || []) {
+      if (g.schoolId === 'school-vis-jjr' && g.status !== 'Alert') {
+        const key = `${(g.guardianName || '').trim().toLowerCase()}::${(g.contactNo || '').replace(/\D/g, '').slice(-10)}`;
+        prevVisGroupDecision.set(key, { status: g.status, updatedBy: g.updatedBy, updatedAt: g.updatedAt });
+      }
+    }
+    const freshVisGroups = fresh.siblingGroups
+      .filter((g) => g.schoolId === 'school-vis-jjr')
+      .map((g) => {
+        const key = `${(g.guardianName || '').trim().toLowerCase()}::${(g.contactNo || '').replace(/\D/g, '').slice(-10)}`;
+        const prev = prevVisGroupDecision.get(key);
+        return prev ? { ...g, status: prev.status, updatedBy: prev.updatedBy, updatedAt: prev.updatedAt } : g;
+      });
+    const nonVisGroups = Array.isArray(parsed.siblingGroups)
+      ? parsed.siblingGroups.filter((g) => g.schoolId !== 'school-vis-jjr')
+      : fresh.siblingGroups.filter((g) => g.schoolId !== 'school-vis-jjr');
+    parsed.siblingGroups = [...freshVisGroups, ...nonVisGroups];
+
+    const freshVisFamilies = fresh.familyAccounts.filter((f) => f.schoolId === 'school-vis-jjr');
+    const nonVisFamilies = Array.isArray(parsed.familyAccounts)
+      ? parsed.familyAccounts.filter((f) => f.schoolId !== 'school-vis-jjr')
+      : fresh.familyAccounts.filter((f) => f.schoolId !== 'school-vis-jjr');
+    parsed.familyAccounts = [...freshVisFamilies, ...nonVisFamilies];
+
+    // 4. Sync VIS school studentCount
+    if (Array.isArray(parsed.schools)) {
+      const freshVisSchool = fresh.schools.find((s) => s.id === 'school-vis-jjr');
+      const existingVisSchool = parsed.schools.find((s) => s.id === 'school-vis-jjr');
+      if (freshVisSchool && existingVisSchool) {
+        existingVisSchool.studentCount = freshVisSchool.studentCount;
+      }
+    }
+
+    parsed._visFeeLedgerVersion = VIS_FEE_LEDGER_VERSION;
+    migrated = true;
+  }
+
+  if (visSalaryExpenseNeedsRefresh) {
+    // Sync authoritative 2026-27 VIS Staff Salary Sheet & VIS Expense Sheet while preserving all other schools
+    const freshVisStaff = (fresh.staffProfiles || []).filter((p) => p.schoolId === 'school-vis-jjr');
+    if (freshVisStaff.length > 0) {
+      const nonVisStaff = Array.isArray(parsed.staffProfiles)
+        ? parsed.staffProfiles.filter((p) => p.schoolId !== 'school-vis-jjr')
+        : [];
+      parsed.staffProfiles = [...freshVisStaff, ...nonVisStaff];
+    }
+
+    const freshVisStaffAtt = (fresh.staffAttendance || []).filter((a) => a.schoolId === 'school-vis-jjr');
+    if (freshVisStaffAtt.length > 0) {
+      const nonVisStaffAtt = Array.isArray(parsed.staffAttendance)
+        ? parsed.staffAttendance.filter((a) => a.schoolId !== 'school-vis-jjr')
+        : [];
+      parsed.staffAttendance = [...freshVisStaffAtt, ...nonVisStaffAtt];
+    }
+
+    const freshVisPayrolls = (fresh.payrollRegisters || []).filter((p) => p.schoolId === 'school-vis-jjr');
+    if (freshVisPayrolls.length > 0) {
+      const nonVisPayrolls = Array.isArray(parsed.payrollRegisters)
+        ? parsed.payrollRegisters.filter((p) => p.schoolId !== 'school-vis-jjr')
+        : [];
+      parsed.payrollRegisters = [...freshVisPayrolls, ...nonVisPayrolls];
+    }
+
+    const freshVisExpenses = (fresh.accountingEntries || []).filter((e) => e.schoolId === 'school-vis-jjr');
+    if (freshVisExpenses.length > 0) {
+      const nonVisExpenses = Array.isArray(parsed.accountingEntries)
+        ? parsed.accountingEntries.filter((e) => e.schoolId !== 'school-vis-jjr')
+        : [];
+      parsed.accountingEntries = [...freshVisExpenses, ...nonVisExpenses];
+    }
+
+    parsed._visSalaryExpenseVersion = VIS_SALARY_EXPENSE_VERSION;
+    migrated = true;
+  }
+
+  if (!Array.isArray(parsed.cognitiveAttempts)) {
+    parsed.cognitiveAttempts = fresh.cognitiveAttempts;
+    migrated = true;
+  }
+  if (!Array.isArray(parsed.cognitiveAssignments)) {
+    parsed.cognitiveAssignments = fresh.cognitiveAssignments;
+    migrated = true;
+  }
       if (Array.isArray(parsed.students)) {
         const existingStudentIds = new Set(parsed.students.map((s) => s.id));
         const missingStudents = fresh.students.filter((s) => !existingStudentIds.has(s.id));
@@ -579,6 +722,20 @@ export function getDb(): DatabaseState {
         parsed._schemaVersion = CURRENT_DB_SCHEMA_VERSION;
         migrated = true;
       }
+      return migrated;
+}
+
+export function getDb(): DatabaseState {
+  if (cachedDb) return cachedDb;
+
+  try {
+    const candidateFiles = [getDbFilePath(PRIMARY_DATA_DIR), getDbFilePath(FALLBACK_DATA_DIR)];
+    const existingFile = candidateFiles.find((filePath) => fs.existsSync(filePath));
+    if (existingFile) {
+      activeDataDir = path.dirname(existingFile);
+      const raw = fs.readFileSync(existingFile, 'utf-8');
+      const parsed = JSON.parse(raw) as PersistedDatabaseState;
+      const migrated = applyDatabaseMigrations(parsed);
       cachedDb = parsed;
       if (migrated) saveDb(cachedDb);
       return cachedDb;
@@ -587,18 +744,30 @@ export function getDb(): DatabaseState {
     console.warn('Could not read persisted database, initializing fresh seed:', err);
   }
 
-  cachedDb = { ...createInitialDatabase(), _schemaVersion: CURRENT_DB_SCHEMA_VERSION };
+  cachedDb = {
+    ...createInitialDatabase(),
+    _schemaVersion: CURRENT_DB_SCHEMA_VERSION,
+    _visFeeLedgerVersion: VIS_FEE_LEDGER_VERSION,
+    _visSalaryExpenseVersion: VIS_SALARY_EXPENSE_VERSION,
+  };
   saveDb(cachedDb);
   return cachedDb;
 }
 
 export function saveDb(nextDb?: DatabaseState): void {
   if (nextDb) {
-    cachedDb = { ...nextDb, _schemaVersion: CURRENT_DB_SCHEMA_VERSION };
+    cachedDb = {
+      ...nextDb,
+      _schemaVersion: CURRENT_DB_SCHEMA_VERSION,
+      _visFeeLedgerVersion: VIS_FEE_LEDGER_VERSION,
+      _visSalaryExpenseVersion: VIS_SALARY_EXPENSE_VERSION,
+    };
   }
   if (!cachedDb) return;
   dbRevision += 1;
   cachedDb._schemaVersion = CURRENT_DB_SCHEMA_VERSION;
+  cachedDb._visFeeLedgerVersion = VIS_FEE_LEDGER_VERSION;
+  cachedDb._visSalaryExpenseVersion = VIS_SALARY_EXPENSE_VERSION;
   const serialized = JSON.stringify(cachedDb);
   for (const dir of [activeDataDir, FALLBACK_DATA_DIR]) {
     try {
@@ -626,7 +795,12 @@ export async function hydrateDbFromSupabase(): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
   const remoteState = await loadStateFromSupabase();
   if (remoteState) {
-    cachedDb = { ...remoteState, _schemaVersion: CURRENT_DB_SCHEMA_VERSION };
+    const candidate = { ...(remoteState as PersistedDatabaseState) };
+    const migrated = applyDatabaseMigrations(candidate);
+    candidate._schemaVersion = CURRENT_DB_SCHEMA_VERSION;
+    candidate._visFeeLedgerVersion = VIS_FEE_LEDGER_VERSION;
+    candidate._visSalaryExpenseVersion = VIS_SALARY_EXPENSE_VERSION;
+    cachedDb = candidate;
     dbRevision += 1;
     try {
       const serialized = JSON.stringify(cachedDb);
@@ -637,6 +811,9 @@ export async function hydrateDbFromSupabase(): Promise<boolean> {
     } catch {
       // Keep Supabase-hydrated state in memory even if local FS is read-only
     }
+    if (migrated) {
+      scheduleSupabaseSync(cachedDb, CURRENT_DB_SCHEMA_VERSION, dbRevision);
+    }
     return true;
   }
   // Seed Supabase with the initial/local dataset on first connection
@@ -646,7 +823,12 @@ export async function hydrateDbFromSupabase(): Promise<boolean> {
 }
 
 export function resetDb(): DatabaseState {
-  cachedDb = createInitialDatabase();
+  cachedDb = {
+    ...createInitialDatabase(),
+    _schemaVersion: CURRENT_DB_SCHEMA_VERSION,
+    _visFeeLedgerVersion: VIS_FEE_LEDGER_VERSION,
+    _visSalaryExpenseVersion: VIS_SALARY_EXPENSE_VERSION,
+  };
   saveDb(cachedDb);
   return cachedDb;
 }

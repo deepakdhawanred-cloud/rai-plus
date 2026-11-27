@@ -7,6 +7,9 @@ export interface EditablePayrollRow {
   staffName: string;
   staffRoleType: 'Teacher' | 'Driver' | 'Support Staff';
   designation: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
   daysWorked: number;
   grossSalaryInr: number;
   deductionsInr: number;

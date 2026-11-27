@@ -45,7 +45,7 @@ export const VIS_SCHOOL_BASE: School = {
   session: '2026-27',
   subscriptionPlan: 'Enterprise 360°',
   active: true,
-  studentCount: 535,
+  studentCount: 538,
   teacherCount: 28,
 };
 

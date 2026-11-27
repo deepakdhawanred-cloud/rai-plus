@@ -100,19 +100,19 @@ export const PLATFORM_FEATURES: PlatformFeatureSpec[] = [
   },
   {
     key: 'finance_fees',
-    label: 'Finance 360°, Fee Ledgers & Payroll',
+    label: 'Finance 360°, Staff Attendance & Payroll',
     category: 'Core ERP',
-    description: 'Fee receipts, sibling family groups, accounting ledgers, payroll & bank reconciliation.',
+    description: 'Fee receipts, sibling family groups, accounting ledgers, staff attendance salary sync & payroll.',
     includedInPlans: ['Starter ERP', 'Growth ERP', 'Premium Campus', 'Enterprise 360°'],
-    governedTabs: ['finance', 'families'],
+    governedTabs: ['finance', 'families', 'staff_payroll'],
   },
   {
     key: 'school_operations',
-    label: 'Operations, Complaints & Governance',
+    label: 'Operations, Digital Gate Pass & Visitors Register',
     category: 'Core ERP',
-    description: 'Operational tasks, parent complaint resolution, staff accounts & audit logs.',
+    description: 'Digital gate pass approvals, campus visitors register, complaints, staff accounts & audit logs.',
     includedInPlans: ['Starter ERP', 'Growth ERP', 'Premium Campus', 'Enterprise 360°'],
-    governedTabs: ['operations'],
+    governedTabs: ['operations', 'campus_gate'],
     isCore: true,
   },
 
@@ -383,10 +383,10 @@ export function countCustomOverridesForSchool(
 }
 
 /**
- * Maps a workspace tab to its governing platform feature key (returns null for always-available Overview/Allotment).
+ * Maps a workspace tab to its governing platform feature key (returns null for always-available Overview/Alerts/Allotment).
  */
 export function getFeatureKeyForWorkspaceTab(tab: WorkspaceTab): PlatformFeatureKey | null {
-  if (tab === 'overview' || tab === 'feature_allotment') return null;
+  if (tab === 'overview' || tab === 'alerts' || tab === 'feature_allotment') return null;
   const spec = PLATFORM_FEATURES.find((f) => f.governedTabs.includes(tab));
   return spec ? spec.key : null;
 }

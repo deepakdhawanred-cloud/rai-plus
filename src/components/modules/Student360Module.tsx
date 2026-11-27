@@ -58,6 +58,13 @@ import { DevelopmentReviewQueuePanel } from '../DevelopmentReviewQueuePanel';
 import { VisDmitProfilePanel, VisReportVisualizerModal } from '../VisReportVisualizerModal';
 import { VisReportsVaultPanel } from '../VisReportsVaultPanel';
 import { StudentYearlyPlanPanel } from '../StudentYearlyPlanPanel';
+import { StudentPaymentTimelineModal } from '../StudentPaymentTimelinePanel';
+import {
+  buildStudentPaymentTimeline,
+  resolveCurrentAcademicFeeMonth,
+} from '../../utils/financialDashboardEngine';
+import { exportStudentPaymentTimelinePdf } from '../../utils/financialPdfExporter';
+import { pushToast } from '../ToastProvider';
 
 interface Student360ModuleProps {
   data: WorkspaceData;
@@ -139,6 +146,8 @@ export const Student360Module: React.FC<Student360ModuleProps> = ({
   const [notifAckId, setNotifAckId] = useState<string | null>(null);
   const [notifResending, setNotifResending] = useState(false);
   const [notifFeedback, setNotifFeedback] = useState<string | null>(null);
+  const [showPaymentTimeline, setShowPaymentTimeline] = useState(false);
+  const [feeAlertAckId, setFeeAlertAckId] = useState<string | null>(null);
 
   const isStaff = !['parent', 'student'].includes(data.user.role);
   const canEditAcademic = ['super_admin', 'school_admin', 'principal', 'coordinator', 'teacher'].includes(
@@ -175,6 +184,38 @@ export const Student360Module: React.FC<Student360ModuleProps> = ({
       </div>
     );
   }
+
+  const canViewFeeTimeline = [
+    'super_admin',
+    'school_admin',
+    'principal',
+    'coordinator',
+    'accountant',
+    'parent',
+  ].includes(data.user.role);
+  const activeFeeMonth =
+    data.financialTarget?.monthKey ?? resolveCurrentAcademicFeeMonth(resolveTodayIsoDate());
+  const activeStudentFeeAccount = canViewFeeTimeline
+    ? (data.feeAccounts || []).find(
+        (acc) =>
+          acc.studentId === activeStudent.id ||
+          acc.admissionNo.trim().toUpperCase() === activeStudent.admissionNo.trim().toUpperCase(),
+      ) || null
+    : null;
+  const activeStudentPaymentTimeline = activeStudentFeeAccount
+    ? buildStudentPaymentTimeline({
+        account: activeStudentFeeAccount,
+        activeMonth: activeFeeMonth,
+        receipts: data.feeReceipts || [],
+      })
+    : null;
+  const activeStudentFeeAlerts = canViewFeeTimeline
+    ? (data.feeDefaulterAlertLogs || []).filter(
+        (n) =>
+          n.studentId === activeStudent.id ||
+          n.admissionNo.trim().toUpperCase() === activeStudent.admissionNo.trim().toUpperCase(),
+      )
+    : [];
 
   const breakdown = data.studentBreakdowns[activeStudent.id];
   const studentEvidence = data.evidence.filter((e) => e.studentId === activeStudent.id);
@@ -787,13 +828,76 @@ export const Student360Module: React.FC<Student360ModuleProps> = ({
               <p className="text-slate-500">
                 Attendance provides learning context only and never auto-penalises OLQ scores.
               </p>
-              {['super_admin', 'school_admin', 'principal', 'coordinator', 'parent'].includes(
-                data.user.role,
-              ) && (
-                <p className="font-mono text-slate-700 tabular-nums pt-1">
-                  Fee Balance: ₹{activeStudent.feeBalanceInr.toLocaleString('en-IN')} / ₹
-                  {activeStudent.totalFeeAnnualInr.toLocaleString('en-IN')}
-                </p>
+              {canViewFeeTimeline && (
+                <div className="pt-1 space-y-1">
+                  <p className="font-mono text-slate-700 tabular-nums">
+                    Fee Balance: ₹
+                    {(activeStudentFeeAccount?.balanceFeesInr ?? activeStudent.feeBalanceInr).toLocaleString('en-IN')}{' '}
+                    / ₹
+                    {(
+                      activeStudentPaymentTimeline?.defaulterMetrics.grossFeeInr ??
+                      activeStudent.totalFeeAnnualInr
+                    ).toLocaleString('en-IN')}
+                  </p>
+                  {activeStudentFeeAccount && activeStudentPaymentTimeline && (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
+                      <span
+                        className={`font-semibold ${
+                          activeStudentPaymentTimeline.paymentNatureTone === 'positive'
+                            ? 'text-emerald-700'
+                            : activeStudentPaymentTimeline.paymentNatureTone === 'warning'
+                              ? 'text-amber-700'
+                              : activeStudentPaymentTimeline.paymentNatureTone === 'critical'
+                                ? 'text-rose-700'
+                                : 'text-slate-700'
+                        }`}
+                      >
+                        {activeStudentPaymentTimeline.paymentNature}
+                      </span>
+                      <span className="text-slate-400" aria-hidden="true">
+                        ·
+                      </span>
+                      <span className="font-mono text-slate-500 tabular-nums">
+                        {activeStudentPaymentTimeline.activePaymentMonthsCount}/
+                        {activeStudentPaymentTimeline.monthsElapsed}m paid
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="student360-open-payment-timeline-btn"
+                        onClick={() => setShowPaymentTimeline(true)}
+                        className="font-semibold text-blue-900 hover:underline print:hidden"
+                      >
+                        View Payment Timeline
+                      </button>
+                      <span className="text-slate-300 print:hidden" aria-hidden="true">
+                        ·
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="student360-export-payment-timeline-pdf-btn"
+                        onClick={() => {
+                          const filename = exportStudentPaymentTimelinePdf({
+                            account: activeStudentFeeAccount,
+                            schoolName: data.activeSchool.name,
+                            schoolCode: data.activeSchool.code,
+                            session: data.activeSchool.session,
+                            activeMonth: activeFeeMonth,
+                            receipts: data.feeReceipts || [],
+                            generatedBy: data.user.name,
+                          });
+                          pushToast(
+                            `Saved ${filename} for ${activeStudentFeeAccount.studentName}.`,
+                            'success',
+                            { title: 'Payment Timeline PDF Downloaded' },
+                          );
+                        }}
+                        className="font-semibold text-slate-700 hover:text-slate-900 hover:underline print:hidden"
+                      >
+                        Download PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -825,6 +929,63 @@ export const Student360Module: React.FC<Student360ModuleProps> = ({
               </ul>
             </div>
           </div>
+
+          {/* Dispatched Fee Reminder Alerts (Visible to Parent & Authorized Fee Staff) */}
+          {activeStudentFeeAlerts.length > 0 && (
+            <div
+              data-testid="student360-fee-alert-banner"
+              className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-xs text-slate-800 space-y-2 print:hidden"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                  <BellRing className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                  Fee Payment Reminder Notice ({activeStudentFeeAlerts[0].activeMonth} ·{' '}
+                  {activeStudentFeeAlerts[0].channel})
+                </p>
+                <span className="font-mono text-[11px] text-slate-600 tabular-nums">
+                  Status: {activeStudentFeeAlerts[0].status}
+                </span>
+              </div>
+              <p className="text-slate-700 leading-relaxed">
+                {activeStudentFeeAlerts[0].messageBody}
+              </p>
+              {activeStudentFeeAlerts[0].status !== 'Acknowledged' && (
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    disabled={feeAlertAckId === activeStudentFeeAlerts[0].id}
+                    onClick={async () => {
+                      const targetId = activeStudentFeeAlerts[0].id;
+                      setFeeAlertAckId(targetId);
+                      try {
+                        await apiRequest(
+                          `/api/finance/defaulter-notifications/${targetId}/acknowledge`,
+                          { method: 'PATCH' },
+                          token,
+                        );
+                        await onRefresh();
+                        pushToast('Fee reminder notice acknowledged.', 'success', {
+                          title: 'Notice Acknowledged',
+                        });
+                      } catch (err) {
+                        pushToast(
+                          err instanceof Error ? err.message : 'Unable to acknowledge notice.',
+                          'error',
+                        );
+                      } finally {
+                        setFeeAlertAckId(null);
+                      }
+                    }}
+                    className="rounded-lg border border-amber-400 bg-white px-3 py-1 text-[11px] font-semibold text-amber-900 hover:bg-amber-50 disabled:opacity-50"
+                  >
+                    {feeAlertAckId === activeStudentFeeAlerts[0].id
+                      ? 'Saving...'
+                      : 'Acknowledge Fee Notice'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Confidential Note strictly restricted to Staff */}
           {isStaff && activeStudent.confidentialCounsellorNote && (
@@ -1879,6 +2040,19 @@ export const Student360Module: React.FC<Student360ModuleProps> = ({
         catalogItem={modalVisProfile?.item}
         onClose={() => setModalVisProfile(null)}
       />
+
+      {showPaymentTimeline && activeStudentFeeAccount && (
+        <StudentPaymentTimelineModal
+          account={activeStudentFeeAccount}
+          schoolName={data.activeSchool.name}
+          schoolCode={data.activeSchool.code}
+          session={data.activeSchool.session}
+          generatedBy={data.user.name}
+          activeMonth={activeFeeMonth}
+          receipts={data.feeReceipts || []}
+          onClose={() => setShowPaymentTimeline(false)}
+        />
+      )}
     </div>
   );
 };

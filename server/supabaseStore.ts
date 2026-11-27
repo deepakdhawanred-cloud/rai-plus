@@ -97,6 +97,9 @@ export interface NormalizedSupabaseRows {
   feeTransactions: Array<Record<string, unknown>>;
   publicEnquiries: Array<Record<string, unknown>>;
   auditLogs: Array<Record<string, unknown>>;
+  staffAttendance: Array<Record<string, unknown>>;
+  gatePasses: Array<Record<string, unknown>>;
+  visitors: Array<Record<string, unknown>>;
 }
 
 /**
@@ -207,6 +210,49 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     logged_at: l.timestamp,
   }));
 
+  const staffAttendance = (db.staffAttendance || []).slice(0, 2000).map((a) => ({
+    id: a.id,
+    school_id: a.schoolId,
+    staff_id: a.staffId,
+    attendance_date: a.date,
+    status: a.status,
+    marking_mode: a.markingMode || 'manual',
+    check_in_time: a.checkInTime ?? null,
+    check_out_time: a.checkOutTime ?? null,
+    marked_by: a.markedBy ?? null,
+    updated_at: a.updatedAt || nowIso,
+  }));
+
+  const gatePasses = (db.gatePasses || []).slice(0, 1000).map((g) => ({
+    id: g.id,
+    school_id: g.schoolId,
+    pass_code: g.passCode,
+    subject_type: g.subjectType,
+    person_name: g.studentName || g.staffName || 'Unknown',
+    reason: g.reason,
+    expected_exit_time: g.expectedExitTime,
+    status: g.status,
+    approved_by: g.approvedByName ?? null,
+    updated_at: g.updatedAt || nowIso,
+  }));
+
+  const visitors = (db.visitorLogs || []).slice(0, 1000).map((v) => ({
+    id: v.id,
+    school_id: v.schoolId,
+    badge_code: v.badgeCode,
+    visitor_name: v.visitorName,
+    phone: v.phone,
+    category: v.category,
+    purpose: v.purpose,
+    person_to_meet: v.personToMeet,
+    id_proof_masked: v.idProofMasked,
+    status: v.status,
+    check_in_at: v.checkInAt,
+    check_out_at: v.checkOutAt ?? null,
+    duration_minutes: v.durationMinutes ?? null,
+    updated_at: nowIso,
+  }));
+
   return {
     schools,
     users,
@@ -216,6 +262,9 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     feeTransactions,
     publicEnquiries,
     auditLogs,
+    staffAttendance,
+    gatePasses,
+    visitors,
   };
 }
 
@@ -300,6 +349,9 @@ export async function persistStateToSupabase(
     await upsertInChunks(client, 'rai_fee_transactions', tables.feeTransactions);
     await upsertInChunks(client, 'rai_public_enquiries', tables.publicEnquiries);
     await upsertInChunks(client, 'rai_audit_logs', tables.auditLogs);
+    await upsertInChunks(client, 'rai_staff_attendance', tables.staffAttendance);
+    await upsertInChunks(client, 'rai_gate_passes', tables.gatePasses);
+    await upsertInChunks(client, 'rai_visitors', tables.visitors);
     return true;
   } catch (err) {
     console.warn(

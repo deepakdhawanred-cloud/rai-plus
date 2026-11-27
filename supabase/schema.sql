@@ -127,6 +127,55 @@ create table if not exists public.rai_audit_logs (
 );
 create index if not exists idx_rai_audit_logs_school_time on public.rai_audit_logs(school_id, logged_at desc);
 
+-- 10. Staff Attendance (Synced with Automated Payroll)
+create table if not exists public.rai_staff_attendance (
+  id text primary key,
+  school_id text not null references public.rai_schools(id) on delete cascade,
+  staff_id text not null,
+  attendance_date text not null,
+  status text not null,
+  marking_mode text not null default 'manual',
+  check_in_time text,
+  check_out_time text,
+  marked_by text,
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_rai_staff_att_school_date on public.rai_staff_attendance(school_id, attendance_date);
+
+-- 11. Digital Gate Passes
+create table if not exists public.rai_gate_passes (
+  id text primary key,
+  school_id text not null references public.rai_schools(id) on delete cascade,
+  pass_code text not null,
+  subject_type text not null,
+  person_name text not null,
+  reason text not null,
+  expected_exit_time text not null,
+  status text not null,
+  approved_by text,
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_rai_gate_passes_school on public.rai_gate_passes(school_id, updated_at desc);
+
+-- 12. Digital Visitors Register
+create table if not exists public.rai_visitors (
+  id text primary key,
+  school_id text not null references public.rai_schools(id) on delete cascade,
+  badge_code text not null,
+  visitor_name text not null,
+  phone text not null,
+  category text not null,
+  purpose text not null,
+  person_to_meet text not null,
+  id_proof_masked text not null,
+  status text not null,
+  check_in_at text not null,
+  check_out_at text,
+  duration_minutes integer,
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_rai_visitors_school on public.rai_visitors(school_id, check_in_at desc);
+
 -- ============================================================================
 -- Row Level Security (RLS)
 -- Enabled on every table by default. Connect the Rai Plus server using your
@@ -142,3 +191,6 @@ alter table public.rai_exam_marks enable row level security;
 alter table public.rai_fee_transactions enable row level security;
 alter table public.rai_public_enquiries enable row level security;
 alter table public.rai_audit_logs enable row level security;
+alter table public.rai_staff_attendance enable row level security;
+alter table public.rai_gate_passes enable row level security;
+alter table public.rai_visitors enable row level security;

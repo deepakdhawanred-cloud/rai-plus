@@ -437,6 +437,8 @@ export interface StudentCareerPlan {
   studentName: string;
   classSection: string;
   shortlistedCareerIds: string[];
+  completedMilestoneKeys?: string[];
+  selectedStreamPreference?: string;
   customGoalNote: string;
   counsellorNotes: string;
   sharedWithParent: boolean;

@@ -17,10 +17,13 @@ import type {
   EventTeacherIssue,
   ExamMark,
   FamilyAccount,
+  FeeDefaulterNotificationConfig,
+  FeeDefaulterNotificationRecord,
   FeeLedgerAccount,
   FeePaymentReceipt,
   FeeReminderCalendarEvent,
   FeeTransaction,
+  NotificationGatewayStatus,
   HomeworkAssignment,
   HomeworkSubmission,
   HomeVisitRecord,
@@ -66,8 +69,14 @@ import type {
   ThinkingScoringConfig,
   TimetableMasterConfig,
   TimetableSlot,
+  GatePassRecord,
+  SalaryModificationAuditRecord,
+  StaffAttendanceRecord,
+  StaffProfile,
+  StaffSalaryComputation,
   TransportWorkspaceBundle,
   UserAccount,
+  VisitorLogRecord,
   ViratResourcePack,
   VisParsedReportProfile,
   VisReportCatalogItem,
@@ -117,6 +126,9 @@ export interface WorkspaceData {
   feeReceipts?: FeePaymentReceipt[];
   feeReminders?: FeeReminderCalendarEvent[];
   feeStructure?: SchoolFeeStructureRow[];
+  feeDefaulterAlertConfig?: FeeDefaulterNotificationConfig;
+  feeDefaulterAlertLogs?: FeeDefaulterNotificationRecord[];
+  notificationGatewayStatus?: NotificationGatewayStatus;
   operations: OperationalItem[];
   parentComplaints: ParentComplaint[];
   blogArticles: BlogArticle[];
@@ -174,16 +186,28 @@ export interface WorkspaceData {
   studentYearlyPlans?: StudentYearlyPlan[];
   absenceTargetRiskAlerts?: AbsenceTargetRiskAlert[];
   interactiveLearning?: import('./interactiveLearning').InteractiveLearningOverviewPayload;
+  // Role-scoped Staff Attendance & Automated Salary (strictly filtered server-side)
+  staffProfiles?: StaffProfile[];
+  staffAttendance?: StaffAttendanceRecord[];
+  staffSalarySummaries?: StaffSalaryComputation[];
+  staffSalaryAccessScope?: 'full' | 'self' | 'none';
+  salaryAuditLogs?: SalaryModificationAuditRecord[];
+  // Digital Gate Pass & Digital Visitors Register
+  gatePasses?: GatePassRecord[];
+  visitorLogs?: VisitorLogRecord[];
 }
 
 export type WorkspaceTab =
   | 'feature_allotment'
   | 'overview'
+  | 'alerts'
   | 'today_workspace'
   | 'interactive_learning'
   | 'events'
   | 'clinical_care'
   | 'attendance_heatmap'
+  | 'staff_payroll'
+  | 'campus_gate'
   | 'cognitive_profile'
   | 'thinking'
   | 'psychometric'

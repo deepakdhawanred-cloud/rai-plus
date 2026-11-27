@@ -95,8 +95,8 @@ export default function App() {
 
   if (token && loadingWorkspace && !workspaceData) {
     return (
-      <div className="min-h-screen bg-[#FAF4EC] flex" aria-busy="true" aria-label="Loading workspace">
-        <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-[#0E2036] bg-[#142B46] p-5 space-y-5">
+      <div className="min-h-screen bg-[#F6F8FB] flex" aria-busy="true" aria-label="Loading workspace">
+        <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-[#0D1E33] bg-[#142B46] p-5 space-y-5">
           <div className="flex items-center gap-3 pb-4 border-b border-[#254264]">
             <div className="h-10 w-10 rounded-lg bg-[#254264]" />
             <div className="space-y-2 flex-1">

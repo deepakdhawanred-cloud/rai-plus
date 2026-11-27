@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Building2,
@@ -10,24 +10,34 @@ import {
   Fuel,
   IndianRupee,
   Landmark,
+  Loader2,
   Lock,
+  Pencil,
   Plus,
   Printer,
   ShieldAlert,
   Sparkles,
   Trash2,
+  Upload,
   Users,
+  X,
   XCircle,
 } from 'lucide-react';
 import { apiRequest } from '../utils/api';
 import type {
   AccountingEntry,
   AccountingEntryCategory,
+  ExpenseClassification,
   UserAccount,
 } from '../types';
 import type { WorkspaceData } from '../types/workspace';
 import { canPerformFinanceAction } from '../utils/accountantRbacEngine';
 import { BulkPayrollSheetPanel } from './BulkPayrollSheetPanel';
+import { SecureSalaryManagementPanel } from './SecureSalaryManagementPanel';
+import {
+  MonthlyExpenseBreakdownChart,
+  formatShortMonthKey,
+} from './MonthlyExpenseBreakdownChart';
 
 interface Props {
   data: WorkspaceData;
@@ -43,9 +53,15 @@ const ENTRY_CATEGORIES: AccountingEntryCategory[] = [
   'Teacher Payroll',
   'Driver Payroll',
   'Bus Fuel Expense',
+  'Bus EMI / Kist',
+  'School Rent',
   'Maintenance Expense',
   'Vendor Purchase',
   'Utility & Operations',
+  'Insurance & Compliance',
+  'Software & IT',
+  'Infrastructure & Assets',
+  'Bank Transfer & Advances',
   'Misc Receipt',
 ];
 
@@ -67,18 +83,44 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
   const tasks = data.accountingTasks || [];
 
   const [subTab, setSubTab] = useState<AccountingSubTab>('ledger');
+  const [monthFilter, setMonthFilter] = useState<string>('ALL');
+  const [directionFilter, setDirectionFilter] = useState<'All' | 'Expense' | 'Income'>('All');
+  const [classificationFilter, setClassificationFilter] = useState<
+    'All' | ExpenseClassification | 'Uncategorized'
+  >('All');
   const [categoryFilter, setCategoryFilter] = useState<'All' | AccountingEntryCategory>('All');
   const [busFilter, setBusFilter] = useState<string>('All');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<boolean>(false);
+  const [categorizingAi, setCategorizingAi] = useState<boolean>(false);
+  const [importingSheet, setImportingSheet] = useState<boolean>(false);
+  const [autoLabelOnImport, setAutoLabelOnImport] = useState<boolean>(true);
+  const [replaceOnImport, setReplaceOnImport] = useState<boolean>(false);
+  const expenseCsvInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Inline editing state
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<{
+    date: string;
+    vendorOrParty: string;
+    category: AccountingEntryCategory;
+    amountInr: string;
+    paymentMode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
+    chequeOrRefNo: string;
+    description: string;
+  } | null>(null);
 
   // New accounting entry form
   const [entryDate, setEntryDate] = useState<string>('2026-11-21');
   const [entryCategory, setEntryCategory] = useState<AccountingEntryCategory>('Bus Fuel Expense');
   const [entryDirection, setEntryDirection] = useState<'Income' | 'Expense'>('Expense');
+  const [entryClassificationChoice, setEntryClassificationChoice] = useState<
+    'auto' | ExpenseClassification
+  >('auto');
   const [vendorOrParty, setVendorOrParty] = useState<string>('');
   const [busCode, setBusCode] = useState<string>('');
+  const [chequeOrRefNo, setChequeOrRefNo] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [amountInr, setAmountInr] = useState<string>('');
   const [paymentMode, setPaymentMode] = useState<'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque'>('UPI');
@@ -117,6 +159,23 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
     .filter((e) => e.direction === 'Expense' && e.status !== 'rejected')
     .reduce((acc, e) => acc + e.amountInr, 0);
 
+  const unclassifiedExpenseCount = useMemo(
+    () =>
+      entries.filter(
+        (e) => e.direction === 'Expense' && e.status !== 'rejected' && !e.expenseClassification,
+      ).length,
+    [entries],
+  );
+
+  const availableMonthKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of entries) {
+      const mk = e.monthKey || e.date.slice(0, 7);
+      if (mk) set.add(mk);
+    }
+    return Array.from(set).sort();
+  }, [entries]);
+
   const busCodes = useMemo(() => {
     const set = new Set<string>();
     for (const e of entries) {
@@ -127,22 +186,190 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
 
   const filteredEntries = useMemo(() => {
     return entries.filter((e) => {
+      if (monthFilter !== 'ALL' && (e.monthKey || e.date.slice(0, 7)) !== monthFilter) return false;
+      if (directionFilter !== 'All' && e.direction !== directionFilter) return false;
+      if (classificationFilter !== 'All') {
+        if (e.direction !== 'Expense') return false;
+        if (classificationFilter === 'Uncategorized') {
+          if (e.expenseClassification) return false;
+        } else if (e.expenseClassification !== classificationFilter) {
+          return false;
+        }
+      }
       if (categoryFilter !== 'All' && e.category !== categoryFilter) return false;
       if (busFilter !== 'All' && e.busCode !== busFilter) return false;
       return true;
     });
-  }, [entries, categoryFilter, busFilter]);
+  }, [entries, monthFilter, directionFilter, classificationFilter, categoryFilter, busFilter]);
 
   const clearAlerts = () => {
     setFeedback(null);
     setErrorMsg(null);
   };
 
-  const handleCreateEntry = async (submitForApproval: boolean) => {
+  const handleCategorizeWithGemini = async (mode: 'unclassified' | 'all') => {
+    clearAlerts();
+    setCategorizingAi(true);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        model: string;
+        categorizedCount: number;
+        message?: string;
+        breakdown: { Operational: number; Administrative: number; Developmental: number };
+      }>(
+        '/api/accounting/entries/categorize-ai',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            mode,
+            monthKey: monthFilter !== 'ALL' ? monthFilter : undefined,
+          }),
+        },
+        token,
+      );
+      if (res.categorizedCount === 0) {
+        setFeedback(res.message || 'All matching expense rows are already categorized.');
+      } else {
+        setFeedback(
+          `Gemini labeled ${res.categorizedCount} expense(s): ${res.breakdown.Operational} Operational, ${res.breakdown.Administrative} Administrative, ${res.breakdown.Developmental} Developmental.`,
+        );
+      }
+      await onRefresh();
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : 'Unable to categorize expenses with Gemini API.',
+      );
+    } finally {
+      setCategorizingAi(false);
+    }
+  };
+
+  const handleExpenseSheetFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    clearAlerts();
+    setImportingSheet(true);
+    try {
+      const csvText = await file.text();
+      const res = await apiRequest<{
+        ok: boolean;
+        importedCount: number;
+        totalIncomeInr: number;
+        totalExpenseInr: number;
+        monthCount: number;
+        categorizedCount: number;
+        breakdown: { Operational: number; Administrative: number; Developmental: number };
+        geminiError?: string;
+      }>(
+        '/api/accounting/entries/import-sheet',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            csvText,
+            replaceSheetEntries: replaceOnImport,
+            autoCategorizeWithGemini: autoLabelOnImport,
+          }),
+        },
+        token,
+      );
+      const aiSummary =
+        res.categorizedCount > 0
+          ? ` · Gemini labeled ${res.categorizedCount} expenses (${res.breakdown.Operational} Operational, ${res.breakdown.Administrative} Administrative, ${res.breakdown.Developmental} Developmental).`
+          : '';
+      setFeedback(
+        `Imported ${res.importedCount} rows across ${res.monthCount} month(s) (Income ₹${res.totalIncomeInr.toLocaleString('en-IN')}, Expense ₹${res.totalExpenseInr.toLocaleString('en-IN')})${aiSummary}`,
+      );
+      if (res.geminiError) {
+        setErrorMsg(`Rows imported, but Gemini categorization failed: ${res.geminiError}`);
+      }
+      await onRefresh();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to import expense CSV sheet.');
+    } finally {
+      setImportingSheet(false);
+    }
+  };
+
+  const handleInlineClassificationChange = async (
+    entryId: string,
+    classification: ExpenseClassification,
+  ) => {
     clearAlerts();
     setBusy(true);
     try {
       await apiRequest(
+        `/api/accounting/entries/${entryId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ expenseClassification: classification }),
+        },
+        token,
+      );
+      setFeedback(`Updated expense label to ${classification}.`);
+      await onRefresh();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to update expense classification.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startEditingEntry = (entry: AccountingEntry) => {
+    setEditingEntryId(entry.id);
+    setEditDraft({
+      date: entry.date,
+      vendorOrParty: entry.vendorOrParty,
+      category: entry.category,
+      amountInr: String(entry.amountInr),
+      paymentMode: entry.paymentMode,
+      chequeOrRefNo: entry.chequeOrRefNo || '',
+      description: entry.description || '',
+    });
+  };
+
+  const handleSaveEntryEdit = async (entryId: string) => {
+    if (!editDraft) return;
+    clearAlerts();
+    setBusy(true);
+    try {
+      await apiRequest(
+        `/api/accounting/entries/${entryId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            date: editDraft.date,
+            vendorOrParty: editDraft.vendorOrParty,
+            category: editDraft.category,
+            amountInr: Number(editDraft.amountInr),
+            paymentMode: editDraft.paymentMode,
+            chequeOrRefNo: editDraft.chequeOrRefNo,
+            description: editDraft.description,
+          }),
+        },
+        token,
+      );
+      setEditingEntryId(null);
+      setEditDraft(null);
+      setFeedback('Ledger entry updated.');
+      await onRefresh();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to update ledger entry.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCreateEntry = async (submitForApproval: boolean) => {
+    clearAlerts();
+    setBusy(true);
+    try {
+      const isExpense = entryDirection === 'Expense';
+      const res = await apiRequest<{
+        entry: AccountingEntry;
+        geminiWarning?: string;
+      }>(
         '/api/accounting/entries',
         {
           method: 'POST',
@@ -152,27 +379,40 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
             direction: entryDirection,
             vendorOrParty,
             busCode: busCode.trim() || undefined,
+            chequeOrRefNo: chequeOrRefNo.trim() || undefined,
             description,
             amountInr: Number(amountInr),
             paymentMode,
             supportingDocName: supportingDocName.trim() || undefined,
             extractedByAi,
             submitForApproval,
+            expenseClassification:
+              isExpense && entryClassificationChoice !== 'auto'
+                ? entryClassificationChoice
+                : undefined,
+            autoCategorizeWithGemini: isExpense && entryClassificationChoice === 'auto',
           }),
         },
         token,
       );
       setVendorOrParty('');
       setBusCode('');
+      setChequeOrRefNo('');
       setDescription('');
       setAmountInr('');
       setSupportingDocName('');
       setExtractedByAi(false);
+      const clsSuffix = res.entry?.expenseClassification
+        ? ` · Labeled ${res.entry.expenseClassification}${res.entry.expenseClassifiedBy === 'gemini' ? ' (Gemini)' : ''}`
+        : '';
       setFeedback(
         submitForApproval
-          ? 'Accounting voucher submitted for Principal approval (dual-control enforced).'
-          : 'Accounting voucher saved as editable draft.',
+          ? `Accounting voucher submitted for Principal approval${clsSuffix}.`
+          : `Accounting voucher saved as editable draft${clsSuffix}.`,
       );
+      if (res.geminiWarning) {
+        setErrorMsg(`Entry saved, but Gemini auto-categorization failed: ${res.geminiWarning}`);
+      }
       await onRefresh();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Unable to save accounting entry.');
@@ -342,9 +582,11 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
       'Date',
       'Month',
       'Category',
+      'Expense Classification',
       'Direction',
       'Vendor/Party',
       'Bus Code',
+      'Cheque / Ref',
       'Amount (INR)',
       'Mode',
       'Status',
@@ -354,14 +596,16 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
     ];
     const lines = [
       header.join(','),
-      ...entries.map((e) =>
+      ...filteredEntries.map((e) =>
         [
           e.date,
           e.monthKey,
-          e.category,
+          `"${e.category}"`,
+          e.direction === 'Expense' ? e.expenseClassification || 'Uncategorized' : 'N/A',
           e.direction,
           `"${e.vendorOrParty.replace(/"/g, '""')}"`,
           e.busCode || '',
+          `"${(e.chequeOrRefNo || '').replace(/"/g, '""')}"`,
           e.amountInr,
           e.paymentMode,
           e.status,
@@ -518,7 +762,78 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
 
       {/* TAB 1: DAILY ACCOUNTING ENTRIES, BUS FUEL, MAINTENANCE & VENDORS */}
       {subTab === 'ledger' && (
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="space-y-6">
+          {/* Recharts Monthly Stacked Bar Chart Widget */}
+          <MonthlyExpenseBreakdownChart
+            entries={entries}
+            selectedMonthKey={monthFilter}
+            onSelectMonthKey={setMonthFilter}
+            categorizingAi={categorizingAi}
+            onCategorizeWithGemini={() =>
+              handleCategorizeWithGemini(unclassifiedExpenseCount > 0 ? 'unclassified' : 'all')
+            }
+          />
+
+          {/* Expense Sheet CSV Import & Batch Gemini Controls */}
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <span className="font-bold text-slate-900 inline-flex items-center gap-1.5">
+                <FileSpreadsheet className="h-4 w-4 text-emerald-700" />
+                Expense Sheet CSV Sync
+              </span>
+              <label className="inline-flex items-center gap-1.5 text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoLabelOnImport}
+                  onChange={(e) => setAutoLabelOnImport(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                Auto-label incoming expenses with Gemini
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-slate-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={replaceOnImport}
+                  onChange={(e) => setReplaceOnImport(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                Replace prior sheet rows
+              </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <input
+                ref={expenseCsvInputRef}
+                type="file"
+                accept=".csv,.txt"
+                onChange={handleExpenseSheetFileUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                disabled={importingSheet}
+                onClick={() => expenseCsvInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap"
+              >
+                {importingSheet ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5 text-emerald-700" />
+                )}
+                {importingSheet ? 'Importing Sheet…' : 'Import Expense Sheet (CSV)'}
+              </button>
+              <button
+                type="button"
+                disabled={categorizingAi}
+                onClick={() => handleCategorizeWithGemini('all')}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[#142B46]" />
+                Re-Label {monthFilter === 'ALL' ? 'All' : formatShortMonthKey(monthFilter)} (Gemini)
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
           {/* Voucher Creation Form */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-4">
             <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
@@ -567,6 +882,27 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                   ))}
                 </select>
               </div>
+              {entryDirection === 'Expense' && (
+                <div>
+                  <label className="mb-1 block font-semibold text-slate-700">
+                    Expense Classification (Gemini AI)
+                  </label>
+                  <select
+                    value={entryClassificationChoice}
+                    onChange={(e) =>
+                      setEntryClassificationChoice(
+                        e.target.value as 'auto' | ExpenseClassification,
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-2.5 py-2"
+                  >
+                    <option value="auto">Auto-label with Gemini on Save</option>
+                    <option value="Operational">Operational</option>
+                    <option value="Administrative">Administrative</option>
+                    <option value="Developmental">Developmental</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="mb-1 block font-semibold text-slate-700">
                   Vendor / Party / Batch Name *
@@ -588,7 +924,7 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                     value={amountInr}
                     onChange={(e) => setAmountInr(e.target.value)}
                     placeholder="e.g., 6480"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-mono"
                   />
                 </div>
                 <div>
@@ -612,7 +948,19 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="mb-1 block font-semibold text-slate-700">
-                    Bus Code (for Fuel/Maint)
+                    Cheque / Ref No.
+                  </label>
+                  <input
+                    type="text"
+                    value={chequeOrRefNo}
+                    onChange={(e) => setChequeOrRefNo(e.target.value)}
+                    placeholder="e.g., CHQ-982453"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-semibold text-slate-700">
+                    Bus Code (optional)
                   </label>
                   <input
                     type="text"
@@ -622,18 +970,18 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                     className="w-full rounded-xl border border-slate-200 px-3 py-2"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block font-semibold text-slate-700">
-                    Supporting Invoice Ref
-                  </label>
-                  <input
-                    type="text"
-                    value={supportingDocName}
-                    onChange={(e) => setSupportingDocName(e.target.value)}
-                    placeholder="bill-884.pdf"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2"
-                  />
-                </div>
+              </div>
+              <div>
+                <label className="mb-1 block font-semibold text-slate-700">
+                  Supporting Invoice Ref
+                </label>
+                <input
+                  type="text"
+                  value={supportingDocName}
+                  onChange={(e) => setSupportingDocName(e.target.value)}
+                  placeholder="bill-884.pdf"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2"
+                />
               </div>
               <div>
                 <label className="mb-1 block font-semibold text-slate-700">Narration / Notes</label>
@@ -650,7 +998,7 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                   type="button"
                   disabled={busy}
                   onClick={() => handleCreateEntry(false)}
-                  className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 font-bold text-slate-700 hover:bg-slate-50"
+                  className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 font-bold text-slate-700 hover:bg-slate-50 whitespace-nowrap"
                 >
                   Save Draft
                 </button>
@@ -658,7 +1006,7 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                   type="button"
                   disabled={busy}
                   onClick={() => handleCreateEntry(true)}
-                  className="flex-1 rounded-xl bg-emerald-700 px-3 py-2 font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+                  className="flex-1 rounded-xl bg-emerald-700 px-3 py-2 font-bold text-white hover:bg-emerald-800 disabled:opacity-60 whitespace-nowrap"
                 >
                   Submit for Approval
                 </button>
@@ -669,16 +1017,72 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
           {/* Ledger Table */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-8">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">
-                Institutional Accounting Ledger ({filteredEntries.length} Entries)
-              </h3>
-              <div className="flex flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Institutional Accounting Ledger ({filteredEntries.length} Entries)
+                </h3>
+                <p className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                  Filtered Inflow ₹
+                  {filteredEntries
+                    .filter((e) => e.direction === 'Income' && e.status !== 'rejected')
+                    .reduce((s, e) => s + e.amountInr, 0)
+                    .toLocaleString('en-IN')}{' '}
+                  · Outflow ₹
+                  {filteredEntries
+                    .filter((e) => e.direction === 'Expense' && e.status !== 'rejected')
+                    .reduce((s, e) => s + e.amountInr, 0)
+                    .toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
                 <select
+                  aria-label="Filter by month"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium bg-white"
+                >
+                  <option value="ALL">All Months (2026-27)</option>
+                  {availableMonthKeys.map((mk) => (
+                    <option key={mk} value={mk}>
+                      {formatShortMonthKey(mk)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label="Filter by flow"
+                  value={directionFilter}
+                  onChange={(e) =>
+                    setDirectionFilter(e.target.value as 'All' | 'Expense' | 'Income')
+                  }
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium bg-white"
+                >
+                  <option value="All">All Flows</option>
+                  <option value="Expense">Expenses Only</option>
+                  <option value="Income">Income Only</option>
+                </select>
+                <select
+                  aria-label="Filter by expense classification"
+                  value={classificationFilter}
+                  onChange={(e) =>
+                    setClassificationFilter(
+                      e.target.value as 'All' | ExpenseClassification | 'Uncategorized',
+                    )
+                  }
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium bg-white"
+                >
+                  <option value="All">All Expense Types</option>
+                  <option value="Operational">Operational</option>
+                  <option value="Administrative">Administrative</option>
+                  <option value="Developmental">Developmental</option>
+                  <option value="Uncategorized">Uncategorized</option>
+                </select>
+                <select
+                  aria-label="Filter by category"
                   value={categoryFilter}
                   onChange={(e) =>
                     setCategoryFilter(e.target.value as 'All' | AccountingEntryCategory)
                   }
-                  className="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-medium"
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium bg-white"
                 >
                   <option value="All">All Categories</option>
                   {ENTRY_CATEGORIES.map((c) => (
@@ -689,9 +1093,10 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                 </select>
                 {busCodes.length > 0 && (
                   <select
+                    aria-label="Filter by bus"
                     value={busFilter}
                     onChange={(e) => setBusFilter(e.target.value)}
-                    className="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-medium"
+                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium bg-white"
                   >
                     <option value="All">All Buses</option>
                     {busCodes.map((b) => (
@@ -710,127 +1115,320 @@ export const AccountantDashboardPanel: React.FC<Props> = ({
                   <tr>
                     <th className="px-3 py-2.5">Date &amp; Category</th>
                     <th className="px-3 py-2.5">Vendor / Narration</th>
+                    <th className="px-3 py-2.5">Expense Type (AI)</th>
                     <th className="px-3 py-2.5 text-right">Amount</th>
                     <th className="px-3 py-2.5 text-center">Status</th>
                     <th className="px-3 py-2.5 text-right">Controls</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredEntries.map((entry: AccountingEntry) => (
-                    <tr key={entry.id} className="hover:bg-slate-50">
-                      <td className="px-3 py-2.5">
-                        <div className="font-mono font-semibold text-slate-800">{entry.date}</div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-1">
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
-                            {entry.category}
-                          </span>
-                          {entry.busCode && (
-                            <span className="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-900">
-                              <Fuel className="h-2.5 w-2.5" />
-                              {entry.busCode}
-                            </span>
+                  {filteredEntries.map((entry: AccountingEntry) => {
+                    const isEditing = editingEntryId === entry.id && editDraft !== null;
+                    const canEditRow =
+                      !entry.periodLocked && (entry.status !== 'approved' || isManagementApprover);
+
+                    return (
+                      <tr key={entry.id} className="hover:bg-slate-50 align-top">
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="space-y-1.5">
+                              <input
+                                type="date"
+                                value={editDraft.date}
+                                onChange={(e) =>
+                                  setEditDraft({ ...editDraft, date: e.target.value })
+                                }
+                                className="rounded border border-slate-300 px-1.5 py-1 font-mono text-[11px]"
+                              />
+                              <select
+                                value={editDraft.category}
+                                onChange={(e) =>
+                                  setEditDraft({
+                                    ...editDraft,
+                                    category: e.target.value as AccountingEntryCategory,
+                                  })
+                                }
+                                className="block w-full rounded border border-slate-300 px-1.5 py-1 text-[11px] bg-white"
+                              >
+                                {ENTRY_CATEGORIES.map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-mono font-semibold text-slate-800 tabular-nums">
+                                {entry.date}
+                              </div>
+                              <div className="mt-0.5 text-[11px] font-medium text-slate-600">
+                                {entry.category}
+                              </div>
+                              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                                {entry.busCode && (
+                                  <span className="inline-flex items-center gap-0.5 font-semibold text-amber-800">
+                                    <Fuel className="h-2.5 w-2.5" />
+                                    {entry.busCode}
+                                  </span>
+                                )}
+                                {entry.periodLocked && (
+                                  <span className="inline-flex items-center gap-0.5 font-semibold text-slate-700">
+                                    <Lock className="h-2.5 w-2.5" />
+                                    Locked
+                                  </span>
+                                )}
+                              </div>
+                            </>
                           )}
-                          {entry.periodLocked && (
-                            <span className="inline-flex items-center gap-0.5 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                              <Lock className="h-2.5 w-2.5" />
-                              Locked
-                            </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {isEditing ? (
+                            <div className="space-y-1.5 min-w-[180px]">
+                              <input
+                                type="text"
+                                value={editDraft.vendorOrParty}
+                                onChange={(e) =>
+                                  setEditDraft({ ...editDraft, vendorOrParty: e.target.value })
+                                }
+                                className="w-full rounded border border-slate-300 px-2 py-1 text-xs font-semibold"
+                              />
+                              <input
+                                type="text"
+                                value={editDraft.description}
+                                onChange={(e) =>
+                                  setEditDraft({ ...editDraft, description: e.target.value })
+                                }
+                                placeholder="Narration"
+                                className="w-full rounded border border-slate-300 px-2 py-1 text-[11px]"
+                              />
+                              <div className="flex gap-1.5">
+                                <select
+                                  value={editDraft.paymentMode}
+                                  onChange={(e) =>
+                                    setEditDraft({
+                                      ...editDraft,
+                                      paymentMode: e.target.value as
+                                        | 'Cash'
+                                        | 'UPI'
+                                        | 'Bank Transfer'
+                                        | 'Cheque',
+                                    })
+                                  }
+                                  className="rounded border border-slate-300 px-1.5 py-1 text-[11px] bg-white"
+                                >
+                                  <option value="Bank Transfer">Bank Transfer</option>
+                                  <option value="Cheque">Cheque</option>
+                                  <option value="UPI">UPI</option>
+                                  <option value="Cash">Cash</option>
+                                </select>
+                                <input
+                                  type="text"
+                                  value={editDraft.chequeOrRefNo}
+                                  onChange={(e) =>
+                                    setEditDraft({ ...editDraft, chequeOrRefNo: e.target.value })
+                                  }
+                                  placeholder="Cheque / Ref"
+                                  className="w-28 rounded border border-slate-300 px-1.5 py-1 font-mono text-[11px]"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-bold text-slate-900">{entry.vendorOrParty}</div>
+                              <div className="text-[11px] text-slate-600">{entry.description}</div>
+                              <div className="mt-0.5 text-[10px] text-slate-500">
+                                {entry.paymentMode}
+                                {entry.chequeOrRefNo ? ` · Ref: ${entry.chequeOrRefNo}` : ''}
+                                {entry.supportingDocName ? ` · Doc: ${entry.supportingDocName}` : ''}
+                                {` · By ${entry.createdBy}`}
+                              </div>
+                            </>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="font-bold text-slate-900">{entry.vendorOrParty}</div>
-                        <div className="text-[11px] text-slate-500">{entry.description}</div>
-                        <div className="mt-0.5 text-[10px] text-slate-400">
-                          By {entry.createdBy} · {entry.paymentMode}
-                          {entry.supportingDocName ? ` · Doc: ${entry.supportingDocName}` : ''}
-                        </div>
-                      </td>
-                      <td
-                        className={`px-3 py-2.5 text-right font-mono font-bold ${
-                          entry.direction === 'Income' ? 'text-emerald-700' : 'text-slate-900'
-                        }`}
-                      >
-                        {entry.direction === 'Income' ? '+' : '-'}₹
-                        {entry.amountInr.toLocaleString('en-IN')}
-                      </td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span
-                          className={`inline-flex rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            entry.status === 'approved'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : entry.status === 'submitted'
-                                ? 'bg-amber-100 text-amber-800'
-                                : entry.status === 'rejected'
-                                  ? 'bg-rose-100 text-rose-800'
-                                  : 'bg-slate-100 text-slate-700'
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          {entry.direction === 'Expense' ? (
+                            <div>
+                              <select
+                                aria-label={`Expense classification for ${entry.vendorOrParty}`}
+                                disabled={busy || entry.periodLocked}
+                                value={entry.expenseClassification || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value as ExpenseClassification | '';
+                                  if (val) void handleInlineClassificationChange(entry.id, val);
+                                }}
+                                className={`rounded-md border px-2 py-1 text-[11px] font-semibold bg-white ${
+                                  entry.expenseClassification === 'Operational'
+                                    ? 'border-[#142B46]/40 text-[#142B46]'
+                                    : entry.expenseClassification === 'Administrative'
+                                      ? 'border-amber-400 text-amber-900'
+                                      : entry.expenseClassification === 'Developmental'
+                                        ? 'border-emerald-400 text-emerald-800'
+                                        : 'border-slate-300 text-slate-500'
+                                }`}
+                              >
+                                <option value="" disabled>
+                                  Unlabeled
+                                </option>
+                                <option value="Operational">Operational</option>
+                                <option value="Administrative">Administrative</option>
+                                <option value="Developmental">Developmental</option>
+                              </select>
+                              {entry.expenseClassification && (
+                                <div
+                                  className="mt-0.5 text-[10px] text-slate-500 max-w-[160px] truncate"
+                                  title={entry.expenseClassificationReason || ''}
+                                >
+                                  {entry.expenseClassifiedBy === 'gemini' ? 'Gemini AI' : 'Manual'}
+                                  {entry.expenseClassificationReason
+                                    ? ` · ${entry.expenseClassificationReason}`
+                                    : ''}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">Income</span>
+                          )}
+                        </td>
+                        <td
+                          className={`px-3 py-2.5 text-right font-mono font-bold tabular-nums whitespace-nowrap ${
+                            entry.direction === 'Income' ? 'text-emerald-700' : 'text-slate-900'
                           }`}
                         >
-                          {entry.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                        {entry.periodLocked ? (
-                          <span className="text-[10px] font-semibold text-slate-400">
-                            Immutable
-                          </span>
-                        ) : entry.status === 'submitted' && isManagementApprover ? (
-                          <div className="inline-flex gap-1">
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() => handleEntryDecision(entry.id, 'approved')}
-                              className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() => handleEntryDecision(entry.id, 'rejected')}
-                              className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-rose-700"
-                            >
-                              <XCircle className="h-3 w-3" />
-                              Reject
-                            </button>
-                          </div>
-                        ) : entry.status === 'draft' ? (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => handleDeleteDraft(entry.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              min={1}
+                              value={editDraft.amountInr}
+                              onChange={(e) =>
+                                setEditDraft({ ...editDraft, amountInr: e.target.value })
+                              }
+                              className="w-24 rounded border border-slate-300 px-2 py-1 text-right font-mono text-xs"
+                            />
+                          ) : (
+                            <>
+                              {entry.direction === 'Income' ? '+' : '-'}₹
+                              {entry.amountInr.toLocaleString('en-IN')}
+                            </>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                          <span
+                            className={`text-[10px] font-bold uppercase ${
+                              entry.status === 'approved'
+                                ? 'text-emerald-700'
+                                : entry.status === 'submitted'
+                                  ? 'text-amber-700'
+                                  : entry.status === 'rejected'
+                                    ? 'text-rose-700'
+                                    : 'text-slate-600'
+                            }`}
                           >
-                            <Trash2 className="h-3 w-3" />
-                            Delete Draft
-                          </button>
-                        ) : (
-                          <span className="text-[10px] font-medium text-slate-500">
-                            {entry.status === 'submitted'
-                              ? 'Awaiting Principal'
-                              : `Posted (${entry.approvedBy || 'Mgmt'})`}
+                            {entry.status}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="inline-flex gap-1">
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => handleSaveEntryEdit(entry.id)}
+                                className="rounded-md bg-[#142B46] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#1E3B5C]"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEntryId(null);
+                                  setEditDraft(null);
+                                }}
+                                className="rounded-md border border-slate-300 bg-white p-1 text-slate-600 hover:bg-slate-50"
+                                title="Cancel edit"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : entry.periodLocked ? (
+                            <span className="text-[10px] font-semibold text-slate-400">
+                              Immutable
+                            </span>
+                          ) : (
+                            <div className="inline-flex items-center gap-1">
+                              {canEditRow && (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => startEditingEntry(entry)}
+                                  className="rounded-md border border-slate-200 bg-white p-1 text-slate-600 hover:bg-slate-50"
+                                  title="Edit entry"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                              )}
+                              {entry.status === 'submitted' && isManagementApprover ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => handleEntryDecision(entry.id, 'approved')}
+                                    className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
+                                  >
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    Approve
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => handleEntryDecision(entry.id, 'rejected')}
+                                    className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-rose-700"
+                                  >
+                                    <XCircle className="h-3 w-3" />
+                                    Reject
+                                  </button>
+                                </>
+                              ) : entry.status === 'draft' ? (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => handleDeleteDraft(entry.id)}
+                                  className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  Delete
+                                </button>
+                              ) : null}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
+          </div>
         </div>
       )}
 
-      {/* TAB 2: WHOLE-STAFF BULK TEACHER & DRIVER PAYROLL SHEET */}
+      {/* TAB 2: SECURE ATTENDANCE-LINKED AUTOMATED PAYROLL & BULK PAYROLL SHEET */}
       {subTab === 'payroll' && (
-        <BulkPayrollSheetPanel
-          data={data}
-          user={user}
-          token={token}
-          isManagementApprover={isManagementApprover}
-          onRefresh={onRefresh}
-        />
+        <div className="space-y-6">
+          <SecureSalaryManagementPanel
+            data={data}
+            token={token}
+            onRefresh={onRefresh}
+          />
+          <BulkPayrollSheetPanel
+            data={data}
+            user={user}
+            token={token}
+            isManagementApprover={isManagementApprover}
+            onRefresh={onRefresh}
+          />
+        </div>
       )}
 
       {/* TAB 3: BANK RECONCILIATION */}

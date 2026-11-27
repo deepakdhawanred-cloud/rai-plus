@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
+  BellRing,
   CalendarClock,
   CheckCircle2,
   Download,
   Edit3,
+  FileDown,
   GitMerge,
   IndianRupee,
   PlusCircle,
@@ -28,16 +30,28 @@ import {
   ACADEMIC_FEE_MONTHS,
   CANONICAL_PAYMENT_PLANS,
   allocateFamilyPayment,
+  buildStudentPaymentTimeline,
   computeFinancialDashboardMetrics,
   computeStudentFeeMonthAllocation,
   normalizePaymentPlan,
+  resolveCurrentAcademicFeeMonth,
   type SiblingAlertCardView,
 } from '../../utils/financialDashboardEngine';
 import { ClassMonthlyFeeChart } from '../ClassMonthlyFeeChart';
 import { AccountantDashboardPanel } from '../AccountantDashboardPanel';
+import { MonthlyExpenseBreakdownChart } from '../MonthlyExpenseBreakdownChart';
 import { PrintableFeeReceiptModal } from '../PrintableFeeReceiptModal';
 import { FeeReminderCalendar } from '../FeeReminderCalendar';
 import { SchoolFeeStructureManager } from '../SchoolFeeStructureManager';
+import {
+  StudentPaymentMiniTimeline,
+  StudentPaymentTimelineModal,
+} from '../StudentPaymentTimelinePanel';
+import { DefaulterNotificationCenter } from '../DefaulterNotificationCenter';
+import {
+  exportDefaultersListPdf,
+  exportStudentPaymentTimelinePdf,
+} from '../../utils/financialPdfExporter';
 import { pushToast } from '../ToastProvider';
 
 interface FinancialDashboardModuleProps {
@@ -102,6 +116,11 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
     feeReceipts = [],
     feeReminders = [],
     feeStructure = [],
+    feeDefaulterAlertConfig,
+    feeDefaulterAlertLogs = [],
+    notificationGatewayStatus,
+    students = [],
+    schoolUsers = [],
   } = data;
 
   const canMutateFinance = ['super_admin', 'school_admin', 'principal'].includes(user.role);
@@ -128,7 +147,58 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
   const [editingTarget, setEditingTarget] = useState<boolean>(false);
   const [targetInput, setTargetInput] = useState<string>('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [categorizingExpensesAi, setCategorizingExpensesAi] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const accountingEntries = data.accountingEntries || [];
+  const hasUnlabeledExpenses = useMemo(
+    () =>
+      accountingEntries.some(
+        (e) => e.direction === 'Expense' && e.status !== 'rejected' && !e.expenseClassification,
+      ),
+    [accountingEntries],
+  );
+
+  async function handleOverviewCategorizeExpenses() {
+    setCategorizingExpensesAi(true);
+    setFeedback(null);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        categorizedCount: number;
+        message?: string;
+        breakdown: { Operational: number; Administrative: number; Developmental: number };
+      }>(
+        '/api/accounting/entries/categorize-ai',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            mode: hasUnlabeledExpenses ? 'unclassified' : 'all',
+          }),
+        },
+        token,
+      );
+      if (res.categorizedCount === 0) {
+        setFeedback({
+          type: 'ok',
+          text: res.message || 'All expense entries are already categorized.',
+        });
+      } else {
+        setFeedback({
+          type: 'ok',
+          text: `Gemini categorized ${res.categorizedCount} expenses: ${res.breakdown.Operational} Operational, ${res.breakdown.Administrative} Administrative, ${res.breakdown.Developmental} Developmental.`,
+        });
+      }
+      await onRefresh();
+    } catch (err) {
+      setFeedback({
+        type: 'err',
+        text: err instanceof Error ? err.message : 'Unable to categorize expenses with Gemini.',
+      });
+    } finally {
+      setCategorizingExpensesAi(false);
+    }
+  }
 
   // Fee Collection & Printable Receipt Modal state
   const [collectModal, setCollectModal] = useState<CollectModalTarget | null>(null);
@@ -150,6 +220,11 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
   const [paymentRemarks, setPaymentRemarks] = useState<string>('');
   const [modalError, setModalError] = useState<string | null>(null);
   const [receiptToPrint, setReceiptToPrint] = useState<FeePaymentReceipt | null>(null);
+  const [timelineAccount, setTimelineAccount] = useState<FeeLedgerAccount | null>(null);
+  const [timelineExplorerQuery, setTimelineExplorerQuery] = useState<string>('');
+
+  const currentTodayIso = useMemo(() => getTodayIso(), []);
+  const resolvedActiveMonth = financialTarget?.monthKey ?? resolveCurrentAcademicFeeMonth(currentTodayIso);
 
   // School-wide metrics (unfiltered by class, used for top KPIs + class directory)
   const schoolMetrics = useMemo(
@@ -158,12 +233,12 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
         accounts: feeAccounts,
         siblingGroups,
         targetConfig: financialTarget,
-        activeMonth: financialTarget?.monthKey ?? 'November',
-        todayIso: '2026-11-16',
+        activeMonth: resolvedActiveMonth,
+        todayIso: currentTodayIso,
         classFilter: 'ALL',
         topDefaultersPerClassLimit: 3,
       }),
-    [feeAccounts, siblingGroups, financialTarget],
+    [feeAccounts, siblingGroups, financialTarget, resolvedActiveMonth, currentTodayIso],
   );
 
   // Filtered view metrics when class filter is active
@@ -175,12 +250,20 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
             accounts: feeAccounts,
             siblingGroups,
             targetConfig: financialTarget,
-            activeMonth: financialTarget?.monthKey ?? 'November',
-            todayIso: '2026-11-16',
+            activeMonth: resolvedActiveMonth,
+            todayIso: currentTodayIso,
             classFilter,
             topDefaultersPerClassLimit: 5,
           }),
-    [classFilter, feeAccounts, financialTarget, schoolMetrics, siblingGroups],
+    [
+      classFilter,
+      feeAccounts,
+      financialTarget,
+      schoolMetrics,
+      siblingGroups,
+      resolvedActiveMonth,
+      currentTodayIso,
+    ],
   );
 
   const availableClasses = useMemo(
@@ -206,6 +289,25 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
   const displayedDefaulters = showAllDefaulters
     ? filteredDefaulters
     : filteredDefaulters.slice(0, 25);
+
+  const timelineExplorerMatches = useMemo(() => {
+    const q = timelineExplorerQuery.trim().toLowerCase();
+    if (!q) return [];
+    const scoped =
+      classFilter === 'ALL'
+        ? feeAccounts
+        : feeAccounts.filter((a) => a.className === classFilter);
+    return scoped
+      .filter(
+        (a) =>
+          a.studentName.toLowerCase().includes(q) ||
+          a.admissionNo.toLowerCase().includes(q) ||
+          a.fatherName.toLowerCase().includes(q) ||
+          a.className.toLowerCase().includes(q) ||
+          a.contactNo.toLowerCase().includes(q),
+      )
+      .slice(0, 8);
+  }, [feeAccounts, classFilter, timelineExplorerQuery]);
 
   const siblingCardsForTab = useMemo(() => {
     const base =
@@ -615,34 +717,61 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
   function handleExportCsv() {
     const headers = [
       'Rank',
+      'Priority Score',
+      'Risk Tier',
       'Admission No',
       'Student Name',
       'Father Name',
       'Class',
       'Contact No',
       'Schedule',
+      'Payment Nature',
+      `Months Paid (Apr-${activeMetrics.activeMonth.slice(0, 3)})`,
+      'Last Payment Month',
+      'Paid Till',
+      'Gross Fee (INR)',
+      'Paid YTD (INR)',
+      '% Paid',
+      '% Left',
+      `Overdue Till ${activeMetrics.activeMonth} (INR)`,
       'Last Year Balance (INR)',
       'Yearly Demand (INR)',
-      'Paid YTD (INR)',
       'Fine (INR)',
       'Balance Due (INR)',
       'Remarks',
     ];
-    const rows = filteredDefaulters.map((acc, idx) => [
-      String(idx + 1),
-      acc.admissionNo,
-      acc.studentName,
-      acc.fatherName,
-      acc.className,
-      acc.contactNo,
-      acc.scheduleCadence,
-      String(acc.lastYearBalanceInr),
-      String(acc.yearlyDemandInr),
-      String(acc.paidAmountInr),
-      String(acc.fineInr),
-      String(acc.balanceFeesInr),
-      acc.remarks,
-    ]);
+    const rows = filteredDefaulters.map((acc, idx) => {
+      const tl = buildStudentPaymentTimeline({
+        account: acc,
+        activeMonth: activeMetrics.activeMonth,
+        receipts: feeReceipts,
+      });
+      return [
+        String(idx + 1),
+        String(acc.defaulterMetrics.defaulterPriorityScore),
+        acc.defaulterMetrics.riskTier,
+        acc.admissionNo,
+        acc.studentName,
+        acc.fatherName,
+        acc.className,
+        acc.contactNo,
+        acc.scheduleCadence,
+        tl.paymentNature,
+        `${tl.activePaymentMonthsCount}/${tl.monthsElapsed}`,
+        tl.lastPaymentMonth || 'None',
+        acc.defaulterMetrics.paidTillMonthLabel,
+        String(acc.defaulterMetrics.grossFeeInr),
+        String(acc.paidAmountInr),
+        `${acc.defaulterMetrics.percentPaid}%`,
+        `${acc.defaulterMetrics.percentLeft}%`,
+        String(acc.defaulterMetrics.overdueTillCurrentMonthInr),
+        String(acc.lastYearBalanceInr),
+        String(acc.yearlyDemandInr),
+        String(acc.fineInr),
+        String(acc.balanceFeesInr),
+        acc.remarks,
+      ];
+    });
     const csv = [headers, ...rows]
       .map((r) => r.map((cell) => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
       .join('\n');
@@ -650,9 +779,78 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${activeSchool.code.toLowerCase()}-fee-defaulters-${classFilter.toLowerCase().replace(/\s+/g, '-')}.csv`;
+    link.download = `${activeSchool.code.toLowerCase()}-fee-defaulters-${activeMetrics.activeMonth.toLowerCase()}-${classFilter.toLowerCase().replace(/\s+/g, '-')}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleExportDefaultersPdf() {
+    const filename = exportDefaultersListPdf({
+      schoolName: activeSchool.name,
+      schoolCode: activeSchool.code,
+      session: activeSchool.session,
+      activeMonth: activeMetrics.activeMonth,
+      classScope: classFilter,
+      defaulters: filteredDefaulters,
+      receipts: feeReceipts,
+      paidTillCurrentMonthExcludedCount: activeMetrics.paidTillCurrentMonthPendingCount,
+      generatedBy: user.name,
+      generatedAtIso: currentTodayIso,
+    });
+    pushToast(`Saved ${filename} (${filteredDefaulters.length} accounts).`, 'success', {
+      title: 'Defaulters PDF Downloaded',
+    });
+  }
+
+  function handleExportStudentTimelinePdf(account: FeeLedgerAccount) {
+    const filename = exportStudentPaymentTimelinePdf({
+      account,
+      schoolName: activeSchool.name,
+      schoolCode: activeSchool.code,
+      session: activeSchool.session,
+      activeMonth: activeMetrics.activeMonth,
+      receipts: feeReceipts,
+      generatedBy: user.name,
+      generatedAtIso: currentTodayIso,
+    });
+    pushToast(`Saved ${filename} for ${account.studentName}.`, 'success', {
+      title: 'Payment Timeline PDF Downloaded',
+    });
+  }
+
+  async function handleSendSingleDefaulterAlert(account: FeeLedgerAccount) {
+    setBusyAction(`alert:${account.id}`);
+    try {
+      const res = await apiRequest<{
+        dispatchedCount: number;
+        records: Array<{ status: string; channel: string }>;
+      }>(
+        '/api/finance/defaulter-notifications/dispatch',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            mode: 'single',
+            accountId: account.id,
+          }),
+        },
+        token,
+      );
+      await onRefresh();
+      const first = res.records?.[0];
+      pushToast(
+        `${first?.channel || 'WhatsApp/Email'} fee alert dispatched for ${account.studentName} (${first?.status || 'Recorded'}).`,
+        'success',
+        { title: 'Parent Fee Alert Sent' },
+      );
+    } catch (err) {
+      pushToast(
+        err instanceof Error ? err.message : 'Unable to send parent fee alert.',
+        'error',
+        { title: 'Alert Dispatch Failed' },
+      );
+    } finally {
+      setBusyAction(null);
+    }
   }
 
   const mtdPctClamped = Math.min(100, Math.max(0, activeMetrics.mtdAttainmentPct));
@@ -751,6 +949,16 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
 
           <button
             type="button"
+            data-testid="export-defaulters-pdf-btn"
+            onClick={handleExportDefaultersPdf}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#142B46] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap shrink-0"
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            Export Defaulters PDF
+          </button>
+
+          <button
+            type="button"
             onClick={handleExportCsv}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap shrink-0"
           >
@@ -771,12 +979,19 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
         />
       ) : (
         <>
-          {financeView === 'accounting' && (
+          {financeView === 'accounting' ? (
             <AccountantDashboardPanel
               data={data}
               user={user}
               token={token}
               onRefresh={onRefresh}
+            />
+          ) : (
+            <MonthlyExpenseBreakdownChart
+              entries={accountingEntries}
+              categorizingAi={categorizingExpensesAi}
+              onCategorizeWithGemini={canCollectFees ? handleOverviewCategorizeExpenses : undefined}
+              onOpenLedger={() => setFinanceView('accounting')}
             />
           )}
 
@@ -835,7 +1050,7 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
             {formatInr(activeMetrics.totalOutstandingInr)}
           </p>
           <p className="font-mono text-xs text-slate-500 tabular-nums mt-1">
-            {activeMetrics.defaulterAccountsCount} pending accounts · Fines {formatInr(activeMetrics.totalFinesInr)}
+            {activeMetrics.defaulterAccountsCount} unpaid till {activeMetrics.activeMonth} · Fines {formatInr(activeMetrics.totalFinesInr)}
           </p>
         </div>
 
@@ -1216,7 +1431,13 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                       {card.members.map((m) => (
                         <tr key={m.id} className="hover:bg-slate-50">
                           <td className="px-4 py-2 font-semibold text-slate-900">
-                            {m.studentName}
+                            <button
+                              type="button"
+                              onClick={() => setTimelineAccount(m)}
+                              className="hover:underline text-left text-slate-900"
+                            >
+                              {m.studentName}
+                            </button>
                             {m.id === card.primaryAccount.id && (
                               <span className="ml-2 text-[11px] font-medium text-blue-900">
                                 Primary Billing
@@ -1234,8 +1455,15 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                           <td className="px-4 py-2 font-mono text-emerald-700 text-right tabular-nums">
                             {formatInr(m.paidAmountInr)}
                           </td>
-                          <td className="px-4 py-2 font-mono font-semibold text-slate-900 text-right tabular-nums">
-                            {formatInr(m.balanceFeesInr)}
+                          <td className="px-4 py-2 font-mono font-semibold text-slate-900 text-right tabular-nums whitespace-nowrap">
+                            <span>{formatInr(m.balanceFeesInr)}</span>
+                            <button
+                              type="button"
+                              onClick={() => setTimelineAccount(m)}
+                              className="ml-2.5 font-sans text-[11px] font-semibold text-blue-900 hover:underline"
+                            >
+                              Timeline
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1256,7 +1484,7 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               Top Fee Defaulters Per Class Overview
             </h2>
             <p className="text-xs text-slate-500">
-              Class-by-class collection attainment and top overdue student accounts. Select any class to filter the full ledger below.
+              Only accounts unpaid through {schoolMetrics.activeMonth}, ranked by % fee left, total paid YTD, and balance due. Select any class to filter the ledger below.
             </p>
           </div>
           {classFilter !== 'ALL' && (
@@ -1276,12 +1504,16 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               <tr>
                 <th className="px-5 py-3 font-semibold">Class</th>
                 <th className="px-4 py-3 font-semibold text-right">Students</th>
-                <th className="px-4 py-3 font-semibold text-right">Defaulters</th>
+                <th className="px-4 py-3 font-semibold text-right">
+                  Unpaid Till {schoolMetrics.activeMonth.slice(0, 3)}
+                </th>
                 <th className="px-4 py-3 font-semibold text-right">Gross Demand</th>
                 <th className="px-4 py-3 font-semibold text-right">Collected</th>
                 <th className="px-4 py-3 font-semibold text-right">Outstanding</th>
                 <th className="px-4 py-3 font-semibold text-right">Recovery</th>
-                <th className="px-5 py-3 font-semibold">Top 3 Defaulters in Class</th>
+                <th className="px-5 py-3 font-semibold">
+                  Top 3 Defaulters (% Left · Paid · Balance)
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -1325,13 +1557,15 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                     </td>
                     <td className="px-5 py-3 text-slate-600">
                       {cls.topDefaulters.length === 0 ? (
-                        <span className="text-emerald-700 font-medium">All Clear</span>
+                        <span className="text-emerald-700 font-medium">
+                          Paid Till {schoolMetrics.activeMonth}
+                        </span>
                       ) : (
                         <span className="font-mono text-[11px] tabular-nums">
                           {cls.topDefaulters
                             .map(
                               (d, idx) =>
-                                `${idx + 1}. ${d.studentName} (${formatInr(d.balanceFeesInr)})`,
+                                `${idx + 1}. ${d.studentName} (${d.defaulterMetrics.percentLeft}% left · Paid ${formatInr(d.paidAmountInr)} · Due ${formatInr(d.balanceFeesInr)})`,
                             )
                             .join(' · ')}
                         </span>
@@ -1343,6 +1577,86 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* Any-Student Annual Payment Timeline Explorer */}
+      <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-base font-bold text-slate-900">
+              Student Annual Payment Timeline Explorer
+            </h2>
+            <p className="text-xs text-slate-500">
+              Inspect April–March deposit rhythm and payment nature for any student across {activeSchool.name} (defaulters, advance payers, and settled accounts).
+            </p>
+          </div>
+          <div className="relative w-full md:w-80">
+            <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              data-testid="student-timeline-explorer-input"
+              value={timelineExplorerQuery}
+              onChange={(e) => setTimelineExplorerQuery(e.target.value)}
+              placeholder="Search any student by name, adm no., father..."
+              className="w-full rounded-lg border border-slate-300 bg-white pl-8 pr-8 py-1.5 text-xs text-slate-900"
+            />
+            {timelineExplorerQuery && (
+              <button
+                type="button"
+                onClick={() => setTimelineExplorerQuery('')}
+                aria-label="Clear student timeline search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {timelineExplorerQuery.trim() && (
+          <div className="border-t border-slate-200 divide-y divide-slate-100">
+            {timelineExplorerMatches.length === 0 ? (
+              <p className="px-6 py-4 text-xs text-slate-500">
+                No student fee accounts match “{timelineExplorerQuery.trim()}”.
+              </p>
+            ) : (
+              timelineExplorerMatches.map((acc) => (
+                <div
+                  key={acc.id}
+                  className="px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-900 truncate">
+                      {acc.studentName}{' '}
+                      <span className="font-normal text-slate-500">
+                        · {acc.className} · {acc.admissionNo}
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      Guardian: {acc.fatherName}
+                      {acc.contactNo ? ` · ${acc.contactNo}` : ''} · Paid{' '}
+                      <span className="font-mono text-emerald-700 tabular-nums">
+                        {formatInr(acc.paidAmountInr)}
+                      </span>{' '}
+                      · Balance{' '}
+                      <span className="font-mono text-slate-800 tabular-nums">
+                        {formatInr(acc.balanceFeesInr)}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    <StudentPaymentMiniTimeline
+                      account={acc}
+                      activeMonth={activeMetrics.activeMonth}
+                      onOpenTimeline={(a) => setTimelineAccount(a)}
+                      onExportPdf={handleExportStudentTimelinePdf}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </section>
 
       {/* Ranked School-Wide / Class-Scoped Defaulters Leaderboard */}
@@ -1363,25 +1677,39 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               <span className="font-mono font-semibold text-slate-800 tabular-nums">
                 {filteredDefaulters.length}
               </span>{' '}
-              accounts with pending balance, ranked highest balance first.
+              accounts unpaid till {activeMetrics.activeMonth} · ranked by % amount left, total paid YTD, and balance due
+              {activeMetrics.paidTillCurrentMonthPendingCount > 0
+                ? ` (${activeMetrics.paidTillCurrentMonthPendingCount} paid till ${activeMetrics.activeMonth} excluded)`
+                : ''}
+              .
             </p>
           </div>
 
-          <div className="relative w-full md:w-72">
-            <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search student, father, adm no, phone..."
-              className="w-full rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-900"
-            />
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search student, father, adm no, phone..."
+                className="w-full rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-900"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleExportDefaultersPdf}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#142B46] bg-white px-3 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap shrink-0"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              Download PDF
+            </button>
           </div>
         </div>
 
         {displayedDefaulters.length === 0 ? (
           <div className="px-6 py-8 text-xs text-slate-500">
-            No matching pending fee accounts found.
+            All accounts matching this filter are paid through {activeMetrics.activeMonth}.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -1392,11 +1720,13 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                   <th className="px-4 py-3 font-semibold">Student &amp; Adm No.</th>
                   <th className="px-4 py-3 font-semibold">Class</th>
                   <th className="px-4 py-3 font-semibold">Guardian &amp; Contact</th>
+                  <th className="px-4 py-3 font-semibold">Payment Nature &amp; Timeline</th>
                   <th className="px-4 py-3 font-semibold">Payment Plan &amp; Next Due</th>
-                  <th className="px-4 py-3 font-semibold text-right">LYB</th>
-                  <th className="px-4 py-3 font-semibold text-right">26–27 Demand</th>
+                  <th className="px-4 py-3 font-semibold text-right">% Left &amp; Risk</th>
                   <th className="px-4 py-3 font-semibold text-right">Paid YTD</th>
-                  <th className="px-4 py-3 font-semibold text-right">Fine</th>
+                  <th className="px-4 py-3 font-semibold text-right">
+                    Due Till {activeMetrics.activeMonth.slice(0, 3)}
+                  </th>
                   <th className="px-4 py-3 font-semibold text-right">Balance Due</th>
                   {canCollectFees && <th className="px-4 py-3 font-semibold text-right">Action</th>}
                 </tr>
@@ -1404,30 +1734,50 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               <tbody className="divide-y divide-slate-100">
                 {displayedDefaulters.map((acc, idx) => {
                   const rowPlan = normalizePaymentPlan(acc.scheduleCadence);
+                  const dm = acc.defaulterMetrics;
                   const rowStatus = computeStudentFeeMonthAllocation({
                     accounts: [acc],
                     paymentNowInr: 0,
                     scheduleCadence: rowPlan,
                   });
+                  const riskTextClass =
+                    dm.riskTier === 'Critical'
+                      ? 'text-rose-700'
+                      : dm.riskTier === 'High'
+                        ? 'text-amber-700'
+                        : 'text-slate-600';
+                  const barFillClass =
+                    dm.riskTier === 'Critical'
+                      ? 'bg-rose-600'
+                      : dm.riskTier === 'High'
+                        ? 'bg-amber-500'
+                        : 'bg-slate-400';
+
                   return (
                     <tr key={acc.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 font-mono text-slate-500 tabular-nums">
                         {idx + 1}
                       </td>
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-slate-900">{acc.studentName}</p>
+                        <button
+                          type="button"
+                          onClick={() => setTimelineAccount(acc)}
+                          className="font-semibold text-slate-900 hover:text-blue-900 hover:underline text-left"
+                        >
+                          {acc.studentName}
+                        </button>
                         <p className="font-mono text-[11px] text-slate-500 tabular-nums">
                           {acc.admissionNo}
                           {acc.familyGroupId ? ' · Family Linked' : ''}
                         </p>
-                        {rowStatus.previousPaidTillMonth && (
-                          <p className="text-[10px] font-semibold text-[#142B46] mt-0.5">
-                            Paid till {rowStatus.previousPaidTillMonth}
-                            {rowStatus.previousPartialMonth
-                              ? ` · +${formatInr(rowStatus.previousPartialPaidInr)} partial ${rowStatus.previousPartialMonth}`
-                              : ''}
-                          </p>
-                        )}
+                        <p className="text-[10px] font-semibold text-[#142B46] mt-0.5 tabular-nums">
+                          {dm.paidTillMonthLabel === 'Unpaid'
+                            ? `No full month paid · ${dm.monthsBehindCurrentMonth}m behind`
+                            : `Paid till ${dm.paidTillMonthLabel} · ${dm.monthsBehindCurrentMonth}m behind`}
+                          {rowStatus.previousPartialMonth
+                            ? ` (+${formatInr(rowStatus.previousPartialPaidInr)} partial)`
+                            : ''}
+                        </p>
                         {acc.remarks && (
                           <p className="text-[11px] text-amber-700 mt-0.5">{acc.remarks}</p>
                         )}
@@ -1438,6 +1788,14 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                         <p className="font-mono text-[11px] text-slate-500 tabular-nums">
                           {acc.contactNo || 'No Phone'}
                         </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StudentPaymentMiniTimeline
+                          account={acc}
+                          activeMonth={activeMetrics.activeMonth}
+                          onOpenTimeline={(a) => setTimelineAccount(a)}
+                          onExportPdf={handleExportStudentTimelinePdf}
+                        />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {canCollectFees ? (
@@ -1469,32 +1827,75 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
                           </p>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-mono text-slate-600 text-right tabular-nums">
-                        {formatInr(acc.lastYearBalanceInr)}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <p className={`font-mono font-bold tabular-nums ${riskTextClass}`}>
+                          {dm.percentLeft}% left
+                        </p>
+                        <div className="mt-1 ml-auto h-1.5 w-20 rounded-xs bg-slate-100 overflow-hidden">
+                          <div
+                            className={`h-full ${barFillClass}`}
+                            style={{ width: `${Math.min(100, Math.max(4, dm.percentLeft))}%` }}
+                          />
+                        </div>
+                        <p className="font-mono text-[10px] text-slate-500 tabular-nums mt-0.5">
+                          {dm.riskTier} · Score {dm.defaulterPriorityScore}
+                        </p>
                       </td>
-                      <td className="px-4 py-3 font-mono text-slate-700 text-right tabular-nums">
-                        {formatInr(acc.yearlyDemandInr)}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <p
+                          className={`font-mono font-semibold tabular-nums ${
+                            acc.paidAmountInr === 0 ? 'text-rose-700' : 'text-emerald-700'
+                          }`}
+                        >
+                          {formatInr(acc.paidAmountInr)}
+                        </p>
+                        <p className="font-mono text-[10px] text-slate-500 tabular-nums">
+                          {dm.percentPaid}% of {formatInr(dm.grossFeeInr)}
+                        </p>
                       </td>
-                      <td className="px-4 py-3 font-mono text-emerald-700 text-right tabular-nums">
-                        {formatInr(acc.paidAmountInr)}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <p className="font-mono font-semibold text-rose-700 tabular-nums">
+                          {formatInr(dm.overdueTillCurrentMonthInr)}
+                        </p>
+                        <p className="font-mono text-[10px] text-slate-500 tabular-nums">
+                          {acc.lastYearBalanceInr > 0
+                            ? `incl. LYB ${formatInr(acc.lastYearBalanceInr)}`
+                            : `${dm.unpaidTillMonthPct}% of due`}
+                        </p>
                       </td>
-                      <td className="px-4 py-3 font-mono text-slate-600 text-right tabular-nums">
-                        {formatInr(acc.fineInr)}
-                      </td>
-                      <td className="px-4 py-3 font-mono font-bold text-amber-700 text-right tabular-nums">
-                        {formatInr(acc.balanceFeesInr)}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <p className="font-mono font-bold text-amber-700 tabular-nums">
+                          {formatInr(acc.balanceFeesInr)}
+                        </p>
+                        {acc.fineInr > 0 && (
+                          <p className="font-mono text-[10px] text-slate-500 tabular-nums">
+                            Fine {formatInr(acc.fineInr)}
+                          </p>
+                        )}
                       </td>
                       {canCollectFees && (
                         <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openCollectModal({ mode: 'single', singleAccount: acc })
-                            }
-                            className="rounded-lg border border-blue-900 bg-white px-2.5 py-1 text-[11px] font-semibold text-blue-900 hover:bg-blue-50 whitespace-nowrap"
-                          >
-                            Record Payment
-                          </button>
+                          <div className="inline-flex items-center gap-1.5 justify-end">
+                            <button
+                              type="button"
+                              disabled={busyAction === `alert:${acc.id}`}
+                              onClick={() => void handleSendSingleDefaulterAlert(acc)}
+                              title={`Send WhatsApp/Email fee alert to ${acc.fatherName}`}
+                              className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-white px-2 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50 whitespace-nowrap"
+                            >
+                              <BellRing className="h-3 w-3" />
+                              {busyAction === `alert:${acc.id}` ? 'Sending...' : 'Send Alert'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openCollectModal({ mode: 'single', singleAccount: acc })
+                              }
+                              className="rounded-lg border border-blue-900 bg-white px-2.5 py-1 text-[11px] font-semibold text-blue-900 hover:bg-blue-50 whitespace-nowrap"
+                            >
+                              Record Payment
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -1508,7 +1909,7 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
         {filteredDefaulters.length > 25 && (
           <div className="border-t border-slate-200 px-6 py-3 flex items-center justify-between text-xs">
             <span className="text-slate-500">
-              Showing {displayedDefaulters.length} of {filteredDefaulters.length} pending accounts
+              Showing {displayedDefaulters.length} of {filteredDefaulters.length} unpaid accounts till {activeMetrics.activeMonth}
             </span>
             <button
               type="button"
@@ -1522,6 +1923,23 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
           </div>
         )}
       </section>
+
+      {/* Automated High-Priority Defaulter Notification Center (WhatsApp & Email) */}
+      <DefaulterNotificationCenter
+        schoolId={activeSchool.id}
+        schoolName={activeSchool.name}
+        activeMonth={activeMetrics.activeMonth}
+        classFilter={classFilter}
+        rankedDefaulters={schoolMetrics.schoolTopDefaulters}
+        students={students}
+        schoolUsers={schoolUsers}
+        config={feeDefaulterAlertConfig}
+        logs={feeDefaulterAlertLogs}
+        gatewayStatus={notificationGatewayStatus}
+        canDispatch={canCollectFees}
+        token={token}
+        onRefresh={onRefresh}
+      />
 
       {/* Recent Collection Receipts Log */}
       <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -2335,6 +2753,32 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
         school={activeSchool}
         onClose={() => setReceiptToPrint(null)}
       />
+
+      {/* Year-Long Student Payment Timeline & Nature Modal */}
+      {timelineAccount && (
+        <StudentPaymentTimelineModal
+          account={timelineAccount}
+          schoolName={activeSchool.name}
+          schoolCode={activeSchool.code}
+          session={activeSchool.session}
+          generatedBy={user.name}
+          activeMonth={activeMetrics.activeMonth}
+          receipts={feeReceipts}
+          onClose={() => setTimelineAccount(null)}
+          onRecordPayment={
+            canCollectFees
+              ? (acc) => {
+                  setTimelineAccount(null);
+                  openCollectModal({ mode: 'single', singleAccount: acc });
+                }
+              : undefined
+          }
+          onPrintReceipt={(rcp) => {
+            setTimelineAccount(null);
+            setReceiptToPrint(rcp);
+          }}
+        />
+      )}
     </div>
   );
 };

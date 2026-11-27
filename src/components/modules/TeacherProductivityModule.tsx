@@ -16,6 +16,7 @@ import {
   computeTeacherProductivityReport,
   createDefaultProductivityKpiConfig,
 } from '../../utils/teacherProductivityEngine';
+import { TeacherProductivityHeatmapWidget } from '../TeacherProductivityHeatmapWidget';
 
 interface TeacherProductivityModuleProps {
   data: WorkspaceData;
@@ -327,6 +328,9 @@ export const TeacherProductivityModule: React.FC<TeacherProductivityModuleProps>
           </div>
         ))}
       </div>
+
+      {/* D3 Semester Attendance, Leave & Burnout/Efficiency Heatmap */}
+      <TeacherProductivityHeatmapWidget data={data} compact={false} />
 
       {/* Detailed Contextual Faculty Ledger */}
       <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">

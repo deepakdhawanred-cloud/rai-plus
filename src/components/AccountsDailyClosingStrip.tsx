@@ -3,6 +3,10 @@ import { CalendarClock, CheckCircle2, Copy, Download, IndianRupee, Printer } fro
 import type { WorkspaceData } from '../types/workspace';
 import { triggerCsvDownload } from '../utils/csvExport';
 import { resolveTodayIsoDate } from '../utils/visAcademicProgressEngine';
+import {
+  rankSchoolFeeDefaulters,
+  resolveCurrentAcademicFeeMonth,
+} from '../utils/financialDashboardEngine';
 
 interface AccountsDailyClosingStripProps {
   data: WorkspaceData;
@@ -71,34 +75,31 @@ export const AccountsDailyClosingStrip: React.FC<AccountsDailyClosingStripProps>
     };
   }, [receipts, entries, todayIso]);
 
-  // Overdue Fee Aging Queue (estimates aging days from unpaid proportion & monthly fee instalments)
+  const activeFeeMonth = data.financialTarget?.monthKey ?? resolveCurrentAcademicFeeMonth(todayIso);
+
+  // Overdue Fee Aging Queue (strictly accounts unpaid till current month, ranked by % left, paid YTD, and balance)
   const overdueAccounts = useMemo(() => {
-    const rows = feeAccounts
-      .filter((acc) => acc.balanceFeesInr > 0)
-      .map((acc) => {
-        const totalDemand = Math.max(acc.yearlyDemandInr + acc.lastYearBalanceInr, acc.balanceFeesInr);
-        const pctDue = totalDemand > 0 ? Math.round((acc.balanceFeesInr / totalDemand) * 100) : 0;
-        const unpaidMonthsApprox =
-          acc.perMonthInr > 0 ? Math.ceil(acc.balanceFeesInr / acc.perMonthInr) : 1;
-        const estimatedDaysOverdue =
-          unpaidMonthsApprox >= 3 || pctDue >= 60
-            ? 90
-            : unpaidMonthsApprox === 2 || pctDue >= 35
-              ? 60
-              : 30;
-        return {
-          ...acc,
-          estimatedDaysOverdue,
-          pctDue,
-        };
-      })
-      .sort((a, b) => b.balanceFeesInr - a.balanceFeesInr);
+    const { defaulters } = rankSchoolFeeDefaulters(feeAccounts, activeFeeMonth);
+    const rows = defaulters.map((acc) => {
+      const dm = acc.defaulterMetrics;
+      const estimatedDaysOverdue =
+        dm.monthsBehindCurrentMonth >= 3 || dm.percentLeft >= 60
+          ? 90
+          : dm.monthsBehindCurrentMonth === 2 || dm.percentLeft >= 35
+            ? 60
+            : 30;
+      return {
+        ...acc,
+        estimatedDaysOverdue,
+        pctDue: dm.percentLeft,
+      };
+    });
 
     if (agingFilter === '30') return rows.filter((r) => r.estimatedDaysOverdue >= 30);
     if (agingFilter === '60') return rows.filter((r) => r.estimatedDaysOverdue >= 60);
     if (agingFilter === '90') return rows.filter((r) => r.estimatedDaysOverdue >= 90);
     return rows;
-  }, [feeAccounts, agingFilter]);
+  }, [feeAccounts, activeFeeMonth, agingFilter]);
 
   function handleExportClosingCsv() {
     const scopeLabel = closingSummary.isTodayScoped ? todayIso : 'Active Ledger';
@@ -253,7 +254,7 @@ export const AccountsDailyClosingStrip: React.FC<AccountsDailyClosingStripProps>
               Overdue Fee Aging Follow-Up Queue
             </h3>
             <p className="text-xs text-slate-500 tabular-nums">
-              {overdueAccounts.length} pending fee account{overdueAccounts.length === 1 ? '' : 's'} matching filter · copy polite reminder text in one click.
+              {overdueAccounts.length} unpaid account{overdueAccounts.length === 1 ? '' : 's'} till {activeFeeMonth} · ranked by % left, paid YTD &amp; balance.
             </p>
           </div>
 
@@ -284,7 +285,7 @@ export const AccountsDailyClosingStrip: React.FC<AccountsDailyClosingStripProps>
 
         {overdueAccounts.length === 0 ? (
           <div className="px-5 py-6 text-xs text-slate-500">
-            No overdue fee accounts in this aging bracket.
+            No unpaid fee accounts through {activeFeeMonth} in this aging bracket.
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -301,7 +302,7 @@ export const AccountsDailyClosingStrip: React.FC<AccountsDailyClosingStripProps>
                     </span>
                   </div>
                   <div className="mt-0.5 text-slate-500 tabular-nums">
-                    Father / Guardian: {acc.fatherName || 'On file'} · {acc.estimatedDaysOverdue}+ days bracket ({acc.pctDue}% remaining)
+                    {acc.fatherName || 'On file'} · <strong className="text-rose-700">{acc.pctDue}% left</strong> · Paid ₹{acc.paidAmountInr.toLocaleString('en-IN')} · Overdue till {activeFeeMonth}: ₹{acc.defaulterMetrics.overdueTillCurrentMonthInr.toLocaleString('en-IN')}
                   </div>
                 </div>
 

@@ -1051,6 +1051,78 @@ export interface FeeReminderCalendarEvent {
   notes?: string;
 }
 
+export type DefaulterAlertChannel = 'WhatsApp' | 'Email' | 'Both';
+export type DefaulterAlertTierScope = 'Critical' | 'CriticalAndHigh';
+export type DefaulterAlertDeliveryStatus =
+  | 'Sent'
+  | 'Portal Queued'
+  | 'Partial'
+  | 'Failed'
+  | 'Acknowledged';
+
+export interface DefaulterAlertChannelResult {
+  channel: 'WhatsApp' | 'Email';
+  recipient: string;
+  status:
+    | 'Sent'
+    | 'Queued (Gateway Unconfigured)'
+    | 'Skipped (Missing Contact)'
+    | 'Failed';
+  providerRef?: string;
+  detail?: string;
+}
+
+export interface FeeDefaulterNotificationConfig {
+  schoolId: string;
+  autoEnabled: boolean;
+  tierScope: DefaulterAlertTierScope;
+  minPriorityScore: number;
+  minPercentLeft: number;
+  channel: DefaulterAlertChannel;
+  cooldownDays: number;
+  scheduleLabel: string;
+  messageTemplate: string;
+  lastAutoRunAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface FeeDefaulterNotificationRecord {
+  id: string;
+  schoolId: string;
+  accountId: string;
+  studentId?: string;
+  admissionNo: string;
+  studentName: string;
+  className: string;
+  guardianName: string;
+  recipientPhone?: string;
+  recipientEmail?: string;
+  channel: DefaulterAlertChannel;
+  deliveryChannels: DefaulterAlertChannelResult[];
+  status: DefaulterAlertDeliveryStatus;
+  triggerType: 'Automated Batch' | 'Manual Single';
+  activeMonth: FeeMonthKey;
+  riskTier: 'Critical' | 'High' | 'Moderate';
+  defaulterPriorityScore: number;
+  percentLeft: number;
+  overdueTillMonthInr: number;
+  balanceDueInr: number;
+  paymentNature: string;
+  messageBody: string;
+  triggeredBy: string;
+  sentAt: string;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
+}
+
+export interface NotificationGatewayStatus {
+  emailConfigured: boolean;
+  whatsappConfigured: boolean;
+  emailProvider: string;
+  whatsappProvider: string;
+}
+
 export interface SchoolFeeStructureRow {
   id: string;
   schoolId: string;
@@ -1912,10 +1984,18 @@ export type AccountingEntryCategory =
   | 'Teacher Payroll'
   | 'Driver Payroll'
   | 'Bus Fuel Expense'
+  | 'Bus EMI / Kist'
   | 'Maintenance Expense'
   | 'Vendor Purchase'
   | 'Utility & Operations'
+  | 'School Rent'
+  | 'Insurance & Compliance'
+  | 'Software & IT'
+  | 'Infrastructure & Assets'
+  | 'Bank Transfer & Advances'
   | 'Misc Receipt';
+
+export type ExpenseClassification = 'Operational' | 'Administrative' | 'Developmental';
 
 export type AccountingEntryDirection = 'Income' | 'Expense';
 
@@ -1937,8 +2017,14 @@ export interface AccountingEntry {
   description: string;
   amountInr: number;
   paymentMode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
+  chequeOrRefNo?: string;
   supportingDocName?: string;
   extractedByAi?: boolean;
+  expenseClassification?: ExpenseClassification;
+  expenseClassificationReason?: string;
+  expenseClassifiedBy?: 'gemini' | 'manual';
+  expenseClassifiedAt?: string;
+  sheetSource?: 'vis_expense_2026_27' | 'csv_import' | 'manual';
   status: AccountingApprovalStatus;
   periodLocked: boolean;
   createdBy: string;
@@ -1956,6 +2042,9 @@ export interface PayrollRegisterEntry {
   staffName: string;
   staffRoleType: 'Teacher' | 'Driver' | 'Support Staff';
   designation: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
   daysWorked: number;
   grossSalaryInr: number;
   deductionsInr: number;
@@ -2209,6 +2298,203 @@ export interface AbsenceTargetRiskAlert {
   acknowledgedByManagementName?: string;
   triggeredBy: string;
   triggeredAt: string;
+}
+
+export type StaffRoleCategory =
+  | 'Teacher'
+  | 'Admin & Coordinator'
+  | 'Driver'
+  | 'Support Staff'
+  | 'Specialist';
+
+export type StaffAttendanceStatus =
+  | 'Present'
+  | 'Half Day'
+  | 'Absent'
+  | 'Paid Leave'
+  | 'Unpaid Leave';
+
+export interface StaffProfile {
+  id: string;
+  schoolId: string;
+  userId?: string;
+  srNo?: number;
+  employeeCode: string;
+  name: string;
+  roleType: StaffRoleCategory;
+  designation: string;
+  department: string;
+  phone?: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
+  bankNote?: string;
+  sheetSource?: 'vis_salary_2026_27' | 'csv_import' | 'manual';
+  baseMonthlySalaryInr: number;
+  fixedAllowanceInr: number;
+  pfOrDeductionInr: number;
+  workingDaysPerMonth: number;
+  paidLeaveAllowance: number;
+  active: boolean;
+}
+
+export interface StaffAttendanceRecord {
+  id: string;
+  schoolId: string;
+  staffId: string;
+  date: string; // YYYY-MM-DD
+  status: StaffAttendanceStatus;
+  checkInTime?: string;
+  checkOutTime?: string;
+  markingMode: AttendanceMarkingMode;
+  markedBy: string;
+  remarks?: string;
+  updatedAt: string;
+}
+
+export interface StaffSalaryComputation {
+  staffId: string;
+  employeeCode: string;
+  staffName: string;
+  designation: string;
+  department: string;
+  roleType: StaffRoleCategory;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
+  bankNote?: string;
+  monthKey: string; // YYYY-MM
+  monthLabel: string; // e.g., November 2026
+  workingDaysPerMonth: number;
+  presentDays: number;
+  halfDays: number;
+  paidLeaveDays: number;
+  unpaidLeaveDays: number;
+  absentDays: number;
+  markedDays: number;
+  effectivePaidDays: number;
+  lossOfPayDays: number;
+  attendancePct: number;
+  perDayRateInr: number;
+  baseMonthlySalaryInr: number;
+  fixedAllowanceInr: number;
+  grossSalaryInr: number;
+  standardDeductionsInr: number;
+  lopDeductionInr: number;
+  totalDeductionsInr: number;
+  netPayableInr: number;
+  payrollStatus: 'Synced to Payroll' | 'Pending Sync';
+  lastSyncedAt?: string;
+}
+
+export type SalaryAuditActionType =
+  | 'PROFILE_CREATED'
+  | 'SALARY_UPDATED'
+  | 'CSV_SHEET_IMPORT'
+  | 'BULK_PAYROLL_UPDATE';
+
+export interface SalaryModificationAuditRecord {
+  id: string;
+  schoolId: string;
+  timestamp: string; // ISO-8601 timestamp
+  staffId?: string;
+  employeeCode?: string;
+  staffName: string;
+  designation: string;
+  actionType: SalaryAuditActionType;
+  adminUserId: string;
+  adminUserName: string;
+  adminUserRole: UserRole;
+  previousBaseSalaryInr: number | null;
+  newBaseSalaryInr: number;
+  previousAllowanceInr: number | null;
+  newAllowanceInr: number;
+  previousDeductionInr: number | null;
+  newDeductionInr: number;
+  previousGrossSalaryInr: number | null;
+  newGrossSalaryInr: number;
+  deltaGrossInr: number;
+  sourceLabel: string;
+  note?: string;
+}
+
+export type GatePassSubjectType = 'Student Early Exit' | 'Staff Out-Pass';
+export type GatePassStatus =
+  | 'Pending Approval'
+  | 'Approved'
+  | 'Exited Campus'
+  | 'Returned'
+  | 'Rejected';
+
+export interface GatePassRecord {
+  id: string;
+  schoolId: string;
+  passCode: string; // e.g., GP-2026-1042
+  subjectType: GatePassSubjectType;
+  studentId?: string;
+  studentName?: string;
+  classSection?: string;
+  staffId?: string;
+  staffUserId?: string;
+  staffName?: string;
+  staffDesignation?: string;
+  requestedByUserId?: string;
+  requestedByName: string;
+  requestedByRole: UserRole;
+  reason: string;
+  authorizedPickupName?: string;
+  pickupRelation?: string;
+  pickupPhone?: string;
+  pickupIdMasked?: string;
+  expectedExitTime: string;
+  expectedReturnTime?: string;
+  actualExitAt?: string;
+  actualReturnAt?: string;
+  status: GatePassStatus;
+  approvedByName?: string;
+  approvedAt?: string;
+  gateOfficerNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type VisitorCategory =
+  | 'Parent / Guardian'
+  | 'Official / Inspector'
+  | 'Vendor / Delivery'
+  | 'Interview / Guest'
+  | 'Alumni'
+  | 'Maintenance';
+
+export type VisitorIdProofType =
+  | 'Aadhaar Card'
+  | 'Driving License'
+  | 'PAN Card'
+  | 'Voter ID'
+  | 'Official / Company ID';
+
+export type VisitorStatus = 'On Campus' | 'Checked Out';
+
+export interface VisitorLogRecord {
+  id: string;
+  schoolId: string;
+  badgeCode: string; // e.g., VIS-8412
+  visitorName: string;
+  phone: string;
+  category: VisitorCategory;
+  purpose: string;
+  personToMeet: string;
+  department?: string;
+  idProofType: VisitorIdProofType;
+  idProofMasked: string;
+  vehicleNumber?: string;
+  belongingsNote?: string;
+  checkInAt: string;
+  checkOutAt?: string;
+  durationMinutes?: number;
+  status: VisitorStatus;
+  loggedByName: string;
+  checkedOutByName?: string;
 }
 
 export * from './types/intelligence';

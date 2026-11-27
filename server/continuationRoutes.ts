@@ -38,6 +38,21 @@ import {
   validateAccountingEntryMutation,
   validatePayrollApproval,
 } from '../src/utils/accountantRbacEngine.ts';
+import type { ExpenseClassification } from '../src/types';
+import {
+  GeminiApiError,
+  categorizeExpensesWithGemini,
+} from './gemini.ts';
+import {
+  buildSalaryModificationAuditRecord,
+  hasSalaryValuesChanged,
+} from '../src/utils/salaryAuditLog.ts';
+import {
+  inferBankNameFromIfsc,
+  normalizeIfscCode,
+  parseVisExpenseSheetCsv,
+} from '../src/utils/visSalaryExpenseParser.ts';
+import { mapStaffRoleCategoryToPayrollType } from '../src/utils/campusAdminEngine.ts';
 
 export interface ContinuationRouteDeps {
   requireAuth: RequestHandler;
@@ -1422,7 +1437,7 @@ export function registerContinuationRoutes(
     '/api/accounting/entries',
     requireAuth,
     requireRoles(['super_admin', 'school_admin', 'principal', 'accountant']),
-    (req: IntelligenceAuthedRequest, res) => {
+    async (req: IntelligenceAuthedRequest, res) => {
       const db = getDb();
       const user = req.user!;
       const schoolId = req.activeSchoolId || user.schoolId;
@@ -1440,8 +1455,12 @@ export function registerContinuationRoutes(
         description?: string;
         amountInr?: number;
         paymentMode?: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
+        chequeOrRefNo?: string;
         supportingDocName?: string;
         extractedByAi?: boolean;
+        expenseClassification?: ExpenseClassification;
+        expenseClassificationReason?: string;
+        autoCategorizeWithGemini?: boolean;
         submitForApproval?: boolean;
       };
 
@@ -1465,20 +1484,74 @@ export function registerContinuationRoutes(
         return;
       }
 
+      const direction = body.direction || 'Expense';
+      const entryId = `acc-${Date.now().toString(36)}-${crypto.randomBytes(2).toString('hex')}`;
+      const validClassifications: ExpenseClassification[] = [
+        'Operational',
+        'Administrative',
+        'Developmental',
+      ];
+      let expenseClassification: ExpenseClassification | undefined =
+        direction === 'Expense' &&
+        body.expenseClassification &&
+        validClassifications.includes(body.expenseClassification)
+          ? body.expenseClassification
+          : undefined;
+      let expenseClassificationReason = body.expenseClassificationReason?.trim() || undefined;
+      let expenseClassifiedBy: 'gemini' | 'manual' | undefined = expenseClassification
+        ? 'manual'
+        : undefined;
+      let expenseClassifiedAt = expenseClassification ? new Date().toISOString() : undefined;
+      let geminiWarning: string | undefined;
+
+      if (direction === 'Expense' && body.autoCategorizeWithGemini && !expenseClassification) {
+        try {
+          const aiRes = await categorizeExpensesWithGemini([
+            {
+              id: entryId,
+              date: dateStr,
+              vendorOrParty: body.vendorOrParty.trim(),
+              description: (body.description || '').trim() || body.vendorOrParty.trim(),
+              category: body.category || 'Vendor Purchase',
+              amountInr: amount,
+              paymentMode: body.paymentMode || 'UPI',
+            },
+          ]);
+          const first = aiRes.results[0];
+          if (first) {
+            expenseClassification = first.classification;
+            expenseClassificationReason = first.reason;
+            expenseClassifiedBy = 'gemini';
+            expenseClassifiedAt = aiRes.categorizedAt;
+          }
+        } catch (err) {
+          geminiWarning =
+            err instanceof Error
+              ? err.message
+              : 'Gemini automated categorization could not run for this entry.';
+        }
+      }
+
       const entry: AccountingEntry = {
-        id: `acc-${Date.now().toString(36)}-${crypto.randomBytes(2).toString('hex')}`,
+        id: entryId,
         schoolId,
         date: dateStr,
         monthKey,
         category: body.category || 'Vendor Purchase',
-        direction: body.direction || 'Expense',
+        direction,
         vendorOrParty: body.vendorOrParty.trim(),
         busCode: body.busCode?.trim() || undefined,
         description: (body.description || '').trim() || body.vendorOrParty.trim(),
         amountInr: amount,
         paymentMode: body.paymentMode || 'UPI',
+        chequeOrRefNo: body.chequeOrRefNo?.trim() || undefined,
         supportingDocName: body.supportingDocName?.trim() || undefined,
         extractedByAi: Boolean(body.extractedByAi),
+        expenseClassification,
+        expenseClassificationReason,
+        expenseClassifiedBy,
+        expenseClassifiedAt,
+        sheetSource: 'manual',
         // Segregation of duties: Accountants NEVER auto-approve
         status: body.submitForApproval ? 'submitted' : 'draft',
         periodLocked: false,
@@ -1496,11 +1569,366 @@ export function registerContinuationRoutes(
         action: 'ACCOUNTING_ENTRY_CREATED',
         entityType: 'AccountingEntry',
         entityId: entry.id,
-        detail: `Recorded ${entry.direction} (${entry.category}) ₹${entry.amountInr} — ${entry.vendorOrParty} [${entry.status}].`,
+        detail: `Recorded ${entry.direction} (${entry.category}${entry.expenseClassification ? ` · ${entry.expenseClassification}` : ''}) ₹${entry.amountInr} — ${entry.vendorOrParty} [${entry.status}].`,
       });
 
       saveDb(db);
-      res.status(201).json({ entry });
+      res.status(201).json({ entry, geminiWarning });
+    },
+  );
+
+  // Update open accounting entry or manually set/override Operational / Administrative / Developmental label
+  app.patch(
+    '/api/accounting/entries/:id',
+    requireAuth,
+    requireRoles(['super_admin', 'school_admin', 'principal', 'accountant']),
+    (req: IntelligenceAuthedRequest, res) => {
+      const db = getDb();
+      const user = req.user!;
+      const schoolId = req.activeSchoolId || user.schoolId;
+      const entry = (db.accountingEntries || []).find(
+        (e) => e.id === req.params.id && e.schoolId === schoolId,
+      );
+      if (!entry) {
+        res.status(404).json({ error: 'Accounting entry not found.' });
+        return;
+      }
+      if (entry.periodLocked && user.role !== 'super_admin') {
+        res.status(403).json({ error: 'This financial period is locked and cannot be modified.' });
+        return;
+      }
+
+      const body = req.body as Partial<AccountingEntry>;
+      const validClassifications: ExpenseClassification[] = [
+        'Operational',
+        'Administrative',
+        'Developmental',
+      ];
+      const isOnlyClassificationChange =
+        body.expenseClassification !== undefined &&
+        body.amountInr === undefined &&
+        body.vendorOrParty === undefined &&
+        body.date === undefined;
+
+      // Accountants cannot alter financial amounts of already-approved vouchers, but may label/classify expenses
+      if (
+        !isOnlyClassificationChange &&
+        entry.status === 'approved' &&
+        !canPerformFinanceAction(user.role, 'approve_accounting_entry').allowed
+      ) {
+        res.status(403).json({
+          error: 'Only Principal or School Admin may modify financial figures on an approved entry.',
+        });
+        return;
+      }
+
+      if (body.date && /^\d{4}-\d{2}-\d{2}$/.test(body.date.trim())) {
+        entry.date = body.date.trim();
+        entry.monthKey = entry.date.slice(0, 7);
+      }
+      if (body.category) entry.category = body.category;
+      if (body.direction === 'Income' || body.direction === 'Expense') {
+        entry.direction = body.direction;
+      }
+      if (body.vendorOrParty?.trim()) entry.vendorOrParty = body.vendorOrParty.trim();
+      if (body.description !== undefined) entry.description = body.description.trim();
+      if (body.amountInr !== undefined) {
+        const amt = Math.round(Number(body.amountInr));
+        if (!Number.isFinite(amt) || amt <= 0) {
+          res.status(400).json({ error: 'Amount must be a positive number.' });
+          return;
+        }
+        entry.amountInr = amt;
+      }
+      if (body.paymentMode) entry.paymentMode = body.paymentMode;
+      if (body.chequeOrRefNo !== undefined) {
+        entry.chequeOrRefNo = body.chequeOrRefNo.trim() || undefined;
+      }
+      if (body.busCode !== undefined) {
+        entry.busCode = body.busCode.trim() || undefined;
+      }
+      if (body.expenseClassification !== undefined) {
+        if (validClassifications.includes(body.expenseClassification)) {
+          entry.expenseClassification = body.expenseClassification;
+          entry.expenseClassificationReason =
+            body.expenseClassificationReason?.trim() ||
+            `Manually labeled as ${body.expenseClassification} by ${user.name}.`;
+          entry.expenseClassifiedBy = 'manual';
+          entry.expenseClassifiedAt = new Date().toISOString();
+        }
+      }
+
+      appendAuditLog({
+        schoolId: entry.schoolId,
+        actor: user,
+        action: 'ACCOUNTING_ENTRY_UPDATED',
+        entityType: 'AccountingEntry',
+        entityId: entry.id,
+        detail: `Updated voucher ${entry.vendorOrParty} (₹${entry.amountInr.toLocaleString('en-IN')}${entry.expenseClassification ? ` · ${entry.expenseClassification}` : ''}).`,
+      });
+      saveDb(db);
+      res.json({ entry });
+    },
+  );
+
+  // Automated Gemini Expense Categorization ('Operational' | 'Administrative' | 'Developmental')
+  app.post(
+    '/api/accounting/entries/categorize-ai',
+    requireAuth,
+    requireRoles(['super_admin', 'school_admin', 'principal', 'accountant']),
+    async (req: IntelligenceAuthedRequest, res) => {
+      const db = getDb();
+      const user = req.user!;
+      const schoolId = req.activeSchoolId || user.schoolId;
+      if (!schoolId) {
+        res.status(400).json({ error: 'Active school context required.' });
+        return;
+      }
+
+      const body = (req.body || {}) as {
+        mode?: 'unclassified' | 'all' | 'selected' | 'preview';
+        entryIds?: string[];
+        monthKey?: string;
+        items?: Array<{
+          id: string;
+          date?: string;
+          vendorOrParty: string;
+          description: string;
+          category?: string;
+          amountInr?: number;
+          paymentMode?: string;
+        }>;
+      };
+
+      const mode = body.mode || 'unclassified';
+
+      try {
+        if (mode === 'preview') {
+          const items = Array.isArray(body.items) ? body.items : [];
+          if (items.length === 0) {
+            res.status(400).json({ error: 'Provide at least one expense row to categorize.' });
+            return;
+          }
+          const aiRes = await categorizeExpensesWithGemini(items);
+          res.json({
+            ok: true,
+            mode: 'preview',
+            model: aiRes.model,
+            categorizedAt: aiRes.categorizedAt,
+            categorizedCount: aiRes.results.length,
+            results: aiRes.results,
+          });
+          return;
+        }
+
+        const schoolExpenses = (db.accountingEntries || []).filter(
+          (e) =>
+            e.schoolId === schoolId &&
+            e.direction === 'Expense' &&
+            e.status !== 'rejected' &&
+            (!body.monthKey || body.monthKey === 'ALL' || e.monthKey === body.monthKey),
+        );
+
+        let targetEntries: AccountingEntry[] = [];
+        if (Array.isArray(body.entryIds) && body.entryIds.length > 0) {
+          const idSet = new Set(body.entryIds);
+          targetEntries = schoolExpenses.filter((e) => idSet.has(e.id));
+        } else if (mode === 'all') {
+          targetEntries = schoolExpenses;
+        } else {
+          targetEntries = schoolExpenses.filter((e) => !e.expenseClassification);
+        }
+
+        if (targetEntries.length === 0) {
+          res.json({
+            ok: true,
+            model: 'gemini-4-hydrogen',
+            categorizedCount: 0,
+            message: 'All matching expense rows are already categorized.',
+            breakdown: { Operational: 0, Administrative: 0, Developmental: 0 },
+            results: [],
+          });
+          return;
+        }
+
+        const aiRes = await categorizeExpensesWithGemini(
+          targetEntries.map((e) => ({
+            id: e.id,
+            date: e.date,
+            vendorOrParty: e.vendorOrParty,
+            description: e.description,
+            category: e.category,
+            amountInr: e.amountInr,
+            paymentMode: e.paymentMode,
+          })),
+        );
+
+        const resultById = new Map(aiRes.results.map((r) => [r.id, r]));
+        const breakdown = { Operational: 0, Administrative: 0, Developmental: 0 };
+        let updatedCount = 0;
+
+        for (const entry of targetEntries) {
+          const hit = resultById.get(entry.id);
+          if (!hit) continue;
+          entry.expenseClassification = hit.classification;
+          entry.expenseClassificationReason = hit.reason;
+          entry.expenseClassifiedBy = 'gemini';
+          entry.expenseClassifiedAt = aiRes.categorizedAt;
+          breakdown[hit.classification] += 1;
+          updatedCount += 1;
+        }
+
+        appendAuditLog({
+          schoolId,
+          actor: user,
+          action: 'GEMINI_EXPENSES_CATEGORIZED',
+          entityType: 'AccountingEntry',
+          entityId: `gemini-exp-${Date.now().toString(36)}`,
+          detail: `Gemini (${aiRes.model}) labeled ${updatedCount} expense rows: ${breakdown.Operational} Operational, ${breakdown.Administrative} Administrative, ${breakdown.Developmental} Developmental.`,
+        });
+        saveDb(db);
+
+        res.json({
+          ok: true,
+          model: aiRes.model,
+          categorizedAt: aiRes.categorizedAt,
+          categorizedCount: updatedCount,
+          breakdown,
+          results: aiRes.results,
+        });
+      } catch (err) {
+        if (err instanceof GeminiApiError) {
+          res.status(err.statusCode).json({ error: err.message });
+          return;
+        }
+        res.status(502).json({
+          error:
+            err instanceof Error
+              ? err.message
+              : 'Unable to categorize expenses with Gemini API.',
+        });
+      }
+    },
+  );
+
+  // Import updated monthly VIS Expense Sheet CSV (+ optional immediate Gemini categorization)
+  app.post(
+    '/api/accounting/entries/import-sheet',
+    requireAuth,
+    requireRoles(['super_admin', 'school_admin', 'principal', 'accountant']),
+    async (req: IntelligenceAuthedRequest, res) => {
+      const db = getDb();
+      const user = req.user!;
+      const schoolId = req.activeSchoolId || user.schoolId;
+      if (!schoolId) {
+        res.status(400).json({ error: 'Active school context required.' });
+        return;
+      }
+
+      const { csvText, replaceSheetEntries, autoCategorizeWithGemini } = (req.body || {}) as {
+        csvText?: string;
+        replaceSheetEntries?: boolean;
+        autoCategorizeWithGemini?: boolean;
+      };
+
+      if (!csvText?.trim()) {
+        res.status(400).json({ error: 'CSV content is required to import the expenses sheet.' });
+        return;
+      }
+
+      const parsed = parseVisExpenseSheetCsv(csvText, schoolId, 'csv_import');
+      if (parsed.entries.length === 0) {
+        res.status(400).json({
+          error:
+            'No valid income or expense rows detected. Upload a monthly VIS expense sheet CSV (MONTH, DATE, DESCRIPTION, PIAD BY CHEQUE, DEBIT, CREDIT, BALANCE).',
+        });
+        return;
+      }
+
+      if (!Array.isArray(db.accountingEntries)) db.accountingEntries = [];
+
+      if (replaceSheetEntries) {
+        db.accountingEntries = db.accountingEntries.filter(
+          (e) => !(e.schoolId === schoolId && (e.sheetSource === 'vis_expense_2026_27' || e.sheetSource === 'csv_import')),
+        );
+      }
+
+      const existingIds = new Set(db.accountingEntries.map((e) => e.id));
+      const inserted: AccountingEntry[] = [];
+      for (const item of parsed.entries) {
+        const finalId = existingIds.has(item.id)
+          ? `${item.id}-${Date.now().toString(36)}`
+          : item.id;
+        existingIds.add(finalId);
+        const entry: AccountingEntry = {
+          ...item,
+          id: finalId,
+          createdBy: user.name,
+          createdByRole: user.role,
+        };
+        db.accountingEntries.unshift(entry);
+        inserted.push(entry);
+      }
+
+      let categorizedCount = 0;
+      let geminiError: string | undefined;
+      const breakdown = { Operational: 0, Administrative: 0, Developmental: 0 };
+
+      if (autoCategorizeWithGemini) {
+        const importedExpenses = inserted.filter((e) => e.direction === 'Expense');
+        if (importedExpenses.length > 0) {
+          try {
+            const aiRes = await categorizeExpensesWithGemini(
+              importedExpenses.map((e) => ({
+                id: e.id,
+                date: e.date,
+                vendorOrParty: e.vendorOrParty,
+                description: e.description,
+                category: e.category,
+                amountInr: e.amountInr,
+                paymentMode: e.paymentMode,
+              })),
+            );
+            const byId = new Map(aiRes.results.map((r) => [r.id, r]));
+            for (const exp of importedExpenses) {
+              const hit = byId.get(exp.id);
+              if (!hit) continue;
+              exp.expenseClassification = hit.classification;
+              exp.expenseClassificationReason = hit.reason;
+              exp.expenseClassifiedBy = 'gemini';
+              exp.expenseClassifiedAt = aiRes.categorizedAt;
+              breakdown[hit.classification] += 1;
+              categorizedCount += 1;
+            }
+          } catch (err) {
+            geminiError =
+              err instanceof Error
+                ? err.message
+                : 'Gemini categorization failed for imported rows.';
+          }
+        }
+      }
+
+      appendAuditLog({
+        schoolId,
+        actor: user,
+        action: 'IMPORTED_EXPENSE_SHEET_CSV',
+        entityType: 'AccountingEntry',
+        entityId: `exp-sheet-${Date.now().toString(36)}`,
+        detail: `Imported ${inserted.length} ledger rows (Income ₹${parsed.totalIncomeInr.toLocaleString('en-IN')}, Expense ₹${parsed.totalExpenseInr.toLocaleString('en-IN')})${categorizedCount > 0 ? ` and Gemini-labeled ${categorizedCount} expenses` : ''}.`,
+      });
+      saveDb(db);
+
+      res.status(201).json({
+        ok: true,
+        importedCount: inserted.length,
+        totalIncomeInr: parsed.totalIncomeInr,
+        totalExpenseInr: parsed.totalExpenseInr,
+        monthCount: parsed.monthSummaries.length,
+        categorizedCount,
+        breakdown,
+        geminiError,
+      });
     },
   );
 
@@ -1746,13 +2174,42 @@ export function registerContinuationRoutes(
         staffName: string;
         staffRoleType: 'Teacher' | 'Driver' | 'Support Staff';
         designation: string;
+        bankAccountNumber?: string;
+        ifscCode?: string;
+        bankName?: string;
         daysWorked: number;
         grossSalaryInr: number;
         deductionsInr: number;
-        source: 'user_account' | 'transport_fleet' | 'payroll_history';
+        source: 'staff_sheet' | 'user_account' | 'transport_fleet' | 'payroll_history';
       }
 
       const rosterMap = new Map<string, RosterCandidate>();
+
+      // 0. Authoritative Staff Profiles (including VIS 2026-27 Salary & Bank Account Sheet)
+      const schoolProfiles = (db.staffProfiles || []).filter(
+        (p) => p.schoolId === schoolId && p.active,
+      );
+      for (const p of schoolProfiles) {
+        const name = p.name.trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        const prev = latestByName.get(key);
+        const gross =
+          prev?.grossSalaryInr ?? Math.round(p.baseMonthlySalaryInr + p.fixedAllowanceInr);
+        const deductions = prev?.deductionsInr ?? Math.round(p.pfOrDeductionInr);
+        rosterMap.set(key, {
+          staffName: name,
+          staffRoleType: prev?.staffRoleType ?? mapStaffRoleCategoryToPayrollType(p.roleType),
+          designation: prev?.designation || p.designation,
+          bankAccountNumber: p.bankAccountNumber || prev?.bankAccountNumber,
+          ifscCode: p.ifscCode || prev?.ifscCode,
+          bankName: p.bankName || prev?.bankName,
+          daysWorked: prev?.daysWorked ?? p.workingDaysPerMonth ?? 26,
+          grossSalaryInr: gross,
+          deductionsInr: deductions,
+          source: 'staff_sheet',
+        });
+      }
 
       // 1. All school staff user accounts (excluding parents & students)
       const staffUsers = (db.users || []).filter(
@@ -1762,6 +2219,7 @@ export function registerContinuationRoutes(
         const name = (u.name || '').trim();
         if (!name) continue;
         const key = name.toLowerCase();
+        if (rosterMap.has(key)) continue;
         const prev = latestByName.get(key);
         const gross = prev?.grossSalaryInr ?? defaultGrossForRole(u.role);
         const deductions = prev?.deductionsInr ?? (gross >= 30000 ? 1800 : 800);
@@ -1772,6 +2230,9 @@ export function registerContinuationRoutes(
             prev?.designation ||
             u.designation ||
             (u.subjectSpecialty ? `${u.subjectSpecialty} Teacher` : u.role.replace(/_/g, ' ')),
+          bankAccountNumber: prev?.bankAccountNumber,
+          ifscCode: prev?.ifscCode,
+          bankName: prev?.bankName,
           daysWorked: prev?.daysWorked ?? 26,
           grossSalaryInr: gross,
           deductionsInr: deductions,
@@ -1791,6 +2252,9 @@ export function registerContinuationRoutes(
               staffName: name,
               staffRoleType: 'Driver',
               designation: prev?.designation || `Bus Driver (${route.busNumber})`,
+              bankAccountNumber: prev?.bankAccountNumber,
+              ifscCode: prev?.ifscCode,
+              bankName: prev?.bankName,
               daysWorked: prev?.daysWorked ?? 26,
               grossSalaryInr: prev?.grossSalaryInr ?? 18500,
               deductionsInr: prev?.deductionsInr ?? 500,
@@ -1807,6 +2271,9 @@ export function registerContinuationRoutes(
               staffName: name,
               staffRoleType: 'Support Staff',
               designation: prev?.designation || `Bus Attendant (${route.busNumber})`,
+              bankAccountNumber: prev?.bankAccountNumber,
+              ifscCode: prev?.ifscCode,
+              bankName: prev?.bankName,
               daysWorked: prev?.daysWorked ?? 26,
               grossSalaryInr: prev?.grossSalaryInr ?? 14500,
               deductionsInr: prev?.deductionsInr ?? 300,
@@ -1825,6 +2292,9 @@ export function registerContinuationRoutes(
             staffName: name,
             staffRoleType: p.staffRoleType,
             designation: p.designation,
+            bankAccountNumber: p.bankAccountNumber,
+            ifscCode: p.ifscCode,
+            bankName: p.bankName,
             daysWorked: p.daysWorked,
             grossSalaryInr: p.grossSalaryInr,
             deductionsInr: p.deductionsInr,
@@ -1867,6 +2337,9 @@ export function registerContinuationRoutes(
           staffName?: string;
           staffRoleType?: 'Teacher' | 'Driver' | 'Support Staff';
           designation?: string;
+          bankAccountNumber?: string;
+          ifscCode?: string;
+          bankName?: string;
           daysWorked?: number;
           grossSalaryInr?: number;
           deductionsInr?: number;
@@ -1910,6 +2383,16 @@ export function registerContinuationRoutes(
         const designation = (r.designation || staffRoleType).trim();
         const netPayableInr = Math.max(0, gross - deductions);
 
+        const cleanedAcc = r.bankAccountNumber?.trim().replace(/\s+/g, '') || undefined;
+        const ifscRes = normalizeIfscCode(r.ifscCode);
+        const cleanedIfsc = ifscRes.code || undefined;
+        const resolvedBankName =
+          r.bankName?.trim() || (cleanedIfsc ? inferBankNameFromIfsc(cleanedIfsc) : undefined);
+
+        // Keep matching StaffProfile salary & bank details in sync
+        const matchingProfile = (db.staffProfiles || []).find(
+          (p) => p.schoolId === schoolId && p.name.trim().toLowerCase() === staffName.toLowerCase(),
+        );
         const existing = db.payrollRegisters.find(
           (p) =>
             p.schoolId === schoolId &&
@@ -1918,16 +2401,83 @@ export function registerContinuationRoutes(
                 p.staffName.trim().toLowerCase() === staffName.toLowerCase())),
         );
 
-        if (existing) {
-          // Dual-control guard: accountant cannot modify an already approved payroll line
-          if (existing.status === 'approved' && !canApproveNow) {
-            skippedApprovedCount += 1;
-            continue;
+        // Dual-control guard before mutating linked profile or payroll line
+        if (existing && existing.status === 'approved' && !canApproveNow) {
+          skippedApprovedCount += 1;
+          continue;
+        }
+
+        const prevBaseForAudit = matchingProfile
+          ? matchingProfile.baseMonthlySalaryInr
+          : existing
+            ? existing.grossSalaryInr
+            : null;
+        const prevAllowForAudit = matchingProfile ? matchingProfile.fixedAllowanceInr : existing ? 0 : null;
+        const prevDedForAudit = matchingProfile
+          ? matchingProfile.pfOrDeductionInr
+          : existing
+            ? existing.deductionsInr
+            : null;
+
+        const nextAllowForAudit = matchingProfile ? matchingProfile.fixedAllowanceInr || 0 : 0;
+        const nextBaseForAudit = Math.max(0, gross - nextAllowForAudit);
+
+        if (matchingProfile) {
+          if (cleanedAcc) matchingProfile.bankAccountNumber = cleanedAcc;
+          if (cleanedIfsc) {
+            matchingProfile.ifscCode = cleanedIfsc;
+            matchingProfile.bankName = resolvedBankName;
+            matchingProfile.bankNote = ifscRes.warning;
           }
+          matchingProfile.designation = designation;
+          matchingProfile.baseMonthlySalaryInr = nextBaseForAudit;
+          matchingProfile.pfOrDeductionInr = deductions;
+        }
+
+        if (
+          prevBaseForAudit !== null &&
+          hasSalaryValuesChanged(
+            {
+              baseMonthlySalaryInr: prevBaseForAudit,
+              fixedAllowanceInr: prevAllowForAudit ?? 0,
+              pfOrDeductionInr: prevDedForAudit ?? 0,
+            },
+            {
+              baseMonthlySalaryInr: nextBaseForAudit,
+              fixedAllowanceInr: nextAllowForAudit,
+              pfOrDeductionInr: deductions,
+            },
+          )
+        ) {
+          if (!Array.isArray(db.salaryAuditLogs)) db.salaryAuditLogs = [];
+          db.salaryAuditLogs.unshift(
+            buildSalaryModificationAuditRecord({
+              schoolId,
+              actor: user,
+              staffId: matchingProfile?.id,
+              employeeCode: matchingProfile?.employeeCode,
+              staffName,
+              designation,
+              actionType: 'BULK_PAYROLL_UPDATE',
+              previousBaseSalaryInr: prevBaseForAudit,
+              newBaseSalaryInr: nextBaseForAudit,
+              previousAllowanceInr: prevAllowForAudit,
+              newAllowanceInr: nextAllowForAudit,
+              previousDeductionInr: prevDedForAudit,
+              newDeductionInr: deductions,
+              sourceLabel: `Bulk Payroll Sheet (${monthLabel})`,
+            }),
+          );
+        }
+
+        if (existing) {
           existing.monthLabel = monthLabel;
           existing.staffName = staffName;
           existing.staffRoleType = staffRoleType;
           existing.designation = designation;
+          if (cleanedAcc !== undefined) existing.bankAccountNumber = cleanedAcc;
+          if (cleanedIfsc !== undefined) existing.ifscCode = cleanedIfsc;
+          if (resolvedBankName !== undefined) existing.bankName = resolvedBankName;
           existing.daysWorked = daysWorked;
           existing.grossSalaryInr = gross;
           existing.deductionsInr = deductions;
@@ -1950,6 +2500,9 @@ export function registerContinuationRoutes(
             staffName,
             staffRoleType,
             designation,
+            bankAccountNumber: cleanedAcc || matchingProfile?.bankAccountNumber,
+            ifscCode: cleanedIfsc || matchingProfile?.ifscCode,
+            bankName: resolvedBankName || matchingProfile?.bankName,
             daysWorked,
             grossSalaryInr: gross,
             deductionsInr: deductions,

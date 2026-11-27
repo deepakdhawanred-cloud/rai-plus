@@ -42,6 +42,16 @@ import {
   registerInteractiveLearningRoutes,
 } from './server/interactiveLearningRoutes.ts';
 import {
+  ensureCampusAdminInitialized,
+  registerCampusAdminRoutes,
+} from './server/campusAdminRoutes.ts';
+import {
+  getOrCreateDefaulterAlertConfig,
+  registerDefaulterNotificationRoutes,
+} from './server/defaulterNotificationRoutes.ts';
+import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
+import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
+import {
   buildTransportRoleBundle,
   recommendRouteForLocality,
 } from './src/utils/transportEngine.ts';
@@ -1486,6 +1496,11 @@ async function startServer() {
             },
             feeReceipts: (db.feeReceipts || []).filter((r) => r.schoolId === schoolId),
             feeReminders: (db.feeReminders || []).filter((r) => r.schoolId === schoolId),
+            feeDefaulterAlertConfig: getOrCreateDefaulterAlertConfig(schoolId),
+            feeDefaulterAlertLogs: (db.feeDefaulterAlertLogs || [])
+              .filter((n) => n.schoolId === schoolId)
+              .slice(0, 150),
+            notificationGatewayStatus: getNotificationGatewayStatus(),
             feeStructure: (() => {
               const saved = (db.feeStructure || []).filter((r) => r.schoolId === schoolId);
               if (saved.length > 0) return sortFeeStructureRows(saved);
@@ -1513,6 +1528,11 @@ async function startServer() {
                 (r) =>
                   r.schoolId === schoolId &&
                   (r.studentIds || []).some((sid) => visibleStudentIds.has(sid)),
+              ),
+              feeDefaulterAlertLogs: (db.feeDefaulterAlertLogs || []).filter(
+                (n) =>
+                  n.schoolId === schoolId &&
+                  Boolean(n.studentId && visibleStudentIds.has(n.studentId)),
               ),
             }
           : {}),
@@ -1569,6 +1589,22 @@ async function startServer() {
             if (mutated) saveDb();
             return buildInteractiveLearningOverviewForRole({ db, schoolId, user });
           })(),
+      ...(() => {
+        const campusMutated = ensureCampusAdminInitialized(db, schoolId);
+        if (campusMutated) saveDb();
+        return buildRoleScopedCampusAdminPayload({
+          user,
+          schoolId,
+          visibleStudentIds,
+          staffProfiles: db.staffProfiles || [],
+          staffAttendance: db.staffAttendance || [],
+          gatePasses: db.gatePasses || [],
+          visitorLogs: db.visitorLogs || [],
+          payrollRegisters: db.payrollRegisters || [],
+          salaryAuditLogs: db.salaryAuditLogs || [],
+          monthKey: new Date().toISOString().slice(0, 7),
+        });
+      })(),
     };
 
     const rawBuffer = Buffer.from(JSON.stringify(workspacePayload), 'utf-8');
@@ -8056,6 +8092,8 @@ async function startServer() {
   registerEventsAndPlansRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerMarksRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerInteractiveLearningRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerCampusAdminRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerDefaulterNotificationRoutes(app, { requireAuth, requireRoles, appendAuditLog });
 
   // Ensure unmatched API routes always return JSON instead of falling through to SPA HTML
   app.use('/api', (_req, res) => {

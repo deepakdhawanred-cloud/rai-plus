@@ -1064,6 +1064,8 @@ export function registerIntelligenceRoutes(app: Express, deps: IntelligenceRoute
       const body = req.body as {
         studentId?: string;
         shortlistedCareerIds?: string[];
+        completedMilestoneKeys?: string[];
+        selectedStreamPreference?: string;
         customGoalNote?: string;
         counsellorNotes?: string;
         sharedWithParent?: boolean;
@@ -1102,15 +1104,40 @@ export function registerIntelligenceRoutes(app: Express, deps: IntelligenceRoute
         });
       }
 
+      const sanitizedShortlist = Array.isArray(body.shortlistedCareerIds)
+        ? Array.from(
+            new Set(
+              body.shortlistedCareerIds
+                .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+                .map((id) => id.trim()),
+            ),
+          )
+        : existing?.shortlistedCareerIds || [];
+
+      const sanitizedMilestones = Array.isArray(body.completedMilestoneKeys)
+        ? Array.from(
+            new Set(
+              body.completedMilestoneKeys
+                .filter((k): k is string => typeof k === 'string' && k.trim().length > 0)
+                .map((k) => k.trim()),
+            ),
+          )
+        : existing?.completedMilestoneKeys || [];
+
+      const sanitizedStreamPreference =
+        body.selectedStreamPreference !== undefined
+          ? String(body.selectedStreamPreference).trim()
+          : existing?.selectedStreamPreference || '';
+
       const updated: StudentCareerPlan = {
         id: existing?.id || `scp-${schoolId}-${student.id}`,
         schoolId,
         studentId: student.id,
         studentName: student.name,
         classSection: student.classSection,
-        shortlistedCareerIds: Array.isArray(body.shortlistedCareerIds)
-          ? Array.from(new Set(body.shortlistedCareerIds))
-          : existing?.shortlistedCareerIds || [],
+        shortlistedCareerIds: sanitizedShortlist,
+        completedMilestoneKeys: sanitizedMilestones,
+        selectedStreamPreference: sanitizedStreamPreference || undefined,
         customGoalNote:
           body.customGoalNote !== undefined ? body.customGoalNote.trim() : existing?.customGoalNote || '',
         counsellorNotes:
@@ -1133,7 +1160,7 @@ export function registerIntelligenceRoutes(app: Express, deps: IntelligenceRoute
         action: 'UPDATED_STUDENT_CAREER_PLAN',
         entityType: 'StudentCareerPlan',
         entityId: updated.id,
-        detail: `Updated Career Intelligence plan for ${student.name} (${updated.shortlistedCareerIds.length} shortlisted career(s)).`,
+        detail: `Updated Career Intelligence plan for ${student.name} (${updated.shortlistedCareerIds.length} shortlisted career(s), ${sanitizedMilestones.length} milestone(s) completed).`,
       });
       saveDb();
       res.json({ plan: updated });

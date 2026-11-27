@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
+  Bell,
   BookOpen,
   Calendar,
   Clock,
@@ -9,11 +10,13 @@ import {
   IndianRupee,
   LayoutGrid,
   Search,
+  ShieldAlert,
   User,
   UserCheck,
   X,
 } from 'lucide-react';
 import type { WorkspaceData, WorkspaceTab } from '../types/workspace';
+import type { UnifiedWorkspaceAlert } from '../utils/alertsCenterEngine';
 
 export interface QuickJumpNavItem {
   id: WorkspaceTab;
@@ -25,6 +28,9 @@ interface GlobalQuickJumpProps {
   data: WorkspaceData;
   allowedNav: QuickJumpNavItem[];
   recentTabs?: WorkspaceTab[];
+  activeAlertCount?: number;
+  criticalAlertCount?: number;
+  urgentAlerts?: UnifiedWorkspaceAlert[];
   onNavigate: (tab: WorkspaceTab) => void;
   onOpenStudent: (studentId: string) => void;
   onOpenOneGoAttendance?: () => void;
@@ -33,10 +39,10 @@ interface GlobalQuickJumpProps {
 
 interface JumpResult {
   id: string;
-  category: 'Recent' | 'Quick Action' | 'Module' | 'Student' | 'Fee Ledger';
+  category: 'Recent' | 'Alerts' | 'Quick Action' | 'Module' | 'Student' | 'Fee Ledger';
   title: string;
   subtitle: string;
-  icon: 'recent' | 'attendance' | 'marks' | 'games' | 'finance' | 'module' | 'student';
+  icon: 'recent' | 'alert' | 'critical_alert' | 'attendance' | 'marks' | 'games' | 'finance' | 'module' | 'student';
   onSelect: () => void;
 }
 
@@ -44,6 +50,9 @@ export const GlobalQuickJump: React.FC<GlobalQuickJumpProps> = ({
   data,
   allowedNav,
   recentTabs = [],
+  activeAlertCount = 0,
+  criticalAlertCount = 0,
+  urgentAlerts = [],
   onNavigate,
   onOpenStudent,
   onOpenOneGoAttendance,
@@ -103,6 +112,54 @@ export const GlobalQuickJump: React.FC<GlobalQuickJumpProps> = ({
           icon: 'recent',
           onSelect: () => {
             onNavigate(navItem.id);
+            setOpen(false);
+          },
+        });
+      }
+    }
+
+    // 1b. Active Alerts Center + Top Urgent Alerts
+    if (hasTab('alerts')) {
+      const alertSummaryMatch =
+        !q || 'alerts center notifications urgent critical warnings inbox'.includes(q);
+      if (alertSummaryMatch && activeAlertCount > 0) {
+        list.push({
+          id: 'alert-center-shortcut',
+          category: 'Alerts',
+          title: `Open Alerts Center (${activeAlertCount} active)`,
+          subtitle:
+            criticalAlertCount > 0
+              ? `${criticalAlertCount} critical · Unified triage across all modules`
+              : 'Review & acknowledge notifications across all modules',
+          icon: criticalAlertCount > 0 ? 'critical_alert' : 'alert',
+          onSelect: () => {
+            onNavigate('alerts');
+            setOpen(false);
+          },
+        });
+      }
+
+      const matchingAlerts = urgentAlerts
+        .filter((a) => !a.isResolved)
+        .filter((a) => {
+          if (!q) return a.severity === 'critical';
+          return `${a.title} ${a.summary} ${a.entityLabel}`.toLowerCase().includes(q);
+        })
+        .slice(0, q ? 5 : 2);
+
+      for (const item of matchingAlerts) {
+        list.push({
+          id: `alert-item-${item.id}`,
+          category: 'Alerts',
+          title: item.title,
+          subtitle: `${item.entityLabel} · ${item.dateLabel}`,
+          icon: item.severity === 'critical' ? 'critical_alert' : 'alert',
+          onSelect: () => {
+            if (item.targetTab === 'students' && item.studentId) {
+              onOpenStudent(item.studentId);
+            } else {
+              onNavigate(item.targetTab);
+            }
             setOpen(false);
           },
         });
@@ -276,6 +333,9 @@ export const GlobalQuickJump: React.FC<GlobalQuickJumpProps> = ({
   }, [
     query,
     recentTabs,
+    activeAlertCount,
+    criticalAlertCount,
+    urgentAlerts,
     isTeacher,
     isLeadership,
     isStudent,
@@ -317,6 +377,10 @@ export const GlobalQuickJump: React.FC<GlobalQuickJumpProps> = ({
     switch (icon) {
       case 'recent':
         return <Clock className="h-4 w-4 text-amber-700" />;
+      case 'critical_alert':
+        return <ShieldAlert className="h-4 w-4 text-red-700" />;
+      case 'alert':
+        return <Bell className="h-4 w-4 text-amber-700" />;
       case 'attendance':
         return <UserCheck className="h-4 w-4 text-[#142B46]" />;
       case 'marks':

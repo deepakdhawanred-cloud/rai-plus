@@ -16,12 +16,12 @@ import {
   TODAY_VIS_DATE,
 } from './visAcademicProgressEngine';
 
-test('enrols all 535 active VIS students from CSV and preserves curated flagship IDs', () => {
-  assert.equal(VIS_STUDENTS.length, 535);
-  assert.equal(VIS_SCHOOL.studentCount, 535);
+test('enrols all 538 active VIS students from CSV and preserves curated flagship IDs', () => {
+  assert.equal(VIS_STUDENTS.length, 538);
+  assert.equal(VIS_SCHOOL.studentCount, 538);
 
   const ids = new Set(VIS_STUDENTS.map((s) => s.id));
-  assert.equal(ids.size, 535);
+  assert.equal(ids.size, 538);
 
   for (const [admNo, stuId] of Object.entries(CURATED_ADM_TO_STUDENT_ID)) {
     const found = VIS_STUDENTS.find((s) => s.id === stuId);
@@ -35,21 +35,21 @@ test('enrols all 535 active VIS students from CSV and preserves curated flagship
   }
 });
 
-test('seeds UT-1/2/3 marks, Apr-Nov reading & numeracy reports, monthly attendance & today roll call for all 535 VIS students', () => {
+test('seeds UT-1/2/3 marks, Apr-Nov reading & numeracy reports, monthly attendance & today roll call for all 538 VIS students', () => {
   const db = createInitialDatabase();
   const visStudents = db.students.filter((s) => s.schoolId === 'school-vis-jjr');
-  assert.equal(visStudents.length, 535);
+  assert.equal(visStudents.length, 538);
 
   // Fee ledger linkage backfilled across active VIS students
   const visFeeAccounts = (db.feeAccounts || []).filter((a) => a.schoolId === 'school-vis-jjr');
-  assert.equal(visFeeAccounts.length, 535);
+  assert.equal(visFeeAccounts.length, 538);
   assert.ok(visFeeAccounts.every((a) => Boolean(a.studentId)));
 
   // UT Marks across UT1, UT2, UT3
   const visMarks = db.examMarks.filter((m) => m.schoolId === 'school-vis-jjr');
   const utSummary = summarizeUtMarks(visStudents, visMarks);
-  assert.ok(utSummary.summary.totalMarks >= 535 * 9);
-  assert.equal(utSummary.summary.studentCount, 535);
+  assert.ok(utSummary.summary.totalMarks >= 538 * 9);
+  assert.equal(utSummary.summary.studentCount, 538);
   assert.ok(utSummary.summary.examNames.includes('Unit Test 1'));
   assert.ok(utSummary.summary.examNames.includes('Unit Test 2'));
   assert.ok(utSummary.summary.examNames.includes('Unit Test 3'));
@@ -57,35 +57,35 @@ test('seeds UT-1/2/3 marks, Apr-Nov reading & numeracy reports, monthly attendan
   // Reading & Numeracy reports across all 8 active months (Apr-Nov)
   const visReading = (db.readingReports || []).filter((r) => r.schoolId === 'school-vis-jjr');
   const visNumeracy = (db.numeracyReports || []).filter((r) => r.schoolId === 'school-vis-jjr');
-  assert.equal(visReading.length, 535 * ACTIVE_SESSION_MONTHS.length);
-  assert.equal(visNumeracy.length, 535 * ACTIVE_SESSION_MONTHS.length);
+  assert.equal(visReading.length, 538 * ACTIVE_SESSION_MONTHS.length);
+  assert.equal(visNumeracy.length, 538 * ACTIVE_SESSION_MONTHS.length);
 
   const novReading = summarizeMonthlyReading(visStudents, visReading, 'November', 'All');
-  assert.equal(novReading.rows.length, 535);
+  assert.equal(novReading.rows.length, 538);
   assert.ok(novReading.avgWpm > 60);
 
   const novNumeracy = summarizeMonthlyNumeracy(visStudents, visNumeracy, 'November', 'All');
-  assert.equal(novNumeracy.rows.length, 535);
+  assert.equal(novNumeracy.rows.length, 538);
   assert.ok(novNumeracy.avgTablesPct > 50);
 
-  // Today (2026-11-16) Present + Absent + Leave covers all 535 VIS students
+  // Today (2026-11-16) Present + Absent + Leave covers all 538 VIS students
   const visAttendance = db.attendance.filter((a) => a.schoolId === 'school-vis-jjr');
   const todaySummary = summarizeDailyAttendanceDashboard(visStudents, visAttendance, TODAY_VIS_DATE);
-  assert.equal(todaySummary.totalStudents, 535);
+  assert.equal(todaySummary.totalStudents, 538);
   assert.equal(todaySummary.unmarkedCount, 0);
   assert.ok(todaySummary.presentCount > 400);
   assert.ok(todaySummary.absentCount > 15);
   assert.equal(
     todaySummary.presentCount + todaySummary.absentCount + todaySummary.leaveCount,
-    535,
+    538,
   );
 
   // Monthly Attendance summary across Apr-Nov
   const visMonthly = (db.monthlyAttendance || []).filter((m) => m.schoolId === 'school-vis-jjr');
-  assert.equal(visMonthly.length, 535 * ACTIVE_SESSION_MONTHS.length);
+  assert.equal(visMonthly.length, 538 * ACTIVE_SESSION_MONTHS.length);
   const monthlyAgg = summarizeMonthlyAttendanceByMonth(visMonthly);
   assert.equal(monthlyAgg.length, ACTIVE_SESSION_MONTHS.length);
-  assert.ok(monthlyAgg.every((m) => m.studentCount === 535 && m.attendancePct > 75));
+  assert.ok(monthlyAgg.every((m) => m.studentCount === 538 && m.attendancePct > 75));
 });
 
 test('reconcileMonthlyAttendanceAfterMark updates November counts deterministically without altering OLQs', () => {

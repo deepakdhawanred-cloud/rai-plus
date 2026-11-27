@@ -1052,5 +1052,199 @@ Abacus progress: ${params.abacusSummary || 'Not yet started'}`,
   }
 }
 
+export interface ExpenseCategorizationInputRow {
+  id: string;
+  date?: string;
+  vendorOrParty: string;
+  description: string;
+  category?: string;
+  amountInr?: number;
+  paymentMode?: string;
+}
+
+export interface ExpenseCategorizationOutputRow {
+  id: string;
+  classification: 'Operational' | 'Administrative' | 'Developmental';
+  reason: string;
+}
+
+const VALID_EXPENSE_CLASSIFICATIONS = new Set<'Operational' | 'Administrative' | 'Developmental'>([
+  'Operational',
+  'Administrative',
+  'Developmental',
+]);
+
+async function categorizeExpenseChunkWithGemini(
+  ai: GoogleGenAI,
+  rows: ExpenseCategorizationInputRow[],
+): Promise<ExpenseCategorizationOutputRow[]> {
+  const payloadText = rows
+    .map(
+      (r, i) =>
+        `${i + 1}. id="${r.id}" | date="${r.date || ''}" | party="${r.vendorOrParty}" | desc="${r.description}" | ledgerCategory="${r.category || ''}" | amountINR=${r.amountInr ?? 0} | mode="${r.paymentMode || ''}"`,
+    )
+    .join('\n');
+
+  const prompt = `Classify each Indian school expense row below into exactly one of three labels:
+- "Operational": Day-to-day running costs required to operate classes, campus, and school transport — e.g. bus fuel (OM Fuel Payment), bus repairs/service/motors, electricity bills, daily campus cash expenses, driver salaries, regular staff/teacher salaries, monthly bus EMI/kist installments, routine maintenance.
+- "Administrative": Institutional governance, compliance, overhead, rent, insurance, board/CBSE fees, bank transfers, director/management account transfers, report cards, flex/printing/branding, office supplies, and hold-salary settlements.
+- "Developmental": Capital investment, expansion, technology modernization, and educational growth — e.g. projectors, smart-classroom/EdTech software (UOLO Software), new bus advance booking / fleet expansion, publications/curriculum upgrades, campus painting/renovation upgrades.
+
+Expense Rows:
+${payloadText}
+
+Return a JSON object with a "classifications" array containing one entry per input row id.`;
+
+  const maxAttempts = 3;
+  let lastErr: unknown = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-4-hydrogen',
+        contents: prompt,
+        config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+          systemInstruction:
+            'You are a senior school financial controller for an Indian K-12 institution. Categorize each expense row strictly into Operational, Administrative, or Developmental with a concise 1-sentence accounting rationale. Return strictly valid JSON matching the schema.',
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              classifications: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    id: { type: Type.STRING },
+                    classification: {
+                      type: Type.STRING,
+                      description: 'Must be exactly one of: Operational, Administrative, Developmental',
+                    },
+                    reason: {
+                      type: Type.STRING,
+                      description: 'Concise 1-sentence financial rationale (max 110 characters).',
+                    },
+                  },
+                  required: ['id', 'classification', 'reason'],
+                },
+              },
+            },
+            required: ['classifications'],
+          },
+        },
+      });
+
+      const rawText = (response.text ?? '').trim();
+      if (!rawText) {
+        throw new GeminiApiError('Gemini returned an empty expense categorization response.', 502);
+      }
+
+      const parsed = JSON.parse(rawText) as {
+        classifications?: Array<{ id?: string; classification?: string; reason?: string }>;
+      };
+      const items = Array.isArray(parsed.classifications) ? parsed.classifications : [];
+      if (items.length === 0) {
+        throw new GeminiApiError('Gemini returned no expense classification items.', 502);
+      }
+
+      const resultById = new Map<string, ExpenseCategorizationOutputRow>();
+      for (const item of items) {
+        const id = String(item.id || '').trim();
+        const rawLabel = String(item.classification || '').trim();
+        if (!id) continue;
+        const matched = VALID_EXPENSE_CLASSIFICATIONS.has(
+          rawLabel as 'Operational' | 'Administrative' | 'Developmental',
+        )
+          ? (rawLabel as 'Operational' | 'Administrative' | 'Developmental')
+          : rawLabel.toLowerCase().includes('dev')
+            ? 'Developmental'
+            : rawLabel.toLowerCase().includes('admin')
+              ? 'Administrative'
+              : 'Operational';
+        resultById.set(id, {
+          id,
+          classification: matched,
+          reason: String(item.reason || `Classified as ${matched} by Gemini.`).trim().slice(0, 140),
+        });
+      }
+
+      return rows
+        .map((r) => resultById.get(r.id))
+        .filter((x): x is ExpenseCategorizationOutputRow => Boolean(x));
+    } catch (err) {
+      lastErr = err;
+      if (err instanceof GeminiApiError) throw err;
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      const isTransient = /\b(500|503|504)\b|UNAVAILABLE|overloaded|high demand/i.test(rawMsg);
+      if (attempt < maxAttempts && isTransient) {
+        await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+        continue;
+      }
+      break;
+    }
+  }
+
+  const rawMsg = lastErr instanceof Error ? lastErr.message : String(lastErr ?? 'Unknown error');
+  const statusMatch = rawMsg.match(/\b(400|401|403|404|429|500|503)\b/);
+  const statusCode = statusMatch ? Number(statusMatch[1]) : 502;
+  if (statusCode === 403 || statusCode === 401 || /API_KEY_INVALID|PERMISSION_DENIED/i.test(rawMsg)) {
+    throw new GeminiApiError(
+      'Gemini API key was rejected (403/invalid key). Check GEMINI_API_KEY in Settings > Secrets.',
+      403,
+    );
+  }
+  if (statusCode === 429 || /RESOURCE_EXHAUSTED/i.test(rawMsg)) {
+    throw new GeminiApiError(
+      'Gemini API rate limit reached (429). Wait a moment or configure a higher-quota key in Settings > Secrets.',
+      429,
+    );
+  }
+  throw new GeminiApiError(`Gemini expense categorization failed (${statusCode}): ${rawMsg}`, statusCode);
+}
+
+/**
+ * Automated school expense categorization via server-side Gemini API (`gemini-4-hydrogen`).
+ * Labels incoming or existing expense rows strictly as 'Operational', 'Administrative', or 'Developmental'.
+ * Processes large expense sheets in reliable batches of 35 rows and propagates upstream API errors honestly.
+ */
+export async function categorizeExpensesWithGemini(
+  rows: ExpenseCategorizationInputRow[],
+): Promise<{
+  results: ExpenseCategorizationOutputRow[];
+  model: string;
+  categorizedAt: string;
+}> {
+  const ai = getClient();
+  if (!ai) {
+    throw new GeminiApiError(
+      'GEMINI_API_KEY is not configured on the server. Add GEMINI_API_KEY in Settings > Secrets to run automated Gemini expense categorization.',
+      503,
+    );
+  }
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return {
+      results: [],
+      model: 'gemini-4-hydrogen',
+      categorizedAt: new Date().toISOString(),
+    };
+  }
+
+  const chunkSize = 35;
+  const allResults: ExpenseCategorizationOutputRow[] = [];
+  for (let start = 0; start < rows.length; start += chunkSize) {
+    const slice = rows.slice(start, start + chunkSize);
+    const chunkRes = await categorizeExpenseChunkWithGemini(ai, slice);
+    allResults.push(...chunkRes);
+  }
+
+  return {
+    results: allResults,
+    model: 'gemini-4-hydrogen',
+    categorizedAt: new Date().toISOString(),
+  };
+}
+
+
 
 

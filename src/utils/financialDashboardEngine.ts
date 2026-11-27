@@ -3,6 +3,7 @@ import type {
   FeeLedgerAccount,
   FeeMonthBreakdownItem,
   FeeMonthKey,
+  FeePaymentReceipt,
   FeeScheduleCadence,
   MonthlyFeeTargetConfig,
   SiblingFamilyGroup,
@@ -39,6 +40,31 @@ export const ACADEMIC_FEE_MONTHS: FeeMonthKey[] = [
   'February',
   'March',
 ];
+
+const CALENDAR_MONTH_TO_FEE_MONTH: FeeMonthKey[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export function resolveCurrentAcademicFeeMonth(todayIso?: string): FeeMonthKey {
+  if (todayIso && /^\d{4}-\d{2}-\d{2}/.test(todayIso)) {
+    const calMonth = Number(todayIso.slice(5, 7));
+    if (calMonth >= 1 && calMonth <= 12) {
+      return CALENDAR_MONTH_TO_FEE_MONTH[calMonth - 1];
+    }
+  }
+  return CALENDAR_MONTH_TO_FEE_MONTH[new Date().getMonth()] ?? 'November';
+}
 
 export function emptyMonthlyPaidMap(): Record<FeeMonthKey, number> {
   return {
@@ -479,6 +505,26 @@ export function detectSiblingFamilyGroups(
   });
 }
 
+export interface FeeDefaulterMetrics {
+  grossFeeInr: number;
+  paidAmountInr: number;
+  balanceFeesInr: number;
+  percentLeft: number;
+  percentPaid: number;
+  dueTillCurrentMonthInr: number;
+  overdueTillCurrentMonthInr: number;
+  unpaidTillMonthPct: number;
+  hasPaidTillCurrentMonth: boolean;
+  paidTillMonthLabel: FeeMonthKey | 'Unpaid';
+  monthsBehindCurrentMonth: number;
+  defaulterPriorityScore: number;
+  riskTier: 'Critical' | 'High' | 'Moderate';
+}
+
+export type RankedFeeDefaulter = FeeLedgerAccount & {
+  defaulterMetrics: FeeDefaulterMetrics;
+};
+
 export interface ClassFeeSummary {
   className: string;
   sortOrder: number;
@@ -491,7 +537,7 @@ export interface ClassFeeSummary {
   expectedThisMonthInr: number;
   collectedThisMonthInr: number;
   monthAttainmentPct: number;
-  topDefaulters: FeeLedgerAccount[];
+  topDefaulters: RankedFeeDefaulter[];
 }
 
 export interface MonthlyCollectionPoint {
@@ -520,6 +566,7 @@ export interface FinancialDashboardSummary {
   collectionRatePct: number;
   accountsTotal: number;
   defaulterAccountsCount: number;
+  paidTillCurrentMonthPendingCount: number;
   settledAccountsCount: number;
   activeMonth: FeeMonthKey;
   scheduleExpectedMonthInr: number;
@@ -533,10 +580,172 @@ export interface FinancialDashboardSummary {
   dailyRequiredRunRateInr: number;
   monthlySeries: MonthlyCollectionPoint[];
   classSummaries: ClassFeeSummary[];
-  schoolTopDefaulters: FeeLedgerAccount[];
+  schoolTopDefaulters: RankedFeeDefaulter[];
   siblingAlerts: SiblingAlertCardView[];
   mergedFamilies: SiblingAlertCardView[];
   dismissedFamilies: SiblingAlertCardView[];
+}
+
+/**
+ * Evaluates a single account's till-current-month fee status across any school.
+ * An account is considered a current-month defaulter only if it has a positive
+ * remaining balance AND its total paid amount has not covered dues through `activeMonth`.
+ */
+export function evaluateFeeDefaulterStatus(
+  acc: FeeLedgerAccount,
+  activeMonth: FeeMonthKey = resolveCurrentAcademicFeeMonth(),
+  referenceBalanceCapInr = 50000,
+): FeeDefaulterMetrics {
+  const balanceFeesInr = Math.max(0, Math.round(acc.balanceFeesInr || 0));
+  const paidAmountInr = Math.max(0, Math.round(acc.paidAmountInr || 0));
+  const rawNetDemand = Math.max(
+    0,
+    Math.round((acc.lastYearBalanceInr || 0) + (acc.yearlyDemandInr || 0) - (acc.settleAmountInr || 0)),
+  );
+  const grossFeeInr = Math.max(paidAmountInr + balanceFeesInr, rawNetDemand);
+
+  if (balanceFeesInr <= 0 || grossFeeInr <= 0) {
+    return {
+      grossFeeInr,
+      paidAmountInr,
+      balanceFeesInr: 0,
+      percentLeft: 0,
+      percentPaid: grossFeeInr > 0 ? 100 : 0,
+      dueTillCurrentMonthInr: 0,
+      overdueTillCurrentMonthInr: 0,
+      unpaidTillMonthPct: 0,
+      hasPaidTillCurrentMonth: true,
+      paidTillMonthLabel: 'March',
+      monthsBehindCurrentMonth: 0,
+      defaulterPriorityScore: 0,
+      riskTier: 'Moderate',
+    };
+  }
+
+  const activeMonthIdx = Math.max(0, ACADEMIC_FEE_MONTHS.indexOf(activeMonth));
+  const alloc = computeStudentFeeMonthAllocation({
+    accounts: [acc],
+    paymentNowInr: 0,
+    scheduleCadence: acc.scheduleCadence,
+  });
+
+  const dueTillCurrentMonthInr =
+    alloc.lybDueInr +
+    alloc.months
+      .slice(0, activeMonthIdx + 1)
+      .reduce((sum, item) => sum + item.dueInr, 0);
+
+  const overdueTillCurrentMonthInr = Math.min(
+    balanceFeesInr,
+    Math.max(0, dueTillCurrentMonthInr - paidAmountInr),
+  );
+  const hasPaidTillCurrentMonth = overdueTillCurrentMonthInr <= 0;
+
+  const percentLeft = Math.round((balanceFeesInr / grossFeeInr) * 1000) / 10;
+  const percentPaid = Math.max(0, Math.round((100 - percentLeft) * 10) / 10);
+  const unpaidTillMonthPct =
+    dueTillCurrentMonthInr > 0
+      ? Math.min(100, Math.round((overdueTillCurrentMonthInr / dueTillCurrentMonthInr) * 1000) / 10)
+      : 0;
+
+  const paidTillMonthLabel: FeeMonthKey | 'Unpaid' = alloc.previousPaidTillMonth ?? 'Unpaid';
+  const paidTillIdx =
+    paidTillMonthLabel === 'Unpaid' ? -1 : ACADEMIC_FEE_MONTHS.indexOf(paidTillMonthLabel);
+  const monthsBehindCurrentMonth = hasPaidTillCurrentMonth
+    ? 0
+    : Math.max(1, activeMonthIdx - paidTillIdx);
+
+  const safeCap = Math.max(25000, referenceBalanceCapInr);
+  const leftAmountSeverity = Math.min(100, (balanceFeesInr / safeCap) * 100);
+
+  // Composite priority: 55% percentage left + 25% unpaid share of till-current-month dues (captures total paid vs due) + 20% left amount exposure
+  const defaulterPriorityScore = hasPaidTillCurrentMonth
+    ? 0
+    : Math.round((percentLeft * 0.55 + unpaidTillMonthPct * 0.25 + leftAmountSeverity * 0.2) * 10) /
+      10;
+
+  const riskTier: 'Critical' | 'High' | 'Moderate' =
+    defaulterPriorityScore >= 75 || (percentLeft >= 85 && paidAmountInr === 0)
+      ? 'Critical'
+      : defaulterPriorityScore >= 45 || percentLeft >= 55
+        ? 'High'
+        : 'Moderate';
+
+  return {
+    grossFeeInr,
+    paidAmountInr,
+    balanceFeesInr,
+    percentLeft,
+    percentPaid,
+    dueTillCurrentMonthInr,
+    overdueTillCurrentMonthInr,
+    unpaidTillMonthPct,
+    hasPaidTillCurrentMonth,
+    paidTillMonthLabel,
+    monthsBehindCurrentMonth,
+    defaulterPriorityScore,
+    riskTier,
+  };
+}
+
+/**
+ * Filters and ranks fee defaulters for any school strictly to accounts that have NOT
+ * paid through `activeMonth`, ordered by composite priority (% left, total paid YTD,
+ * and remaining balance exposure).
+ */
+export function rankSchoolFeeDefaulters(
+  accounts: FeeLedgerAccount[],
+  activeMonth: FeeMonthKey = resolveCurrentAcademicFeeMonth(),
+): {
+  defaulters: RankedFeeDefaulter[];
+  paidTillCurrentMonthPendingCount: number;
+} {
+  // Compute robust 90th-percentile balance cap within this school cohort so ranking scales cleanly for every school
+  const positiveBalances = accounts
+    .filter((a) => a.balanceFeesInr > 0)
+    .map((a) => a.balanceFeesInr)
+    .sort((a, b) => a - b);
+  const p90 =
+    positiveBalances.length > 0
+      ? positiveBalances[Math.min(positiveBalances.length - 1, Math.floor(positiveBalances.length * 0.9))]
+      : 25000;
+  const referenceCap = Math.max(25000, p90);
+
+  const defaulters: RankedFeeDefaulter[] = [];
+  let paidTillCurrentMonthPendingCount = 0;
+
+  for (const acc of accounts) {
+    if (acc.balanceFeesInr <= 0) continue;
+    const defaulterMetrics = evaluateFeeDefaulterStatus(acc, activeMonth, referenceCap);
+    if (defaulterMetrics.hasPaidTillCurrentMonth) {
+      paidTillCurrentMonthPendingCount += 1;
+      continue;
+    }
+    defaulters.push({
+      ...acc,
+      defaulterMetrics,
+    });
+  }
+
+  defaulters.sort((a, b) => {
+    const ma = a.defaulterMetrics;
+    const mb = b.defaulterMetrics;
+    if (mb.defaulterPriorityScore !== ma.defaulterPriorityScore) {
+      return mb.defaulterPriorityScore - ma.defaulterPriorityScore;
+    }
+    if (mb.percentLeft !== ma.percentLeft) {
+      return mb.percentLeft - ma.percentLeft;
+    }
+    if (ma.paidAmountInr !== mb.paidAmountInr) {
+      return ma.paidAmountInr - mb.paidAmountInr;
+    }
+    if (mb.balanceFeesInr !== ma.balanceFeesInr) {
+      return mb.balanceFeesInr - ma.balanceFeesInr;
+    }
+    return mb.overdueTillCurrentMonthInr - ma.overdueTillCurrentMonthInr;
+  });
+
+  return { defaulters, paidTillCurrentMonthPendingCount };
 }
 
 export function computeExpectedMonthlyDemandForAccount(
@@ -582,7 +791,10 @@ export function computeFinancialDashboardMetrics(params: {
   classFilter?: string;
   topDefaultersPerClassLimit?: number;
 }): FinancialDashboardSummary {
-  const activeMonth = params.activeMonth ?? params.targetConfig?.monthKey ?? 'November';
+  const activeMonth =
+    params.activeMonth ??
+    params.targetConfig?.monthKey ??
+    resolveCurrentAcademicFeeMonth(params.todayIso);
   const classFilter = params.classFilter || 'ALL';
   const perClassLimit = params.topDefaultersPerClassLimit ?? 5;
 
@@ -597,7 +809,6 @@ export function computeFinancialDashboardMetrics(params: {
   let totalOutstandingInr = 0;
   let totalFinesInr = 0;
   let totalSettleInr = 0;
-  let defaulterAccountsCount = 0;
   let settledAccountsCount = 0;
   let scheduleExpectedMonthInr = 0;
   let collectedThisMonthInr = 0;
@@ -615,8 +826,7 @@ export function computeFinancialDashboardMetrics(params: {
     totalFinesInr += acc.fineInr;
     totalSettleInr += acc.settleAmountInr;
 
-    if (acc.balanceFeesInr > 0) defaulterAccountsCount += 1;
-    else settledAccountsCount += 1;
+    if (acc.balanceFeesInr <= 0) settledAccountsCount += 1;
 
     scheduleExpectedMonthInr += computeExpectedMonthlyDemandForAccount(acc, activeMonth);
     collectedThisMonthInr += acc.monthlyPaidInr?.[activeMonth] ?? 0;
@@ -678,6 +888,16 @@ export function computeFinancialDashboardMetrics(params: {
     payerCount: monthlyTotals.get(m)!.payerCount,
   }));
 
+  const {
+    defaulters: schoolTopDefaulters,
+    paidTillCurrentMonthPendingCount,
+  } = rankSchoolFeeDefaulters(visibleAccounts, activeMonth);
+  const defaulterAccountsCount = schoolTopDefaulters.length;
+
+  const rankedById = new Map<string, RankedFeeDefaulter>(
+    schoolTopDefaulters.map((d) => [d.id, d]),
+  );
+
   // Group by class from full accounts (or filtered) so class-wise defaulters stay consistent
   const classBuckets = new Map<string, FeeLedgerAccount[]>();
   for (const acc of visibleAccounts) {
@@ -707,11 +927,23 @@ export function computeFinancialDashboardMetrics(params: {
           : collectedThisMonthInr > 0
             ? 100
             : 0;
-      const defaulterCount = list.filter((a) => a.balanceFeesInr > 0).length;
-      const topDefaulters = [...list]
-        .filter((a) => a.balanceFeesInr > 0)
-        .sort((a, b) => b.balanceFeesInr - a.balanceFeesInr)
-        .slice(0, perClassLimit);
+
+      const classDefaulters = list
+        .map((a) => rankedById.get(a.id))
+        .filter((d): d is RankedFeeDefaulter => Boolean(d))
+        .sort((a, b) => {
+          const ma = a.defaulterMetrics;
+          const mb = b.defaulterMetrics;
+          if (mb.defaulterPriorityScore !== ma.defaulterPriorityScore) {
+            return mb.defaulterPriorityScore - ma.defaulterPriorityScore;
+          }
+          if (mb.percentLeft !== ma.percentLeft) return mb.percentLeft - ma.percentLeft;
+          if (ma.paidAmountInr !== mb.paidAmountInr) return ma.paidAmountInr - mb.paidAmountInr;
+          return mb.balanceFeesInr - ma.balanceFeesInr;
+        });
+
+      const defaulterCount = classDefaulters.length;
+      const topDefaulters = classDefaulters.slice(0, perClassLimit);
 
       return {
         className,
@@ -732,10 +964,6 @@ export function computeFinancialDashboardMetrics(params: {
     .sort((a, b) =>
       a.sortOrder !== b.sortOrder ? a.sortOrder - b.sortOrder : a.className.localeCompare(b.className),
     );
-
-  const schoolTopDefaulters = [...visibleAccounts]
-    .filter((a) => a.balanceFeesInr > 0)
-    .sort((a, b) => b.balanceFeesInr - a.balanceFeesInr);
 
   // Build sibling card views
   const accountById = new Map(params.accounts.map((a) => [a.id, a]));
@@ -781,6 +1009,7 @@ export function computeFinancialDashboardMetrics(params: {
     collectionRatePct,
     accountsTotal: visibleAccounts.length,
     defaulterAccountsCount,
+    paidTillCurrentMonthPendingCount,
     settledAccountsCount,
     activeMonth,
     scheduleExpectedMonthInr,
@@ -1258,3 +1487,246 @@ export function computeStudentFeeMonthAllocation(params: {
     nextExpectedInstallment: upcomingInstallments[0] ?? null,
   };
 }
+
+export type StudentPaymentNature =
+  | 'Zero Payment Yet'
+  | 'Advance / Lump-Sum Payer'
+  | 'Regular Monthly Payer'
+  | 'Quarterly / Periodic Payer'
+  | 'Stalled Payer'
+  | 'Irregular / Gap Payer';
+
+export interface StudentPaymentTimelineMonth {
+  monthKey: FeeMonthKey;
+  shortLabel: string;
+  paidInr: number;
+  expectedMonthlyInr: number;
+  cumulativePaidInr: number;
+  cumulativeExpectedInr: number;
+  cumulativeShortfallInr: number;
+  status: 'Paid' | 'Covered Ahead' | 'Missed' | 'Upcoming';
+  isElapsed: boolean;
+  isCurrentMonth: boolean;
+  receipts: FeePaymentReceipt[];
+}
+
+export interface StudentPaymentTimelineAnalysis {
+  accountId: string;
+  studentName: string;
+  activeMonth: FeeMonthKey;
+  monthsElapsed: number;
+  activePaymentMonthsCount: number;
+  missedElapsedMonthsCount: number;
+  consecutiveUnpaidMonths: number;
+  longestUnpaidGapMonths: number;
+  averageInstallmentInr: number;
+  largestPaymentInr: number;
+  largestPaymentMonth: FeeMonthKey | null;
+  lastPaymentMonth: FeeMonthKey | null;
+  lastPaymentAmountInr: number;
+  paymentNature: StudentPaymentNature;
+  paymentNatureTone: 'positive' | 'neutral' | 'warning' | 'critical';
+  paymentNatureSummary: string;
+  months: StudentPaymentTimelineMonth[];
+  defaulterMetrics: FeeDefaulterMetrics;
+}
+
+/**
+ * Builds a complete 12-month (April–March) payment timeline and behavioral
+ * payment-nature classification for any student fee account across any school.
+ */
+export function buildStudentPaymentTimeline(params: {
+  account: FeeLedgerAccount;
+  activeMonth?: FeeMonthKey;
+  receipts?: FeePaymentReceipt[];
+  referenceBalanceCapInr?: number;
+}): StudentPaymentTimelineAnalysis {
+  const { account, receipts = [], referenceBalanceCapInr = 50000 } = params;
+  const activeMonth = params.activeMonth ?? resolveCurrentAcademicFeeMonth();
+  const activeMonthIdx = Math.max(0, ACADEMIC_FEE_MONTHS.indexOf(activeMonth));
+  const monthsElapsed = activeMonthIdx + 1;
+
+  const defaulterMetrics = evaluateFeeDefaulterStatus(
+    account,
+    activeMonth,
+    referenceBalanceCapInr,
+  );
+
+  const alloc = computeStudentFeeMonthAllocation({
+    accounts: [account],
+    paymentNowInr: 0,
+    scheduleCadence: account.scheduleCadence,
+  });
+
+  // Match official receipts that include this student's account
+  const studentReceipts = receipts.filter((rcp) =>
+    rcp.allocations?.some((al) => al.accountId === account.id),
+  );
+
+  // Build month-by-month cumulative timeline (April -> March)
+  const monthlyPaidValues = ACADEMIC_FEE_MONTHS.map((m) =>
+    Math.max(0, Math.round(account.monthlyPaidInr?.[m] ?? 0)),
+  );
+  const rawMonthlySum = monthlyPaidValues.reduce((s, v) => s + v, 0);
+  // If account has paidAmountInr > 0 but monthlyPaidInr was empty (e.g., lump-sum manual entry), anchor to April or activeMonth
+  const unmappedPriorPaid = Math.max(0, Math.round(account.paidAmountInr || 0) - rawMonthlySum);
+
+  let cumulativePaid = unmappedPriorPaid;
+  let cumulativeExpected = alloc.lybDueInr;
+  let activePaymentMonthsCount = 0;
+  let missedElapsedMonthsCount = 0;
+  let longestUnpaidGapMonths = 0;
+  let currentGap = 0;
+  let largestPaymentInr = 0;
+  let largestPaymentMonth: FeeMonthKey | null = null;
+  let lastPaymentMonth: FeeMonthKey | null = null;
+  let lastPaymentAmountInr = 0;
+
+  const months: StudentPaymentTimelineMonth[] = ACADEMIC_FEE_MONTHS.map((m, idx) => {
+    const paidInr = monthlyPaidValues[idx];
+    const expectedMonthlyInr = alloc.months[idx]?.dueInr ?? 0;
+    const isElapsed = idx <= activeMonthIdx;
+    const isCurrentMonth = idx === activeMonthIdx;
+
+    cumulativePaid += paidInr;
+    cumulativeExpected += expectedMonthlyInr;
+    const cumulativeShortfallInr = Math.max(0, cumulativeExpected - cumulativePaid);
+
+    if (paidInr > 0) {
+      if (isElapsed) activePaymentMonthsCount += 1;
+      lastPaymentMonth = m;
+      lastPaymentAmountInr = paidInr;
+      if (paidInr > largestPaymentInr) {
+        largestPaymentInr = paidInr;
+        largestPaymentMonth = m;
+      }
+      if (isElapsed) currentGap = 0;
+    } else if (isElapsed) {
+      if (cumulativeShortfallInr > 0) {
+        missedElapsedMonthsCount += 1;
+        currentGap += 1;
+        if (currentGap > longestUnpaidGapMonths) longestUnpaidGapMonths = currentGap;
+      } else {
+        currentGap = 0;
+      }
+    }
+
+    const monthReceipts = studentReceipts.filter((r) => r.monthKey === m);
+    let status: StudentPaymentTimelineMonth['status'];
+    if (paidInr > 0) {
+      status = 'Paid';
+    } else if (!isElapsed) {
+      status = cumulativePaid >= cumulativeExpected && account.paidAmountInr > 0 ? 'Covered Ahead' : 'Upcoming';
+    } else if (cumulativeShortfallInr <= 0) {
+      status = 'Covered Ahead';
+    } else {
+      status = 'Missed';
+    }
+
+    return {
+      monthKey: m,
+      shortLabel: m.slice(0, 3),
+      paidInr,
+      expectedMonthlyInr,
+      cumulativePaidInr: cumulativePaid,
+      cumulativeExpectedInr: cumulativeExpected,
+      cumulativeShortfallInr,
+      status,
+      isElapsed,
+      isCurrentMonth,
+      receipts: monthReceipts,
+    };
+  });
+
+  // Trailing consecutive unpaid months up to activeMonth
+  let consecutiveUnpaidMonths = 0;
+  for (let idx = activeMonthIdx; idx >= 0; idx -= 1) {
+    if (months[idx].paidInr > 0) break;
+    if (months[idx].cumulativeShortfallInr <= 0) break;
+    consecutiveUnpaidMonths += 1;
+  }
+
+  const totalPositiveMonths = months.filter((m) => m.paidInr > 0).length;
+  const averageInstallmentInr =
+    totalPositiveMonths > 0
+      ? Math.round(
+          months.reduce((s, m) => s + m.paidInr, 0) / totalPositiveMonths,
+        )
+      : account.paidAmountInr > 0
+        ? Math.round(account.paidAmountInr)
+        : 0;
+
+  // Classify payment nature clearly for school administration
+  const inrFmt = new Intl.NumberFormat('en-IN');
+  const fmt = (v: number) => `₹${inrFmt.format(Math.round(v))}`;
+  const monthlyRate = Math.max(1, alloc.monthlyRateInr || account.perMonthInr || 1);
+
+  let paymentNature: StudentPaymentNature;
+  let paymentNatureTone: StudentPaymentTimelineAnalysis['paymentNatureTone'];
+  let paymentNatureSummary: string;
+
+  if (account.paidAmountInr <= 0) {
+    paymentNature = 'Zero Payment Yet';
+    paymentNatureTone = 'critical';
+    paymentNatureSummary = `No fee payments recorded across ${monthsElapsed} elapsed months (Apr–${activeMonth.slice(0, 3)}); 100% of ${fmt(defaulterMetrics.grossFeeInr)} remains unpaid.`;
+  } else if (
+    defaulterMetrics.hasPaidTillCurrentMonth &&
+    (totalPositiveMonths <= 3 || defaulterMetrics.percentPaid >= 75)
+  ) {
+    paymentNature = 'Advance / Lump-Sum Payer';
+    paymentNatureTone = 'positive';
+    paymentNatureSummary =
+      account.balanceFeesInr <= 0
+        ? `Fully settled ${fmt(account.paidAmountInr)} in ${Math.max(1, totalPositiveMonths)} payment${totalPositiveMonths === 1 ? '' : 's'} — zero balance remaining.`
+        : `Paid ${fmt(account.paidAmountInr)} (${defaulterMetrics.percentPaid}%) in ${Math.max(1, totalPositiveMonths)} installment${totalPositiveMonths === 1 ? '' : 's'}, covering dues ahead through ${defaulterMetrics.paidTillMonthLabel}.`;
+  } else if (
+    activePaymentMonthsCount >= Math.max(2, Math.ceil(monthsElapsed * 0.7)) &&
+    longestUnpaidGapMonths <= 1
+  ) {
+    paymentNature = 'Regular Monthly Payer';
+    paymentNatureTone = defaulterMetrics.hasPaidTillCurrentMonth ? 'positive' : 'neutral';
+    paymentNatureSummary = `Consistent monthly habit: paid in ${activePaymentMonthsCount} of ${monthsElapsed} months (avg ${fmt(averageInstallmentInr)}/payment), last paid ${fmt(lastPaymentAmountInr)} in ${lastPaymentMonth}.`;
+  } else if (
+    consecutiveUnpaidMonths >= 2 &&
+    lastPaymentMonth !== null &&
+    !defaulterMetrics.hasPaidTillCurrentMonth
+  ) {
+    paymentNature = 'Stalled Payer';
+    paymentNatureTone = consecutiveUnpaidMonths >= 3 ? 'critical' : 'warning';
+    paymentNatureSummary = `Paid ${fmt(account.paidAmountInr)} earlier (last ${fmt(lastPaymentAmountInr)} in ${lastPaymentMonth}), then stopped for ${consecutiveUnpaidMonths} consecutive month${consecutiveUnpaidMonths === 1 ? '' : 's'} through ${activeMonth}.`;
+  } else if (
+    totalPositiveMonths >= 1 &&
+    totalPositiveMonths <= 4 &&
+    averageInstallmentInr >= monthlyRate * 1.8
+  ) {
+    paymentNature = 'Quarterly / Periodic Payer';
+    paymentNatureTone = defaulterMetrics.hasPaidTillCurrentMonth ? 'positive' : 'warning';
+    paymentNatureSummary = `Pays in periodic bulk installments (${totalPositiveMonths} payment${totalPositiveMonths === 1 ? '' : 's'}, avg ${fmt(averageInstallmentInr)} each; largest ${fmt(largestPaymentInr)} in ${largestPaymentMonth ?? activeMonth}).`;
+  } else {
+    paymentNature = 'Irregular / Gap Payer';
+    paymentNatureTone = 'warning';
+    paymentNatureSummary = `Paid in ${activePaymentMonthsCount} of ${monthsElapsed} months (${fmt(account.paidAmountInr)} total) with a longest gap of ${longestUnpaidGapMonths} unpaid month${longestUnpaidGapMonths === 1 ? '' : 's'}.`;
+  }
+
+  return {
+    accountId: account.id,
+    studentName: account.studentName,
+    activeMonth,
+    monthsElapsed,
+    activePaymentMonthsCount,
+    missedElapsedMonthsCount,
+    consecutiveUnpaidMonths,
+    longestUnpaidGapMonths,
+    averageInstallmentInr,
+    largestPaymentInr,
+    largestPaymentMonth,
+    lastPaymentMonth,
+    lastPaymentAmountInr,
+    paymentNature,
+    paymentNatureTone,
+    paymentNatureSummary,
+    months,
+    defaulterMetrics,
+  };
+}
+

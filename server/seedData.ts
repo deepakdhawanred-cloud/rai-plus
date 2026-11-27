@@ -14,6 +14,8 @@ import type {
   DismissedPartialMatch,
   ExamMark,
   FamilyAccount,
+  FeeDefaulterNotificationConfig,
+  FeeDefaulterNotificationRecord,
   FeeLedgerAccount,
   FeePaymentReceipt,
   FeeReminderCalendarEvent,
@@ -88,6 +90,10 @@ import type {
 } from '../src/types';
 import { createIntelligenceSeedBundle } from './intelligenceSeedData.ts';
 import { createPsychometricSeedRecords } from './psychometricRoutes.ts';
+import {
+  loadVisExpenseSheetEntries,
+  loadVisSalarySheetProfiles,
+} from './visFinanceSheetLoader.ts';
 import {
   createInitialComputerSkillAttempts,
   createInitialComputerSkillBenchmarksAllSchools,
@@ -222,6 +228,8 @@ export interface DatabaseState {
   feeReceipts: FeePaymentReceipt[];
   feeReminders?: FeeReminderCalendarEvent[];
   feeStructure?: SchoolFeeStructureRow[];
+  feeDefaulterAlertConfigs?: Record<string, FeeDefaulterNotificationConfig>;
+  feeDefaulterAlertLogs?: FeeDefaulterNotificationRecord[];
   busRoutes?: BusRoute[];
   studentTransportAllocations?: StudentTransportAllocation[];
   transportAttendance?: TransportDailyAttendanceRecord[];
@@ -296,6 +304,12 @@ export interface DatabaseState {
   abacusSessions?: import('../src/types/interactiveLearning').AbacusSessionRecord[];
   coachOverrides?: import('../src/types/interactiveLearning').CoachOverrideRecord[];
   teacherApprovalPolicies?: Record<string, import('../src/types/interactiveLearning').TeacherApprovalPolicyConfig>;
+  // Staff Attendance, Automated Salary, Digital Gate Pass & Visitors Register
+  staffProfiles?: import('../src/types').StaffProfile[];
+  staffAttendance?: import('../src/types').StaffAttendanceRecord[];
+  salaryAuditLogs?: import('../src/types').SalaryModificationAuditRecord[];
+  gatePasses?: import('../src/types').GatePassRecord[];
+  visitorLogs?: import('../src/types').VisitorLogRecord[];
 }
 
 export function createInitialDatabase(): DatabaseState {
@@ -2716,8 +2730,27 @@ export function createInitialDatabase(): DatabaseState {
   initialDb.mindMapResources = createInitialMindMapResources(schoolIdsList);
 
   const initialAccounting = createInitialAccountingBundle(schoolIdsList);
-  initialDb.accountingEntries = initialAccounting.accountingEntries;
-  initialDb.payrollRegisters = initialAccounting.payrollRegisters;
+  const visExpenseEntries = loadVisExpenseSheetEntries('school-vis-jjr');
+  const visSalaryBundle = loadVisSalarySheetProfiles(initialDb.users, 'school-vis-jjr');
+
+  initialDb.accountingEntries =
+    visExpenseEntries.length > 0
+      ? [
+          ...visExpenseEntries,
+          ...initialAccounting.accountingEntries.filter((e) => e.schoolId !== 'school-vis-jjr'),
+        ]
+      : initialAccounting.accountingEntries;
+  initialDb.payrollRegisters =
+    visSalaryBundle.payrollRegisters.length > 0
+      ? [
+          ...visSalaryBundle.payrollRegisters,
+          ...initialAccounting.payrollRegisters.filter((p) => p.schoolId !== 'school-vis-jjr'),
+        ]
+      : initialAccounting.payrollRegisters;
+  if (visSalaryBundle.staffProfiles.length > 0) {
+    initialDb.staffProfiles = visSalaryBundle.staffProfiles;
+    initialDb.staffAttendance = visSalaryBundle.staffAttendance;
+  }
   initialDb.bankReconciliationItems = initialAccounting.bankReconciliationItems;
   initialDb.accountingTasks = initialAccounting.accountingTasks;
 

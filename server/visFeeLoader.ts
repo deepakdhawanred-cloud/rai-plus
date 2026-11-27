@@ -19,9 +19,14 @@ import {
 import { reconcileStudentFamilyAccounts } from '../src/utils/familyAccountEngine.ts';
 import { CURATED_ADM_TO_STUDENT_ID } from './visRosterBuilder.ts';
 
+export const VIS_FEE_CSV_RELATIVE_PATH =
+  'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1__efc80f07';
+
+export const VIS_FEE_LEDGER_VERSION = 'VIS_FEES_2026_2027_FINAL_EFC80F07';
+
 const VIS_FEE_CSV_PATH = path.resolve(
   process.cwd(),
-  'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1___version_1__43ccf4a7.csv',
+  VIS_FEE_CSV_RELATIVE_PATH,
 );
 
 function buildPartnerTenantLedgers(

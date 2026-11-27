@@ -1,70 +1,70 @@
 @import "tailwindcss";
 
 @theme {
-  /* Official Rai Plus Brand Palette */
+  /* Official Rai Plus Modern Executive Palette */
   --color-rai-navy: #142B46;
-  --color-rai-navy-dark: #0E2036;
-  --color-rai-navy-light: #1D3A5C;
-  --color-rai-ivory: #F3E6D8;
-  --color-rai-ivory-soft: #FAF4EC;
-  --color-rai-ivory-border: #E5D6C3;
+  --color-rai-navy-dark: #0D1E33;
+  --color-rai-navy-light: #1E3A5F;
+  --color-rai-ivory: #F8FAFC;
+  --color-rai-ivory-soft: #F4F6FA;
+  --color-rai-ivory-border: #E2E8F0;
   --color-rai-gold: #D6B66D;
-  --color-rai-gold-hover: #C5A255;
-  --color-rai-gold-deep: #7B5D1C;
-  --color-rai-sage: #6E987A;
-  --color-rai-sage-deep: #3D6349;
-  --color-rai-sage-soft: #EFF5F1;
-  --color-rai-sky: #A9C5D8;
-  --color-rai-sky-soft: #EFF5F9;
+  --color-rai-gold-hover: #C29E4F;
+  --color-rai-gold-deep: #8A6820;
+  --color-rai-sage: #2F7A57;
+  --color-rai-sage-deep: #1E5C3E;
+  --color-rai-sage-soft: #ECFDF5;
+  --color-rai-sky: #94B8D3;
+  --color-rai-sky-soft: #F0F6FB;
 
-  /* Harmonized Tailwind Scale -> Rai Plus System (55% Midnight Navy · 20% Ivory · 15% Champagne Gold · 5% Sage Green · 5% Soft Blue) */
-  --color-blue-950: #0C1B2E;
+  /* Crisp Cool-Neutral Structural Surfaces (60% Alabaster Canvas · 30% Clean Slate Surfaces · 10% Navy & Gold Accent) */
+  --color-blue-950: #0B192B;
   --color-blue-900: #142B46;
-  --color-blue-800: #1D3A5C;
-  --color-blue-700: #274C75;
-  --color-blue-600: #35618D;
-  --color-blue-500: #5B86A8;
-  --color-blue-400: #85AAC4;
+  --color-blue-800: #1E3A5F;
+  --color-blue-700: #284D78;
+  --color-blue-600: #336296;
+  --color-blue-500: #4F7FB3;
+  --color-blue-400: #7CA4CE;
   --color-blue-300: #A9C5D8;
-  --color-blue-200: #C8DCE9;
-  --color-blue-100: #E3EEF5;
-  --color-blue-50: #F1F6FA;
+  --color-blue-200: #D1E1EE;
+  --color-blue-100: #E8F1F8;
+  --color-blue-50: #F4F8FC;
 
-  --color-amber-950: #3D2D0A;
-  --color-amber-900: #5E4612;
-  --color-amber-800: #7B5D1C;
-  --color-amber-700: #937024;
-  --color-amber-600: #B38E3D;
+  --color-amber-950: #451A03;
+  --color-amber-900: #78350F;
+  --color-amber-800: #92400E;
+  --color-amber-700: #B45309;
+  --color-amber-600: #C28A28;
   --color-amber-500: #D6B66D;
-  --color-amber-400: #E0C585;
-  --color-amber-300: #EAD6A3;
-  --color-amber-200: #F0E1BC;
-  --color-amber-100: #F7ECDA;
-  --color-amber-50: #FCF7EE;
+  --color-amber-400: #E2C785;
+  --color-amber-300: #ECD8A7;
+  --color-amber-200: #F5E7C4;
+  --color-amber-100: #FAF2DE;
+  --color-amber-50: #FEFBF3;
 
-  --color-emerald-950: #1A3022;
-  --color-emerald-900: #23402D;
-  --color-emerald-800: #2D5139;
-  --color-emerald-700: #3D6349;
-  --color-emerald-600: #537C60;
-  --color-emerald-500: #6E987A;
-  --color-emerald-400: #89AF94;
-  --color-emerald-300: #A9C7B1;
-  --color-emerald-200: #C6DCCC;
-  --color-emerald-100: #E0EDE4;
-  --color-emerald-50: #F0F6F2;
+  --color-emerald-950: #052E16;
+  --color-emerald-900: #14532D;
+  --color-emerald-800: #166534;
+  --color-emerald-700: #15803D;
+  --color-emerald-600: #16A34A;
+  --color-emerald-500: #22C55E;
+  --color-emerald-400: #4ADE80;
+  --color-emerald-300: #86EFAC;
+  --color-emerald-200: #BBF7D0;
+  --color-emerald-100: #DCFCE7;
+  --color-emerald-50: #F0FDF4;
 
-  --color-slate-950: #0C1A2B;
-  --color-slate-900: #142B46;
-  --color-slate-800: #1D3857;
-  --color-slate-700: #2E4866;
-  --color-slate-600: #4A6078;
-  --color-slate-500: #64778C;
-  --color-slate-400: #8D9CAE;
-  --color-slate-300: #D9C9B6;
-  --color-slate-200: #E6D8C6;
-  --color-slate-100: #F3E6D8;
-  --color-slate-50: #FAF4EC;
+  --color-slate-950: #090F1A;
+  --color-slate-900: #0F172A;
+  --color-slate-800: #1E293B;
+  --color-slate-700: #334155;
+  --color-slate-600: #475569;
+  --color-slate-500: #64748B;
+  --color-slate-400: #94A3B8;
+  --color-slate-300: #CBD5E1;
+  --color-slate-200: #E2E8F0;
+  --color-slate-100: #F1F5F9;
+  --color-slate-50: #F8FAFC;
 }
 
 @layer base {
@@ -75,19 +75,21 @@
   }
 
   html {
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 5.5rem;
     scroll-behavior: smooth;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #FAF4EC;
-    color: #142B46;
+    background-color: #F6F8FB;
+    color: #0F172A;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.015em;
   }
 
   h1, h2 {
@@ -125,16 +127,16 @@
   /* Subtle scrollbars for dark navy navigation rails */
   .rai-sidebar-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(169, 197, 216, 0.28) transparent;
+    scrollbar-color: rgba(148, 184, 211, 0.25) transparent;
   }
   .rai-sidebar-scroll::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
   .rai-sidebar-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
   .rai-sidebar-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(169, 197, 216, 0.28);
+    background-color: rgba(148, 184, 211, 0.25);
     border-radius: 9999px;
   }
 }
@@ -159,7 +161,7 @@
 
   body {
     background: #ffffff !important;
-    color: #142B46 !important;
+    color: #0F172A !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

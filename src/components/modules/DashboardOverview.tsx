@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { HomeworkAssignment } from '../../types';
 import type { WorkspaceData, WorkspaceTab } from '../../types/workspace';
+import type { AlertCenterCounts } from '../../utils/alertsCenterEngine';
 import { AssignHomeworkModal } from '../AssignHomeworkModal';
 import { ConsistencyStreakCard } from '../ConsistencyStreakCard';
 import { GrowthLeaderboardCard } from '../GrowthLeaderboardCard';
@@ -56,6 +57,12 @@ import { TodayWorkspace, type TodayFocusMode } from '../teacher/TodayWorkspace';
 import { AccountantDashboardPanel } from '../AccountantDashboardPanel';
 import { AccountsDailyClosingStrip } from '../AccountsDailyClosingStrip';
 import { LeadershipDecisionInbox } from '../LeadershipDecisionInbox';
+import { AdminAnalyticsVisualizer } from '../AdminAnalyticsVisualizer';
+import { TeacherProductivityHeatmapWidget } from '../TeacherProductivityHeatmapWidget';
+import {
+  rankSchoolFeeDefaulters,
+  resolveCurrentAcademicFeeMonth,
+} from '../../utils/financialDashboardEngine';
 
 interface DashboardOverviewProps {
   data: WorkspaceData;
@@ -76,6 +83,7 @@ interface DashboardOverviewProps {
   onChangeParentLang?: (next: ParentLang) => void;
   initialTodayFocusMode?: TodayFocusMode;
   todayFocusNonce?: number;
+  alertCounts?: AlertCenterCounts;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -94,6 +102,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onChangeParentLang,
   initialTodayFocusMode = 'all',
   todayFocusNonce = 0,
+  alertCounts,
 }) => {
   const { user, activeSchool, students, studentBreakdowns, notebookEntries, feeTransactions, auditLogs } =
     data;
@@ -134,11 +143,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   const pendingApprovals = students.filter((s) => s.reportApprovalStatus !== 'Approved');
   const hasRealTimeFeeLedger = Boolean(canApprove && data.feeAccounts && data.feeAccounts.length > 0);
+  const activeFeeMonth = data.financialTarget?.monthKey ?? resolveCurrentAcademicFeeMonth();
   const pendingFeeInr = hasRealTimeFeeLedger
     ? (data.feeAccounts || []).reduce((acc, a) => acc + a.balanceFeesInr, 0)
     : feeTransactions
         .filter((f) => f.status !== 'Paid')
         .reduce((acc, f) => acc + Math.max(0, f.amountDueInr - f.concessionInr - f.amountPaidInr), 0);
+  const currentMonthDefaultersCount = hasRealTimeFeeLedger
+    ? rankSchoolFeeDefaulters(data.feeAccounts || [], activeFeeMonth).defaulters.length
+    : feeTransactions.filter((f) => f.status !== 'Paid').length;
   const unreviewedSiblingAlertsCount = hasRealTimeFeeLedger
     ? (data.siblingGroups || []).filter((g) => g.status === 'Alert').length
     : 0;
@@ -488,98 +501,54 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       )}
 
-      {/* Yearly Target Absence Risk Alert Banner (Management, Coordinators, Teachers & Students) */}
-      {(() => {
-        const riskAlerts = (data.absenceTargetRiskAlerts || []).filter(
-          (a) => a.status === 'Active' || !a.acknowledgedByManagement,
-        );
-        if (riskAlerts.length === 0 || isAccountant) return null;
-        return (
-          <div
-            data-testid="management-absence-target-risk-banner"
-            className="rounded-xl border border-amber-300 bg-amber-50/70 p-5 space-y-3"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/80 pb-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-amber-900 flex items-center gap-1.5">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
-                  Absence Risk Alerts · Student Yearly Skill Targets ({riskAlerts.length})
-                </p>
-                <p className="text-xs text-amber-950/80 mt-0.5">
-                  Absences below target pace make achievable yearly targets harder to hit. Parents and school management are alerted simultaneously.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onNavigate('events')}
-                className="rounded-lg border border-[#142B46]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-[#FAF4EC] whitespace-nowrap shrink-0 self-start"
-              >
-                Open Events Calendar ({(data.schoolEvents || []).length}) →
-              </button>
-            </div>
-            <div className="divide-y divide-amber-200/70">
-              {riskAlerts.slice(0, 4).map((alert) => (
-                <div
-                  key={alert.id}
-                  className="py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-0.5 min-w-0">
-                    <p className="font-bold text-[#142B46]">
-                      {alert.studentName} · Class {alert.classSection} ·{' '}
-                      <span
-                        className={
-                          alert.riskLevel === 'Critical Risk' ? 'text-rose-700' : 'text-amber-800'
-                        }
-                      >
-                        {alert.riskLevel}
-                      </span>{' '}
-                      <span className="font-mono font-normal text-slate-600 tabular-nums">
-                        (Att: {alert.attendancePct}% · Absent {alert.absenceDate})
-                      </span>
-                    </p>
-                    <p className="text-slate-700">
-                      {user.role === 'student' ? alert.parentMessage : alert.managementMessage}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {onOpenStudent && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenStudent(alert.studentId)}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap"
-                      >
-                        View Yearly Plan
-                      </button>
-                    )}
-                    {isStaff && !alert.acknowledgedByManagement && (
-                      <button
-                        type="button"
-                        disabled={ackBusyId === alert.id}
-                        onClick={async () => {
-                          setAckBusyId(alert.id);
-                          try {
-                            await apiRequest(
-                              `/api/yearly-plans/alerts/${alert.id}/acknowledge`,
-                              { method: 'POST' },
-                              token,
-                            );
-                            await onRefresh();
-                          } finally {
-                            setAckBusyId(null);
-                          }
-                        }}
-                        className="rounded-lg bg-[#142B46] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1e3d63] whitespace-nowrap"
-                      >
-                        {ackBusyId === alert.id ? 'Saving...' : 'Acknowledge'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+      {/* Unified Alerts Center Summary Strip (Declutters Overview while keeping urgent counts visible) */}
+      {alertCounts && alertCounts.active > 0 && (
+        <div
+          data-testid="overview-alerts-summary-strip"
+          className="rounded-xl border border-slate-200 bg-white px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <BellRing
+              className={`h-4 w-4 shrink-0 ${
+                alertCounts.critical > 0 ? 'text-red-700' : 'text-amber-700'
+              }`}
+            />
+            <div className="min-w-0 text-xs flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <span className="font-semibold text-slate-900 font-mono tabular-nums">
+                {alertCounts.active} active {alertCounts.active === 1 ? 'alert' : 'alerts'}
+              </span>
+              {alertCounts.critical > 0 && (
+                <>
+                  <span className="text-slate-300" aria-hidden="true">·</span>
+                  <span className="font-semibold text-red-700 font-mono tabular-nums">
+                    {alertCounts.critical} critical
+                  </span>
+                </>
+              )}
+              {alertCounts.warning > 0 && (
+                <>
+                  <span className="text-slate-300" aria-hidden="true">·</span>
+                  <span className="font-medium text-amber-800 font-mono tabular-nums">
+                    {alertCounts.warning} action needed
+                  </span>
+                </>
+              )}
+              <span className="text-slate-300 hidden md:inline" aria-hidden="true">·</span>
+              <span className="text-slate-500 hidden md:inline truncate">
+                Consolidated in Alerts Center for fast triage
+              </span>
             </div>
           </div>
-        );
-      })()}
+          <button
+            type="button"
+            onClick={() => onNavigate('alerts')}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B46] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1D3A5C] transition-colors whitespace-nowrap shrink-0 self-start sm:self-center"
+          >
+            Open Alerts Center
+            <ArrowRight className="h-3.5 w-3.5 text-[#D6B66D]" />
+          </button>
+        </div>
+      )}
 
       {user.role === 'accountant' && (
         <>
@@ -742,7 +711,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 {hasRealTimeFeeLedger ? (
                   <div className="mt-1 flex items-center justify-between gap-2 text-xs">
                     <span className="text-slate-500">
-                      {(data.feeAccounts || []).filter((a) => a.balanceFeesInr > 0).length} pending ·{' '}
+                      {currentMonthDefaultersCount} unpaid till {activeFeeMonth} ·{' '}
                       {unreviewedSiblingAlertsCount} sibling alerts
                     </span>
                     <button
@@ -772,6 +741,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             )}
           </div>
         )}
+
+      {/* Admin Workspace Recharts Data Visualization: Attendance Trends, Teacher Productivity & Assessment Completion */}
+      {canApprove && leadershipView === 'daily' && (
+        <AdminAnalyticsVisualizer data={data} onNavigate={onNavigate} />
+      )}
+
+      {/* Teacher Productivity D3 Semester Attendance & Leave Heatmap Widget */}
+      {canApprove && leadershipView === 'daily' && (
+        <TeacherProductivityHeatmapWidget data={data} compact={true} onNavigate={onNavigate} />
+      )}
 
       {/* Consolidated Principal / Coordinator / Counsellor Intelligence Command Center (shown in Rankings & Setup or for Counsellor) */}
       {showCommandCenter && (!canApprove || leadershipView === 'insights') && (
@@ -1254,52 +1233,50 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
       {/* Teacher Today Digest consolidated into TodayWorkspace above */}
 
-      {/* Management Intelligence Alerts (Leadership Daily Command) */}
+      {/* Management Intelligence Alerts Preview (Full triage lives in dedicated Alerts Center tab) */}
       {canApprove && leadershipView === 'daily' && managementAlerts.length > 0 && (
         <section
           aria-label="Management Intelligence Alerts"
           className="rounded-xl border border-slate-200 bg-white overflow-hidden"
         >
-          <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div className="border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-display text-base font-bold text-slate-900 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-blue-900" />
-                Management Intelligence & Family Engagement Alerts
+                <AlertCircle className="h-4 w-4 text-[#142B46]" />
+                Priority Management Cues
               </h2>
               <p className="text-xs text-slate-500">
-                Rule-based operational cues with explicit explanations and recommended staff actions.
+                Top rule-based operational cues · Full school-wide queue available in Alerts Center.
               </p>
             </div>
-            <span className="font-mono text-xs font-semibold text-slate-700 tabular-nums">
-              {managementAlerts.length} Active
-            </span>
+            <button
+              type="button"
+              onClick={() => onNavigate('alerts')}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap shrink-0 self-start sm:self-center"
+            >
+              <span>All Alerts ({alertCounts?.active ?? managementAlerts.length})</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
           <div className="divide-y divide-slate-100">
-            {managementAlerts.map((alert) => {
+            {managementAlerts.slice(0, 3).map((alert) => {
               const sevColor =
                 alert.severity === 'High'
                   ? 'text-red-700'
                   : alert.severity === 'Attention'
                     ? 'text-amber-700'
-                    : 'text-blue-900';
+                    : 'text-[#142B46]';
               return (
                 <div
                   key={alert.id}
-                  className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  className="px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-0.5 min-w-0">
                     <p className="font-semibold text-slate-900">
                       <span className={`font-mono mr-2 ${sevColor}`}>[{alert.severity}]</span>
                       {alert.title}
                     </p>
-                    <p className="text-slate-600">
-                      <span className="font-semibold text-slate-800">Why: </span>
-                      {alert.why}
-                    </p>
-                    <p className="text-slate-500">
-                      <span className="font-semibold text-slate-700">Action: </span>
-                      {alert.recommendedAction}
-                    </p>
+                    <p className="text-slate-600">{alert.why}</p>
                   </div>
                   {alert.targetTab !== 'overview' && (
                     <button

@@ -23,6 +23,7 @@ import {
   buildCareerExplorationIndicators,
   buildDomainSummaries,
 } from '../utils/vcipScoringEngine';
+import { CareerVisualRoadmapExplorer } from './CareerVisualRoadmapExplorer';
 
 interface CareerIntelligenceWorkspaceProps {
   data: WorkspaceData;
@@ -30,7 +31,7 @@ interface CareerIntelligenceWorkspaceProps {
   onRefresh: () => Promise<void>;
 }
 
-type CareerViewTab = 'library' | 'compare' | 'counselling';
+type CareerViewTab = 'roadmap' | 'library' | 'compare' | 'counselling';
 
 const ENTRY_STAGES: Array<CareerEntryStage | 'ALL'> = [
   'ALL',
@@ -59,7 +60,7 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
     data.user.role,
   );
 
-  const [viewTab, setViewTab] = useState<CareerViewTab>('library');
+  const [viewTab, setViewTab] = useState<CareerViewTab>('roadmap');
   const [query, setQuery] = useState('');
   const [entryStage, setEntryStage] = useState<CareerEntryStage | 'ALL'>('ALL');
   const [streamFilter, setStreamFilter] = useState('ALL');
@@ -149,7 +150,12 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
     });
   }
 
-  async function handleSaveStudentPlan(shortlistOverride?: string[]) {
+  async function handleSaveStudentPlan(options?: {
+    shortlistOverride?: string[];
+    completedMilestonesOverride?: string[];
+    selectedStreamPreferenceOverride?: string;
+    feedbackMessage?: string;
+  }) {
     if (!activeStudent) return;
     setSavingPlan(true);
     setFeedback(null);
@@ -160,14 +166,22 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
           method: 'POST',
           body: JSON.stringify({
             studentId: activeStudent.id,
-            shortlistedCareerIds: shortlistOverride ?? activePlan?.shortlistedCareerIds ?? [],
+            shortlistedCareerIds:
+              options?.shortlistOverride ?? activePlan?.shortlistedCareerIds ?? [],
+            completedMilestoneKeys:
+              options?.completedMilestonesOverride ?? activePlan?.completedMilestoneKeys ?? [],
+            selectedStreamPreference:
+              options?.selectedStreamPreferenceOverride ?? activePlan?.selectedStreamPreference,
             counsellorNotes: counsellorNoteDraft || activePlan?.counsellorNotes || '',
             sharedWithParent: shareWithParentDraft,
             newSessionLog: sessionSummaryDraft.trim()
               ? {
                   summary: sessionSummaryDraft.trim(),
                   studentReflections: sessionReflectionDraft.trim(),
-                  nextSteps: ['Review shortlisted 9-section roadmaps with parents', 'Complete one starter project'],
+                  nextSteps: [
+                    'Review shortlisted 9-section roadmaps with parents',
+                    'Complete one starter project',
+                  ],
                 }
               : undefined,
           }),
@@ -177,10 +191,45 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
       setSessionSummaryDraft('');
       setSessionReflectionDraft('');
       await onRefresh();
-      setFeedback(`Saved personal Career Intelligence plan for ${activeStudent.name}.`);
+      setFeedback(
+        options?.feedbackMessage ||
+          `Saved personal Career Intelligence plan for ${activeStudent.name}.`,
+      );
     } finally {
       setSavingPlan(false);
     }
+  }
+
+  async function handleToggleShortlist(careerId: string) {
+    const current = activePlan?.shortlistedCareerIds || [];
+    const exists = current.includes(careerId);
+    const next = exists ? current.filter((id) => id !== careerId) : [...current, careerId];
+    const careerTitle = careers.find((c) => c.id === careerId)?.title || 'career path';
+    await handleSaveStudentPlan({
+      shortlistOverride: next,
+      feedbackMessage: exists
+        ? `Removed ${careerTitle} from shortlist.`
+        : `Shortlisted ${careerTitle} for ${activeStudent?.name}.`,
+    });
+  }
+
+  async function handleToggleMilestone(milestoneKey: string) {
+    const current = activePlan?.completedMilestoneKeys || [];
+    const exists = current.includes(milestoneKey);
+    const next = exists ? current.filter((k) => k !== milestoneKey) : [...current, milestoneKey];
+    await handleSaveStudentPlan({
+      completedMilestonesOverride: next,
+      feedbackMessage: exists
+        ? 'Updated roadmap milestone status.'
+        : 'Marked roadmap readiness milestone as completed.',
+    });
+  }
+
+  async function handleSaveStreamPreference(streamLabel: string) {
+    await handleSaveStudentPlan({
+      selectedStreamPreferenceOverride: streamLabel,
+      feedbackMessage: `Saved ${streamLabel} as preferred exploratory stream for ${activeStudent?.name}.`,
+    });
   }
 
   return (
@@ -200,17 +249,26 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
         <div className="inline-flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
           <button
             type="button"
+            onClick={() => setViewTab('roadmap')}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 ${
+              viewTab === 'roadmap' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Assessment Map &amp; Visual Roadmaps
+          </button>
+          <button
+            type="button"
             onClick={() => setViewTab('library')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 ${
               viewTab === 'library' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Career Library &amp; 9-Section Roadmaps ({careers.length})
+            Career Library ({careers.length})
           </button>
           <button
             type="button"
             onClick={() => setViewTab('compare')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 ${
               viewTab === 'compare' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -219,11 +277,11 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
           <button
             type="button"
             onClick={() => setViewTab('counselling')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 ${
               viewTab === 'counselling' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Evidence-Linked Personal Counselling
+            Personal Counselling &amp; Notes
           </button>
         </div>
       </div>
@@ -233,6 +291,32 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
           <CheckCircle2 className="h-4 w-4" />
           <span>{feedback}</span>
         </div>
+      )}
+
+      {/* ==================================================================
+          TAB 0: ASSESSMENT-TO-PATHWAY INTERACTIVE VISUAL ROADMAPS
+      ================================================================== */}
+      {viewTab === 'roadmap' && (
+        <CareerVisualRoadmapExplorer
+          data={data}
+          activeStudent={activeStudent}
+          activePlan={activePlan}
+          canEditPlan={canEditPlan}
+          savingPlan={savingPlan}
+          selectedStudentId={effectiveStudentId}
+          onSelectStudentId={setSelectedStudentId}
+          declaredInterestsText={declaredInterestsText}
+          onDeclaredInterestsChange={setDeclaredInterestsText}
+          selectedCareerId={selectedCareerId}
+          onSelectCareerId={setSelectedCareerId}
+          onOpenLibraryForCareer={(careerId) => {
+            setSelectedCareerId(careerId);
+            setViewTab('library');
+          }}
+          onToggleShortlist={handleToggleShortlist}
+          onToggleMilestone={handleToggleMilestone}
+          onSelectStreamPreference={handleSaveStreamPreference}
+        />
       )}
 
       {/* ==================================================================
@@ -363,10 +447,21 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
                       <button
                         type="button"
                         onClick={() => {
+                          setSelectedCareerId(selectedCareer.id);
+                          setViewTab('roadmap');
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B46] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1e3d62] whitespace-nowrap shrink-0"
+                      >
+                        <Compass className="h-3.5 w-3.5" />
+                        Interactive Visual Roadmap
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           if (!compareIds.includes(selectedCareer.id)) toggleCompare(selectedCareer.id);
                           setViewTab('compare');
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap shrink-0"
                       >
                         <GitCompare className="h-3.5 w-3.5 text-blue-900" />
                         Compare Side-by-Side
@@ -793,24 +888,28 @@ export const CareerIntelligenceWorkspace: React.FC<CareerIntelligenceWorkspacePr
                             type="button"
                             onClick={() => {
                               setSelectedCareerId(sug.career.id);
+                              setViewTab('roadmap');
+                            }}
+                            className="text-[11px] font-semibold text-[#142B46] hover:underline whitespace-nowrap shrink-0"
+                          >
+                            Visual Roadmap
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCareerId(sug.career.id);
                               setViewTab('library');
                             }}
-                            className="text-[11px] font-semibold text-slate-700 hover:underline"
+                            className="text-[11px] font-semibold text-slate-600 hover:underline whitespace-nowrap shrink-0"
                           >
-                            9-Section Roadmap
+                            9-Section Guide
                           </button>
                           {canEditPlan && (
                             <button
                               type="button"
                               disabled={savingPlan}
-                              onClick={() => {
-                                const cur = activePlan?.shortlistedCareerIds || [];
-                                const next = isShortlisted
-                                  ? cur.filter((id) => id !== sug.career.id)
-                                  : [...cur, sug.career.id];
-                                void handleSaveStudentPlan(next);
-                              }}
-                              className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${
+                              onClick={() => void handleToggleShortlist(sug.career.id)}
+                              className={`rounded-md px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap shrink-0 ${
                                 isShortlisted
                                   ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                   : 'bg-blue-900 text-white hover:bg-blue-800'

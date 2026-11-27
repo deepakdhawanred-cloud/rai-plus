@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowLeft,
   BarChart3,
+  Bell,
   BookOpen,
   BookOpenCheck,
   Brain,
@@ -30,10 +31,12 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  ShieldCheck,
   Sliders,
   Stethoscope,
   UserCheck,
   Users,
+  WalletCards,
   X,
 } from 'lucide-react';
 import type { WorkspaceData, WorkspaceTab } from '../types/workspace';
@@ -71,12 +74,27 @@ import { TransportManagementModule } from './modules/TransportManagementModule';
 import { SchoolEventsModule } from './modules/SchoolEventsModule';
 import { MarksReportCardModule } from './modules/MarksReportCardModule';
 import { SuperAdminFeatureAllotmentModule } from './modules/SuperAdminFeatureAllotmentModule';
+import { StaffAttendanceSalaryModule } from './modules/StaffAttendanceSalaryModule';
+import { CampusGateVisitorsModule } from './modules/CampusGateVisitorsModule';
 import { GlobalQuickJump } from './GlobalQuickJump';
+import { AlertsCenterPanel } from './AlertsCenterPanel';
+import { RoleNavigationDock } from './RoleNavigationDock';
 import { RevisionStreakReminderBell } from './RevisionStreakReminderBell';
 import { pushToast, ToastViewport } from './ToastProvider';
+import {
+  buildUnifiedWorkspaceAlerts,
+  computeAlertCenterCounts,
+  loadLocallyAcknowledgedAlertIds,
+  saveLocallyAcknowledgedAlertIds,
+} from '../utils/alertsCenterEngine';
 import { clearAllDirtyStates, getActiveDirtyWarning } from '../utils/dirtyGuard';
 import { RAI_PLUS_LOGO_URL } from '../utils/transportEngine';
 import { isWorkspaceTabEnabledForSchool } from '../utils/subscriptionEntitlements';
+import {
+  buildRoleQuickDockItems,
+  getRoleWorkspaceIdentity,
+  type RoleQuickDockItem,
+} from '../utils/roleNavigationConfig';
 import {
   buildWorkspaceRevisionStreakStatus,
   clearStreakReminderSnooze,
@@ -145,6 +163,27 @@ const NAV_ITEMS: Array<{
       'student',
       'counsellor',
       'accountant',
+    ],
+  },
+  {
+    id: 'alerts',
+    label: 'Alerts Center',
+    section: 'Daily Desk',
+    icon: Bell,
+    roles: [
+      'school_admin',
+      'principal',
+      'coordinator',
+      'teacher',
+      'parent',
+      'student',
+      'counsellor',
+      'accountant',
+      'transport_incharge',
+      'clinical_psychologist',
+      'slp',
+      'audiologist',
+      'special_educator',
     ],
   },
   {
@@ -316,7 +355,7 @@ const NAV_ITEMS: Array<{
     label: 'Career Intelligence',
     section: 'Student Care & Guidance',
     icon: Briefcase,
-    roles: ['school_admin', 'principal', 'coordinator', 'counsellor', 'student'],
+    roles: ['school_admin', 'principal', 'coordinator', 'counsellor', 'student', 'parent'],
   },
   {
     id: 'finance',
@@ -361,6 +400,41 @@ const NAV_ITEMS: Array<{
     roles: ['school_admin', 'principal', 'coordinator'],
   },
   {
+    id: 'staff_payroll',
+    label: 'Staff Attendance & Salary',
+    section: 'School Operations',
+    icon: WalletCards,
+    roles: [
+      'school_admin',
+      'principal',
+      'accountant',
+      'teacher',
+      'coordinator',
+      'counsellor',
+      'transport_incharge',
+      'clinical_psychologist',
+      'slp',
+      'audiologist',
+      'special_educator',
+    ],
+  },
+  {
+    id: 'campus_gate',
+    label: 'Gate Pass & Visitors',
+    section: 'School Operations',
+    icon: ShieldCheck,
+    roles: [
+      'school_admin',
+      'principal',
+      'coordinator',
+      'transport_incharge',
+      'teacher',
+      'accountant',
+      'counsellor',
+      'parent',
+    ],
+  },
+  {
     id: 'operations',
     label: 'Fees, Ops & Governance',
     section: 'School Operations',
@@ -370,7 +444,13 @@ const NAV_ITEMS: Array<{
 ];
 
 function buildInitialCollapsedSections(role: string): Record<string, boolean> {
-  if (role === 'parent' || role === 'accountant' || role === 'transport_incharge' || role === 'super_admin') {
+  if (
+    role === 'parent' ||
+    role === 'student' ||
+    role === 'accountant' ||
+    role === 'transport_incharge' ||
+    role === 'super_admin'
+  ) {
     return {};
   }
   return {
@@ -397,10 +477,18 @@ function resolveNavSectionForRole(
     }
   }
   if (['school_admin', 'principal', 'coordinator'].includes(role)) {
-    if (item.id === 'finance') return 'Daily Desk';
+    if (item.id === 'finance' || item.id === 'staff_payroll' || item.id === 'campus_gate') {
+      return 'Daily Desk';
+    }
     if (item.id === 'notebook') {
       return 'Assessments & Growth';
     }
+  }
+  if (role === 'accountant' && item.id === 'staff_payroll') {
+    return 'Daily Desk';
+  }
+  if (role === 'transport_incharge' && item.id === 'campus_gate') {
+    return 'Daily Desk';
   }
   return item.section;
 }
@@ -487,6 +575,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     warning: string;
     proceed: () => void;
   } | null>(null);
+  const [locallyAcknowledgedAlertIds, setLocallyAcknowledgedAlertIds] = useState<Set<string>>(() =>
+    loadLocallyAcknowledgedAlertIds(data.activeSchool.id, data.user.id),
+  );
 
   const isRevisionReminderRole = data.user.role === 'student' || data.user.role === 'parent';
   const streakSessionKey = `${data.activeSchool.id}:${data.user.id}`;
@@ -545,7 +636,10 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     setTabHistory([]);
     setRecentTabs([]);
     setNavSearchQuery('');
-  }, [data.user.id, data.user.role, defaultTabForRole]);
+    setLocallyAcknowledgedAlertIds(
+      loadLocallyAcknowledgedAlertIds(data.activeSchool.id, data.user.id),
+    );
+  }, [data.activeSchool.id, data.user.id, data.user.role, defaultTabForRole]);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -712,6 +806,18 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
       label = 'Daily Brain Gym';
     } else if (item.id === 'career' && data.user.role === 'student') {
       label = 'Career Explorer';
+    } else if (
+      item.id === 'staff_payroll' &&
+      !['school_admin', 'principal', 'accountant'].includes(data.user.role)
+    ) {
+      label = 'My Attendance & Payslip';
+    } else if (item.id === 'campus_gate' && data.user.role === 'parent') {
+      label = 'Early Exit Gate Pass';
+    } else if (
+      item.id === 'campus_gate' &&
+      !['school_admin', 'principal', 'coordinator', 'transport_incharge'].includes(data.user.role)
+    ) {
+      label = 'My Gate Pass';
     }
     return { ...item, label, section };
   });
@@ -731,8 +837,21 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     items: filteredNav.filter((item) => item.section === section),
   })).filter((g) => g.items.length > 0);
 
-  const showSectionHeaders = groupedNavSections.length > 1 && allowedNav.length > 7;
+  const showSectionHeaders =
+    groupedNavSections.length > 1 &&
+    allowedNav.length > 7 &&
+    !['parent', 'accountant', 'transport_incharge'].includes(data.user.role);
   const showSidebarQuickFilter = !isSuperAdmin && allowedNav.length > 8 && !sidebarCompact;
+
+  const roleIdentity = getRoleWorkspaceIdentity(data.user.role);
+  const allowedTabIdSet = new Set<WorkspaceTab>(allowedNav.map((n) => n.id));
+  const onCampusVisitorsCount = (data.visitorLogs || []).filter(
+    (v) => v.status === 'On Campus',
+  ).length;
+  const pendingGatePassesCount = (data.gatePasses || []).filter(
+    (g) => g.status === 'Pending Approval',
+  ).length;
+  const gateLiveCount = onCampusVisitorsCount + pendingGatePassesCount;
 
   const currentTabLabel = isSuperAdmin
     ? 'Plan & Feature Allotment'
@@ -750,6 +869,71 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
         return data.user.role === 'student' ? !n.readByStudent : !n.readByParent;
       }).length
     : 0;
+
+  const unifiedAlerts = useMemo(
+    () =>
+      isSuperAdmin
+        ? []
+        : buildUnifiedWorkspaceAlerts({
+            data,
+            allowedTabIds: allowedTabIdSet,
+            locallyAcknowledgedIds: locallyAcknowledgedAlertIds,
+          }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, isSuperAdmin, locallyAcknowledgedAlertIds],
+  );
+
+  const alertCounts = useMemo(() => computeAlertCenterCounts(unifiedAlerts), [unifiedAlerts]);
+
+  function handleLocalAcknowledgeAlerts(alertIds: string[]) {
+    if (alertIds.length === 0) return;
+    setLocallyAcknowledgedAlertIds((prev) => {
+      const next = new Set(prev);
+      for (const id of alertIds) next.add(id);
+      saveLocallyAcknowledgedAlertIds(data.activeSchool.id, data.user.id, next);
+      return next;
+    });
+  }
+
+  function handleLocalReopenAlert(alertId: string) {
+    setLocallyAcknowledgedAlertIds((prev) => {
+      const next = new Set(prev);
+      next.delete(alertId);
+      saveLocallyAcknowledgedAlertIds(data.activeSchool.id, data.user.id, next);
+      return next;
+    });
+  }
+
+  // Global Alt+A keyboard shortcut to jump directly to Alerts Center
+  useEffect(() => {
+    if (isSuperAdmin) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.altKey || e.metaKey || e.ctrlKey || e.key.toLowerCase() !== 'a') return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      handleNavigateTab('alerts');
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuperAdmin, activeTab, data.activeSchool, data.user.role]);
+
+  const quickDockItems = isSuperAdmin
+    ? []
+    : buildRoleQuickDockItems({
+        data,
+        allowedTabIds: allowedTabIdSet,
+        unreadParentCount: unreadAttendanceCount,
+      });
 
   const canSwitchTenant = data.user.role === 'counsellor';
 
@@ -854,7 +1038,14 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
       return;
     }
     if (data.user.role === 'accountant') {
-      const targetTab: WorkspaceTab = tab === 'finance' ? 'finance' : 'overview';
+      const allowedAcctTabs: WorkspaceTab[] = [
+        'overview',
+        'alerts',
+        'finance',
+        'staff_payroll',
+        'campus_gate',
+      ];
+      const targetTab: WorkspaceTab = allowedAcctTabs.includes(tab) ? tab : 'overview';
       if (targetTab === activeTab) return;
       guardNavigation(() => commitTabChange(targetTab));
       return;
@@ -876,6 +1067,18 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     }
     if (tab === activeTab) return;
     guardNavigation(() => commitTabChange(tab));
+  }
+
+  function handleSelectDockItem(item: RoleQuickDockItem) {
+    if (item.actionMode === 'one_go_attendance') {
+      openTodayWorkspace('attendance');
+      return;
+    }
+    if (item.actionMode === 'study_games') {
+      openRevisionTask('academics');
+      return;
+    }
+    handleNavigateTab(item.tab);
   }
 
   const mobileBottomItems: Array<{
@@ -1017,10 +1220,24 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
       return [
         {
           id: 'transport',
-          label: 'Transport & GPS',
+          label: 'Bus GPS',
           icon: Bus,
           active: activeTab === 'transport',
           onClick: () => handleNavigateTab('transport'),
+        },
+        {
+          id: 'campus_gate',
+          label: 'Gate & Visitors',
+          icon: ShieldCheck,
+          active: activeTab === 'campus_gate',
+          onClick: () => handleNavigateTab('campus_gate'),
+        },
+        {
+          id: 'staff_payroll',
+          label: 'My Payslip',
+          icon: WalletCards,
+          active: activeTab === 'staff_payroll',
+          onClick: () => handleNavigateTab('staff_payroll'),
         },
       ];
     }
@@ -1035,10 +1252,63 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
         },
         {
           id: 'finance',
-          label: 'Finance 360°',
+          label: 'Finance',
           icon: IndianRupee,
           active: activeTab === 'finance',
           onClick: () => handleNavigateTab('finance'),
+        },
+        {
+          id: 'staff_payroll',
+          label: 'Salary',
+          icon: WalletCards,
+          active: activeTab === 'staff_payroll',
+          onClick: () => handleNavigateTab('staff_payroll'),
+        },
+        {
+          id: 'campus_gate',
+          label: 'Gate Pass',
+          icon: ShieldCheck,
+          active: activeTab === 'campus_gate',
+          onClick: () => handleNavigateTab('campus_gate'),
+        },
+      ];
+    }
+    if (['school_admin', 'principal', 'coordinator'].includes(data.user.role)) {
+      return [
+        {
+          id: 'overview',
+          label: 'Overview',
+          icon: LayoutDashboard,
+          active: activeTab === 'overview',
+          onClick: () => handleNavigateTab('overview'),
+        },
+        {
+          id: 'attendance_heatmap',
+          label: 'Attendance',
+          icon: Calendar,
+          active: activeTab === 'attendance_heatmap',
+          onClick: () => handleNavigateTab('attendance_heatmap'),
+        },
+        {
+          id: 'staff_payroll',
+          label: data.user.role === 'coordinator' ? 'Payslip' : 'Salary',
+          icon: WalletCards,
+          active: activeTab === 'staff_payroll',
+          onClick: () => handleNavigateTab('staff_payroll'),
+        },
+        {
+          id: 'campus_gate',
+          label: 'Gate',
+          icon: ShieldCheck,
+          active: activeTab === 'campus_gate',
+          onClick: () => handleNavigateTab('campus_gate'),
+        },
+        {
+          id: 'menu',
+          label: 'More',
+          icon: Menu,
+          active: mobileMenuOpen,
+          onClick: () => setMobileMenuOpen(true),
         },
       ];
     }
@@ -1089,11 +1359,11 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
   })();
 
   return (
-    <div className="min-h-screen bg-[#FAF4EC] flex">
-      {/* Desktop Sidebar (Collapsible 240px <-> 68px Rail) — Midnight Navy Authority Surface */}
+    <div className="min-h-screen bg-[#F6F8FB] flex">
+      {/* Desktop Sidebar (Collapsible 256px <-> 68px Rail) — Midnight Navy Authority Surface */}
       <aside
-        className={`hidden lg:flex shrink-0 flex-col border-r border-[#0E2036] bg-[#142B46] text-[#F3E6D8] print:hidden transition-[width] duration-200 ${
-          sidebarCompact ? 'w-[68px]' : 'w-60'
+        className={`hidden lg:flex shrink-0 flex-col border-r border-[#0D1E33] bg-[#142B46] text-[#F1F5F9] print:hidden transition-[width] duration-200 ${
+          sidebarCompact ? 'w-[68px]' : 'w-64'
         }`}
       >
         <div
@@ -1105,7 +1375,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
             <img
               src={RAI_PLUS_LOGO_URL}
               alt="Rai Plus Logo"
-              className="h-9 w-9 rounded-lg border border-[#D6B66D]/50 object-cover bg-[#F3E6D8] shrink-0"
+              className="h-9 w-9 rounded-lg border border-[#D6B66D]/50 object-cover bg-[#F8FAFC] shrink-0"
             />
             {!sidebarCompact && (
               <div className="min-w-0">
@@ -1114,7 +1384,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                   <span className="text-[#D6B66D]">PLUS</span>
                   <span className="text-[#D6B66D] font-black leading-none" aria-hidden="true">+</span>
                 </p>
-                <p className="text-[11px] text-[#A9C5D8] truncate mt-0.5">{data.user.designation}</p>
+                <p className="text-[11px] text-[#94B8D3] truncate mt-0.5">
+                  {roleIdentity.workspaceName}
+                </p>
               </div>
             )}
           </div>
@@ -1269,27 +1541,45 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                             title={sidebarCompact ? item.label : undefined}
                             aria-current={active && !isTodayOneGoActive ? 'page' : undefined}
                             onClick={() => handleNavigateTab(item.id)}
-                            className={`w-full flex items-center rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
+                            className={`w-full flex items-center rounded-lg text-[13px] font-medium transition-colors whitespace-nowrap ${
                               sidebarCompact
                                 ? 'justify-center p-2.5'
                                 : 'gap-2.5 px-3 py-2'
                             } ${
                               active && !isTodayOneGoActive
-                                ? 'bg-[#D6B66D] text-[#142B46]'
-                                : 'text-[#F3E6D8]/90 hover:bg-[#1E3B5C] hover:text-white'
+                                ? 'bg-[#D6B66D] text-[#0D1E33] font-semibold'
+                                : 'text-slate-200 hover:bg-[#1E3B5C] hover:text-white'
                             }`}
                           >
                             <Icon className="h-4 w-4 shrink-0" />
                             {!sidebarCompact && <span className="truncate">{item.label}</span>}
-                            {!sidebarCompact && item.id === 'overview' && unreadAttendanceCount > 0 && (
+                            {!sidebarCompact && item.id === 'alerts' && alertCounts.active > 0 && (
                               <span
                                 className={`ml-auto font-mono text-[11px] tabular-nums ${
-                                  active ? 'text-[#142B46] font-bold' : 'text-[#D6B66D] font-bold'
+                                  active
+                                    ? 'text-[#0D1E33] font-bold'
+                                    : alertCounts.critical > 0
+                                      ? 'text-rose-300 font-bold'
+                                      : 'text-[#D6B66D] font-bold'
                                 }`}
                               >
-                                ({unreadAttendanceCount})
+                                ({alertCounts.active})
                               </span>
                             )}
+                            {!sidebarCompact &&
+                              item.id === 'campus_gate' &&
+                              gateLiveCount > 0 &&
+                              ['school_admin', 'principal', 'coordinator', 'transport_incharge'].includes(
+                                data.user.role,
+                              ) && (
+                                <span
+                                  className={`ml-auto font-mono text-[11px] tabular-nums ${
+                                    active ? 'text-[#0D1E33] font-bold' : 'text-[#D6B66D] font-bold'
+                                  }`}
+                                >
+                                  ({gateLiveCount})
+                                </span>
+                              )}
                           </button>
                           {!sidebarCompact && item.id === 'today_workspace' && data.user.role === 'teacher' && (
                             <button
@@ -1490,6 +1780,47 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
             )}
 
             {!isSuperAdmin && (
+              <button
+                type="button"
+                data-testid="header-alerts-center-btn"
+                onClick={() => handleNavigateTab('alerts')}
+                title="Open Alerts Center (Alt+A)"
+                aria-label={`Open Alerts Center (${alertCounts.active} active)`}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
+                  activeTab === 'alerts'
+                    ? 'border-[#142B46] bg-[#142B46] text-white'
+                    : alertCounts.critical > 0
+                      ? 'border-red-200 bg-red-50/70 text-red-800 hover:bg-red-50'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <Bell
+                  className={`h-3.5 w-3.5 shrink-0 ${
+                    activeTab === 'alerts'
+                      ? 'text-[#D6B66D]'
+                      : alertCounts.critical > 0
+                        ? 'text-red-700'
+                        : 'text-slate-500'
+                  }`}
+                />
+                <span className="hidden sm:inline">Alerts</span>
+                {alertCounts.active > 0 && (
+                  <span
+                    className={`font-mono text-[11px] tabular-nums ${
+                      activeTab === 'alerts'
+                        ? 'text-[#D6B66D]'
+                        : alertCounts.critical > 0
+                          ? 'text-red-700 font-bold'
+                          : 'text-[#142B46] font-bold'
+                    }`}
+                  >
+                    ({alertCounts.active})
+                  </span>
+                )}
+              </button>
+            )}
+
+            {!isSuperAdmin && (
               <GlobalQuickJump
                 data={data}
                 allowedNav={allowedNav.map((n) => ({
@@ -1498,6 +1829,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                   section: n.section,
                 }))}
                 recentTabs={recentTabs}
+                activeAlertCount={alertCounts.active}
+                criticalAlertCount={alertCounts.critical}
+                urgentAlerts={unifiedAlerts}
                 onNavigate={handleNavigateTab}
                 onOpenStudent={openStudentProfile}
                 onOpenOneGoAttendance={
@@ -1537,7 +1871,19 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
           </div>
         </header>
 
-        <main className="flex-1 p-4 pb-20 sm:p-8 sm:pb-20 lg:pb-8 max-w-7xl w-full mx-auto">
+        {/* Persistent 1-Click Role Daily Quick-Dock */}
+        {!isSuperAdmin && (
+          <RoleNavigationDock
+            items={quickDockItems}
+            activeTab={activeTab}
+            isOneGoAttendanceActive={
+              activeTab === 'today_workspace' && todayFocusRequest.mode === 'attendance'
+            }
+            onSelect={handleSelectDockItem}
+          />
+        )}
+
+        <main className="flex-1 p-4 pb-20 sm:px-6 sm:py-6 lg:px-8 lg:py-7 lg:pb-10 max-w-7xl w-full mx-auto">
           {/* Automatic Office-Ready Print Letterhead */}
           <div className="hidden print:block border-b-2 border-slate-900 pb-3 mb-5">
             <div className="flex items-start justify-between gap-4">
@@ -1588,6 +1934,20 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                   onChangeParentLang={handleParentLangChange}
                   initialTodayFocusMode={todayFocusRequest.mode}
                   todayFocusNonce={todayFocusRequest.nonce}
+                  alertCounts={alertCounts}
+                />
+              )}
+              {activeTab === 'alerts' && (
+                <AlertsCenterPanel
+                  data={data}
+                  token={token}
+                  alerts={unifiedAlerts}
+                  counts={alertCounts}
+                  onRefresh={onRefresh}
+                  onNavigateTab={handleNavigateTab}
+                  onOpenStudent={openStudentProfile}
+                  onLocalAcknowledge={handleLocalAcknowledgeAlerts}
+                  onLocalReopen={handleLocalReopenAlert}
                 />
               )}
               {activeTab === 'clinical_care' && (
@@ -1727,6 +2087,20 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               {activeTab === 'transport' && (
                 <TransportManagementModule data={data} token={token} onRefresh={onRefresh} />
               )}
+              {activeTab === 'staff_payroll' && (
+                <StaffAttendanceSalaryModule
+                  data={data}
+                  token={token}
+                  onRefresh={onRefresh}
+                />
+              )}
+              {activeTab === 'campus_gate' && (
+                <CampusGateVisitorsModule
+                  data={data}
+                  token={token}
+                  onRefresh={onRefresh}
+                />
+              )}
               {activeTab === 'operations' && (
                 <OperationsAndGovernanceModule
                   data={data}
@@ -1804,13 +2178,17 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                         >
                           <Icon className="h-4 w-4 shrink-0" />
                           <span className="truncate">{item.label}</span>
-                          {item.id === 'overview' && unreadAttendanceCount > 0 && (
+                          {item.id === 'alerts' && alertCounts.active > 0 && (
                             <span
                               className={`ml-auto font-mono text-[11px] tabular-nums ${
-                                active ? 'text-[#142B46] font-bold' : 'text-[#D6B66D] font-bold'
+                                active
+                                  ? 'text-[#142B46] font-bold'
+                                  : alertCounts.critical > 0
+                                    ? 'text-rose-300 font-bold'
+                                    : 'text-[#D6B66D] font-bold'
                               }`}
                             >
-                              ({unreadAttendanceCount})
+                              ({alertCounts.active})
                             </span>
                           )}
                         </button>

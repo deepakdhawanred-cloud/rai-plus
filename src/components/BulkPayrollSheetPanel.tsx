@@ -40,6 +40,9 @@ interface StaffRosterResponseItem {
   staffName: string;
   staffRoleType: 'Teacher' | 'Driver' | 'Support Staff';
   designation: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
   daysWorked: number;
   grossSalaryInr: number;
   deductionsInr: number;
@@ -81,6 +84,9 @@ function toEditableRows(entries: PayrollRegisterEntry[], monthLabel: string): Ed
       staffName: p.staffName,
       staffRoleType: p.staffRoleType,
       designation: p.designation,
+      bankAccountNumber: p.bankAccountNumber,
+      ifscCode: p.ifscCode,
+      bankName: p.bankName,
       daysWorked: p.daysWorked,
       grossSalaryInr: p.grossSalaryInr,
       deductionsInr: p.deductionsInr,
@@ -152,7 +158,7 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
     return rows.filter((r) => {
       if (categoryFilter !== 'All' && r.staffRoleType !== categoryFilter) return false;
       if (q) {
-        const hay = `${r.staffName} ${r.designation} ${r.staffRoleType}`.toLowerCase();
+        const hay = `${r.staffName} ${r.designation} ${r.staffRoleType} ${r.bankAccountNumber || ''} ${r.ifscCode || ''} ${r.bankName || ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -164,7 +170,15 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
     patch: Partial<
       Pick<
         EditablePayrollRow,
-        'staffName' | 'staffRoleType' | 'designation' | 'daysWorked' | 'grossSalaryInr' | 'deductionsInr'
+        | 'staffName'
+        | 'staffRoleType'
+        | 'designation'
+        | 'bankAccountNumber'
+        | 'ifscCode'
+        | 'bankName'
+        | 'daysWorked'
+        | 'grossSalaryInr'
+        | 'deductionsInr'
       >
     >,
   ) => {
@@ -239,6 +253,9 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
             staffName: item.staffName,
             staffRoleType: item.staffRoleType,
             designation: item.designation,
+            bankAccountNumber: item.bankAccountNumber,
+            ifscCode: item.ifscCode,
+            bankName: item.bankName,
             daysWorked: item.daysWorked,
             grossSalaryInr: item.grossSalaryInr,
             deductionsInr: item.deductionsInr,
@@ -399,37 +416,65 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
     e.target.value = '';
   };
 
-  const handleExportCsv = () => {
-    const headers = [
-      'Staff Name',
-      'Category',
-      'Designation',
-      'Days Worked',
-      'Gross Salary (INR)',
-      'Deductions (INR)',
-      'Net Payable (INR)',
-      'Status',
-    ];
+  const handleExportCsv = (neftOnly = false) => {
+    const headers = neftOnly
+      ? [
+          'Sr.No.',
+          'Beneficiary Name',
+          'Account No.',
+          'IFSC Code',
+          'Bank Name',
+          'Net Payable (INR)',
+          'Month',
+        ]
+      : [
+          'Sr.No.',
+          'Staff Name',
+          'Category',
+          'Designation',
+          'Bank Account No.',
+          'IFSC Code',
+          'Bank Name',
+          'Days Worked',
+          'Gross Salary (INR)',
+          'Deductions (INR)',
+          'Net Payable (INR)',
+          'Status',
+        ];
     const csvLines = [
       headers.join(','),
-      ...rows.map((r) =>
-        [
-          `"${r.staffName.replace(/"/g, '""')}"`,
-          `"${r.staffRoleType}"`,
-          `"${r.designation.replace(/"/g, '""')}"`,
-          r.daysWorked,
-          r.grossSalaryInr,
-          r.deductionsInr,
-          r.netPayableInr,
-          r.status,
-        ].join(','),
+      ...rows.map((r, idx) =>
+        neftOnly
+          ? [
+              idx + 1,
+              `"${r.staffName.replace(/"/g, '""')}"`,
+              `"${(r.bankAccountNumber || '').replace(/"/g, '""')}"`,
+              `"${(r.ifscCode || '').replace(/"/g, '""')}"`,
+              `"${(r.bankName || '').replace(/"/g, '""')}"`,
+              r.netPayableInr,
+              `"${selectedMonth}"`,
+            ].join(',')
+          : [
+              idx + 1,
+              `"${r.staffName.replace(/"/g, '""')}"`,
+              `"${r.staffRoleType}"`,
+              `"${r.designation.replace(/"/g, '""')}"`,
+              `"${(r.bankAccountNumber || '').replace(/"/g, '""')}"`,
+              `"${(r.ifscCode || '').replace(/"/g, '""')}"`,
+              `"${(r.bankName || '').replace(/"/g, '""')}"`,
+              r.daysWorked,
+              r.grossSalaryInr,
+              r.deductionsInr,
+              r.netPayableInr,
+              r.status,
+            ].join(','),
       ),
     ];
     const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `rai-plus-payroll-${selectedMonth.toLowerCase().replace(/\s+/g, '-')}.csv`;
+    link.download = `${neftOnly ? 'bank-neft-salary' : 'rai-plus-payroll'}-${selectedMonth.toLowerCase().replace(/\s+/g, '-')}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -463,6 +508,9 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
               staffName: r.staffName.trim(),
               staffRoleType: r.staffRoleType,
               designation: r.designation.trim() || r.staffRoleType,
+              bankAccountNumber: r.bankAccountNumber?.trim() || undefined,
+              ifscCode: r.ifscCode?.trim() || undefined,
+              bankName: r.bankName?.trim() || undefined,
               daysWorked: r.daysWorked,
               grossSalaryInr: r.grossSalaryInr,
               deductionsInr: r.deductionsInr,
@@ -752,11 +800,19 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleExportCsv}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              onClick={() => handleExportCsv(false)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 whitespace-nowrap"
             >
               <Download className="h-3.5 w-3.5" />
               Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExportCsv(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#142B46]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-[#FAF4EC] whitespace-nowrap"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Bank NEFT CSV
             </button>
             <button
               type="button"
@@ -853,10 +909,11 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
                 <th className="px-3 py-3">Staff Name</th>
                 <th className="px-3 py-3">Category</th>
                 <th className="px-3 py-3">Designation / Bus</th>
-                <th className="px-3 py-3 w-24 text-center">Days</th>
-                <th className="px-3 py-3 w-32 text-right">Gross (₹)</th>
-                <th className="px-3 py-3 w-28 text-right">Deductions (₹)</th>
-                <th className="px-3 py-3 w-32 text-right">Net Payable</th>
+                <th className="px-3 py-3">Bank A/C &amp; IFSC</th>
+                <th className="px-3 py-3 w-20 text-center">Days</th>
+                <th className="px-3 py-3 w-28 text-right">Gross (₹)</th>
+                <th className="px-3 py-3 w-24 text-right">Deductions (₹)</th>
+                <th className="px-3 py-3 w-28 text-right">Net Payable</th>
                 <th className="px-3 py-3 text-center">Status</th>
                 <th className="px-3 py-3 text-right">Action</th>
               </tr>
@@ -864,7 +921,7 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
             <tbody className="divide-y divide-slate-100">
               {visibleRows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={10} className="px-4 py-10 text-center text-slate-500">
                     No staff rows for <span className="font-bold text-[#142B46]">{selectedMonth}</span> yet.
                     Click <span className="font-bold text-[#142B46]">&ldquo;Load Full School Staff&rdquo;</span> above to populate all teachers, drivers, and staff at once.
                   </td>
@@ -890,7 +947,7 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
                           value={row.staffName}
                           onChange={(e) => updateRowField(row.rowKey, { staffName: e.target.value })}
                           placeholder="Staff full name"
-                          className="w-full min-w-[140px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-[#142B46] disabled:bg-slate-100 disabled:text-slate-500"
+                          className="w-full min-w-[130px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-[#142B46] disabled:bg-slate-100 disabled:text-slate-500"
                         />
                       </td>
                       <td className="px-3 py-2">
@@ -916,8 +973,44 @@ export const BulkPayrollSheetPanel: React.FC<BulkPayrollSheetPanelProps> = ({
                           value={row.designation}
                           onChange={(e) => updateRowField(row.rowKey, { designation: e.target.value })}
                           placeholder="Designation / Bus"
-                          className="w-full min-w-[130px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 disabled:bg-slate-100"
+                          className="w-full min-w-[120px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 disabled:bg-slate-100"
                         />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="space-y-1 min-w-[165px]">
+                          <input
+                            type="text"
+                            disabled={lockedForUser}
+                            value={row.bankAccountNumber || ''}
+                            onChange={(e) =>
+                              updateRowField(row.rowKey, { bankAccountNumber: e.target.value })
+                            }
+                            placeholder="Bank Account No."
+                            className="w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-[11px] text-slate-800 disabled:bg-slate-100"
+                          />
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              disabled={lockedForUser}
+                              value={row.ifscCode || ''}
+                              onChange={(e) =>
+                                updateRowField(row.rowKey, {
+                                  ifscCode: e.target.value.toUpperCase(),
+                                })
+                              }
+                              placeholder="IFSC Code"
+                              className="w-28 rounded border border-slate-200 bg-white px-2 py-0.5 font-mono text-[10px] uppercase text-slate-700 disabled:bg-slate-100"
+                            />
+                            {row.bankName && (
+                              <span
+                                className="text-[10px] text-slate-500 truncate max-w-[100px]"
+                                title={row.bankName}
+                              >
+                                {row.bankName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-2 text-center">
                         <input

@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Potential difference: charge lifted and let fall</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 300" role="img"><title>Potential difference as a height difference</title></svg>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--text-secondary);margin-top:6px"><label for="nc">Number of cells</label><input type="range" id="nc" min="1" max="4" step="1" value="2" style="max-width:200px;flex:1"><span id="vv" style="font-weight:600;color:var(--text-primary)"></span></div>
+<p id="cap" style="font-size:13px;color:var(--text-secondary);margin:6px 0 0"></p>
+<style>@keyframes up{from{offset-distance:0%}to{offset-distance:100%}}@media (prefers-reduced-motion:no-preference){.q{animation:up var(--d) linear infinite}}</style>
+<script>
+function draw(){const n=+nc.value,V=n*1.5,h=40*n+30;vv.textContent=V+' V';const top=250-h;let s='<title>Potential difference</title>';
+ s+=`<rect x="60" y="${top}" width="70" height="${250-top}" rx="6" fill="#FAEEDA" stroke="#BA7517"/><text class="th" x="95" y="${top+24}" text-anchor="middle">${n} cell${n>1?'s':''}</text><text class="ts" x="95" y="${top+42}" text-anchor="middle">lifts charge</text>`;
+ s+=`<path id="p" d="M95 250 V${top} H420 L520 250 Z" fill="none" stroke="var(--border-strong)" stroke-width="2"/>`;
+ s+=`<circle cx="470" cy="${(top+250)/2}" r="16" fill="#FAC775" stroke="#BA7517"/><text class="ts" x="500" y="${(top+250)/2+4}">bulb: energy given out</text>`;
+ for(let i=0;i<8;i++)s+=`<circle class="q" r="7" fill="#378ADD" style="offset-path:path('M95 250 V${top} H420 L520 250 H95');--d:${6-n}s;animation-delay:-${i*(6-n)/8}s"/>`;
+ s+=`<line x1="30" y1="${top}" x2="30" y2="250" stroke="var(--text-secondary)" stroke-width="1.5"/><path d="M24 ${top+8} l6 -8 l6 8 M24 242 l6 8 l6 -8" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"/><text class="th" x="150" y="${top-10}">V = ${V} V: each coulomb gets ${V} J</text>`;
+ s+=`<rect x="0" y="250" width="680" height="6" fill="var(--border-strong)"/>`;document.getElementById('s').innerHTML=s;
+ cap.textContent='Like a pump lifting water, the cells raise charge to a higher potential. As charge flows back down through the bulb it gives up its energy. More cells means a bigger potential difference: more joules for every coulomb.'}
+nc.oninput=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

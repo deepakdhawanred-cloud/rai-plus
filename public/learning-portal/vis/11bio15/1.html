@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Read an ECG strip: find the heart rate</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 220" role="img"><title>Six-second ECG strip</title></svg>
+<div style="display:flex;gap:12px;align-items:center;font-size:14px;color:var(--text-secondary);margin-top:6px"><label for="r">Heart rate</label><input type="range" id="r" min="40" max="160" value="72" style="flex:1"><label><input type="checkbox" id="h"> Hide the answer</label></div>
+<p id="cap" style="font-size:14px;margin:6px 0 0"></p>
+<script>
+function e(t){const g=(c,w,a)=>a*Math.exp(-((t-c)**2)/(2*w*w));return g(0.05,0.022,0.15)+g(0.14,0.008,-0.12)+g(0.16,0.009,1.1)+g(0.18,0.008,-0.25)+g(0.36,0.035,0.3)}
+function draw(){const bpm=+r.value,T=60/bpm,W=520,secs=6;let s='<title>ECG</title>';
+ for(let i=0;i<=30;i++){const x=20+i*W/30;s+='<line x1="'+x+'" y1="20" x2="'+x+'" y2="190" stroke="#f0a1ad" stroke-width="'+(i%5?0.4:1)+'"/>'}for(let j=0;j<=8;j++){const y=20+j*170/8;s+='<line x1="20" y1="'+y+'" x2="540" y2="'+y+'" stroke="#f0a1ad" stroke-width="0.4"/>'}
+ let d='',n=0;for(let i=0;i<=1200;i++){const t=i/1200*secs,tc=t%T;const sc=Math.min(1,T/0.8);const v=tc<0.8*sc?e(tc/sc):0;d+=(i?'L':'M')+(20+i/1200*W).toFixed(1)+' '+(140-v*90).toFixed(1)}
+ for(let k=0;k*T+0.16*Math.min(1,T/0.8)<secs;k++)n++;
+ s+='<path d="'+d+'" fill="none" stroke="#9b2335" stroke-width="1.8"/>';for(let i=0;i<=6;i++)s+='<text class="ts" x="'+(20+i*W/6)+'" y="210" text-anchor="middle">'+i+' s</text>';
+ document.getElementById('s').innerHTML=s;
+ cap.innerHTML=h.checked?'Count the tall R peaks in 6 s and multiply by 10.':'R peaks in 6 s: <b>'+n+'</b> → about <b>'+n*10+'</b> beats/min by the quick 6-second method (exact rate set: '+bpm+'). '+(bpm<60?'Slower than normal resting rate.':bpm>100?'Faster than normal resting rate.':'Normal resting range.')}
+r.oninput=draw;h.onchange=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -46,41 +46,106 @@ import {
   saveParentLangPreference,
   type ParentLang,
 } from '../utils/parentTranslations';
-import { DashboardOverview } from './modules/DashboardOverview';
-import { NotebookCheckModule } from './modules/NotebookCheckModule';
-import { Student360Module } from './modules/Student360Module';
-import { IntelligenceGamesModule } from './modules/IntelligenceGamesModule';
-import { AcademicResourcesModule } from './modules/AcademicResourcesModule';
-import { AcademicsModule } from './modules/AcademicsModule';
-import { AdmissionsAndCareerModule } from './modules/AdmissionsAndCareerModule';
-import { FinancialDashboardModule } from './modules/FinancialDashboardModule';
-import { FamilyManagementModule } from './modules/FamilyManagementModule';
-import { OperationsAndGovernanceModule } from './modules/OperationsAndGovernanceModule';
-import {
-  ReadingNumeracyLabModule,
-  type AssessmentLabMode,
-} from './modules/ReadingNumeracyLabModule';
-import { DevelopmentalRemedialDashboardModule } from './modules/DevelopmentalRemedialDashboardModule';
-import { UnifiedThinkingModule } from './modules/UnifiedThinkingModule';
-import { CognitiveIntelligenceModule } from './modules/CognitiveIntelligenceModule';
-import { PsychometricSuiteModule } from './modules/PsychometricSuiteModule';
-import { ComputerSkillTestModule } from './modules/ComputerSkillTestModule';
-import { SmartTimetableLeaveModule } from './modules/SmartTimetableLeaveModule';
-import { TeacherProductivityModule } from './modules/TeacherProductivityModule';
-import { AttendanceHeatmapModule } from './modules/AttendanceHeatmapModule';
-import { CareerIntelligenceWorkspace } from './CareerIntelligenceWorkspace';
-import { ClinicalCareCenterModule } from './clinical/ClinicalCareCenterModule';
-import { TransportManagementModule } from './modules/TransportManagementModule';
-import { SchoolEventsModule } from './modules/SchoolEventsModule';
-import { MarksReportCardModule } from './modules/MarksReportCardModule';
-import { SuperAdminFeatureAllotmentModule } from './modules/SuperAdminFeatureAllotmentModule';
-import { StaffAttendanceSalaryModule } from './modules/StaffAttendanceSalaryModule';
-import { CampusGateVisitorsModule } from './modules/CampusGateVisitorsModule';
+import type { AssessmentLabMode } from './modules/ReadingNumeracyLabModule';
+import { ModuleErrorBoundary, WorkspaceModuleSkeleton } from './ModuleErrorBoundary';
+import { RoleOnboardingBanner } from './RoleOnboardingBanner';
 import { GlobalQuickJump } from './GlobalQuickJump';
 import { AlertsCenterPanel } from './AlertsCenterPanel';
 import { RoleNavigationDock } from './RoleNavigationDock';
 import { RevisionStreakReminderBell } from './RevisionStreakReminderBell';
 import { pushToast, ToastViewport } from './ToastProvider';
+
+// Code-split all 27 ERP workspace modules so every role only downloads the chunks it actually opens
+const DashboardOverview = lazy(() =>
+  import('./modules/DashboardOverview').then((m) => ({ default: m.DashboardOverview })),
+);
+const NotebookCheckModule = lazy(() =>
+  import('./modules/NotebookCheckModule').then((m) => ({ default: m.NotebookCheckModule })),
+);
+const Student360Module = lazy(() =>
+  import('./modules/Student360Module').then((m) => ({ default: m.Student360Module })),
+);
+const IntelligenceGamesModule = lazy(() =>
+  import('./modules/IntelligenceGamesModule').then((m) => ({ default: m.IntelligenceGamesModule })),
+);
+const AcademicResourcesModule = lazy(() =>
+  import('./modules/AcademicResourcesModule').then((m) => ({ default: m.AcademicResourcesModule })),
+);
+const AcademicsModule = lazy(() =>
+  import('./modules/AcademicsModule').then((m) => ({ default: m.AcademicsModule })),
+);
+const AdmissionsAndCareerModule = lazy(() =>
+  import('./modules/AdmissionsAndCareerModule').then((m) => ({ default: m.AdmissionsAndCareerModule })),
+);
+const FinancialDashboardModule = lazy(() =>
+  import('./modules/FinancialDashboardModule').then((m) => ({ default: m.FinancialDashboardModule })),
+);
+const FamilyManagementModule = lazy(() =>
+  import('./modules/FamilyManagementModule').then((m) => ({ default: m.FamilyManagementModule })),
+);
+const OperationsAndGovernanceModule = lazy(() =>
+  import('./modules/OperationsAndGovernanceModule').then((m) => ({ default: m.OperationsAndGovernanceModule })),
+);
+const ReadingNumeracyLabModule = lazy(() =>
+  import('./modules/ReadingNumeracyLabModule').then((m) => ({ default: m.ReadingNumeracyLabModule })),
+);
+const DevelopmentalRemedialDashboardModule = lazy(() =>
+  import('./modules/DevelopmentalRemedialDashboardModule').then((m) => ({ default: m.DevelopmentalRemedialDashboardModule })),
+);
+const UnifiedThinkingModule = lazy(() =>
+  import('./modules/UnifiedThinkingModule').then((m) => ({ default: m.UnifiedThinkingModule })),
+);
+const CognitiveIntelligenceModule = lazy(() =>
+  import('./modules/CognitiveIntelligenceModule').then((m) => ({ default: m.CognitiveIntelligenceModule })),
+);
+const PsychometricSuiteModule = lazy(() =>
+  import('./modules/PsychometricSuiteModule').then((m) => ({ default: m.PsychometricSuiteModule })),
+);
+const ComputerSkillTestModule = lazy(() =>
+  import('./modules/ComputerSkillTestModule').then((m) => ({ default: m.ComputerSkillTestModule })),
+);
+const SmartTimetableLeaveModule = lazy(() =>
+  import('./modules/SmartTimetableLeaveModule').then((m) => ({ default: m.SmartTimetableLeaveModule })),
+);
+const TeacherProductivityModule = lazy(() =>
+  import('./modules/TeacherProductivityModule').then((m) => ({ default: m.TeacherProductivityModule })),
+);
+const AttendanceHeatmapModule = lazy(() =>
+  import('./modules/AttendanceHeatmapModule').then((m) => ({ default: m.AttendanceHeatmapModule })),
+);
+const CareerIntelligenceWorkspace = lazy(() =>
+  import('./CareerIntelligenceWorkspace').then((m) => ({ default: m.CareerIntelligenceWorkspace })),
+);
+const ClinicalCareCenterModule = lazy(() =>
+  import('./clinical/ClinicalCareCenterModule').then((m) => ({ default: m.ClinicalCareCenterModule })),
+);
+const TransportManagementModule = lazy(() =>
+  import('./modules/TransportManagementModule').then((m) => ({ default: m.TransportManagementModule })),
+);
+const SchoolEventsModule = lazy(() =>
+  import('./modules/SchoolEventsModule').then((m) => ({ default: m.SchoolEventsModule })),
+);
+const MarksReportCardModule = lazy(() =>
+  import('./modules/MarksReportCardModule').then((m) => ({ default: m.MarksReportCardModule })),
+);
+const SuperAdminFeatureAllotmentModule = lazy(() =>
+  import('./modules/SuperAdminFeatureAllotmentModule').then((m) => ({ default: m.SuperAdminFeatureAllotmentModule })),
+);
+const StaffAttendanceSalaryModule = lazy(() =>
+  import('./modules/StaffAttendanceSalaryModule').then((m) => ({ default: m.StaffAttendanceSalaryModule })),
+);
+const CampusGateVisitorsModule = lazy(() =>
+  import('./modules/CampusGateVisitorsModule').then((m) => ({ default: m.CampusGateVisitorsModule })),
+);
+const SchoolControlRoomModule = lazy(() =>
+  import('./modules/SchoolControlRoomModule').then((m) => ({ default: m.SchoolControlRoomModule })),
+);
+const SmartAcademicCalendarModule = lazy(() =>
+  import('./modules/SmartAcademicCalendarModule').then((m) => ({ default: m.SmartAcademicCalendarModule })),
+);
+const LearningPortalModule = lazy(() =>
+  import('./modules/LearningPortalModule').then((m) => ({ default: m.LearningPortalModule })),
+);
 import {
   buildUnifiedWorkspaceAlerts,
   computeAlertCenterCounts,
@@ -164,6 +229,27 @@ const NAV_ITEMS: Array<{
       'counsellor',
       'accountant',
     ],
+  },
+  {
+    id: 'control_room',
+    label: 'School Control Room',
+    section: 'Daily Desk',
+    icon: Activity,
+    roles: ['school_admin', 'principal', 'coordinator', 'teacher'],
+  },
+  {
+    id: 'academic_calendar',
+    label: 'Smart Academic Calendar',
+    section: 'Daily Desk',
+    icon: Calendar,
+    roles: ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student'],
+  },
+  {
+    id: 'learning_portal',
+    label: 'Learning Portal (6–12)',
+    section: 'Daily Desk',
+    icon: BookOpenCheck,
+    roles: ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student'],
   },
   {
     id: 'alerts',
@@ -655,7 +741,34 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
+    // Sync URL hash for deep-linking & browser Back/Forward navigation
+    if (typeof window !== 'undefined') {
+      const targetHash = `#/app/${activeTab}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState({ tab: activeTab }, '', targetHash);
+      }
+    }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHashChange = () => {
+      const match = window.location.hash.match(/^#\/app\/([a-z0-9_]+)$/i);
+      if (!match) return;
+      const requested = match[1] as WorkspaceTab;
+      const isAllowed = NAV_ITEMS.some(
+        (n) =>
+          n.id === requested &&
+          n.roles.includes(data.user.role) &&
+          isWorkspaceTabEnabledForSchool(data.activeSchool, n.id),
+      );
+      if (isAllowed && requested !== activeTab) {
+        setActiveTab(requested);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [activeTab, data.activeSchool, data.user.role]);
 
   // Listen for immediate Quick Revise / Interactive Learning streak completions
   useEffect(() => {
@@ -1913,10 +2026,22 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
             </div>
           </div>
 
-          {isSuperAdmin ? (
-            <SuperAdminFeatureAllotmentModule data={data} token={token} onRefresh={onRefresh} />
-          ) : (
-            <>
+          {!isSuperAdmin && (
+            <RoleOnboardingBanner
+              schoolId={data.activeSchool.id}
+              userId={data.user.id}
+              role={data.user.role}
+              userName={data.user.name}
+              onNavigateTab={handleNavigateTab}
+            />
+          )}
+
+          <ModuleErrorBoundary key={`${data.activeSchool.id}-${activeTab}`} moduleLabel={currentTabLabel}>
+            <Suspense fallback={<WorkspaceModuleSkeleton label={currentTabLabel} />}>
+              {isSuperAdmin ? (
+                <SuperAdminFeatureAllotmentModule data={data} token={token} onRefresh={onRefresh} />
+              ) : (
+                <>
               {(activeTab === 'overview' || activeTab === 'today_workspace') && (
                 <DashboardOverview
                   data={data}
@@ -1949,6 +2074,15 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                   onLocalAcknowledge={handleLocalAcknowledgeAlerts}
                   onLocalReopen={handleLocalReopenAlert}
                 />
+              )}
+              {activeTab === 'control_room' && (
+                <SchoolControlRoomModule data={data} token={token} onRefresh={onRefresh} />
+              )}
+              {activeTab === 'academic_calendar' && (
+                <SmartAcademicCalendarModule data={data} token={token} onRefresh={onRefresh} />
+              )}
+              {activeTab === 'learning_portal' && (
+                <LearningPortalModule data={data} token={token} />
               )}
               {activeTab === 'clinical_care' && (
                 <ClinicalCareCenterModule data={data} token={token} onRefresh={onRefresh} />
@@ -2109,8 +2243,10 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                   parentLang={parentLang}
                 />
               )}
-            </>
-          )}
+                </>
+              )}
+            </Suspense>
+          </ModuleErrorBoundary>
         </main>
       </div>
 

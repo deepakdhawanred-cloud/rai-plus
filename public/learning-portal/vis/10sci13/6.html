@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The ozone layer and CFCs</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 330" role="img"><title>Ozone layer</title></svg>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><label for="cf">CFCs released</label><input type="range" id="cf" min="0" max="100" step="1" value="0" style="flex:1;max-width:260px"><span id="cv">none</span></div>
+<p style="font-size:13px;color:var(--text-secondary);margin:6px 0 0">High in the atmosphere, UV radiation splits oxygen (O₂) into single oxygen atoms (O), which join O₂ to make ozone (O₃). The ozone layer absorbs harmful UV. CFCs from refrigerants and fire extinguishers thin it; in 1987 UNEP got countries to agree to freeze CFC production at 1986 levels.</p>
+<style>@keyframes ray{from{stroke-dashoffset:0}to{stroke-dashoffset:-30}}@media (prefers-reduced-motion:no-preference){.ray{stroke-dasharray:10 5;animation:ray .7s linear infinite}}</style>
+<script>
+function draw(){const c=+cf.value;cv.textContent=c===0?'none':c<40?'some':c<75?'a lot':'very high';const holes=Math.round(c/20);let s='<title>Ozone layer</title>';
+ s+=`<rect x="0" y="0" width="680" height="330" fill="#E6F1FB" opacity=".35"/><circle cx="60" cy="40" r="26" fill="#FAC775" stroke="#BA7517"/><text class="ts" x="96" y="44">Sun</text>`;
+ s+=`<rect x="0" y="110" width="680" height="36" fill="#AFA9EC" opacity=".55"/><text class="th" x="12" y="133">Ozone layer (O₃)</text>`;
+ const gaps=[];for(let k=0;k<holes;k++)gaps.push(180+k*100);gaps.forEach(g=>s+=`<rect x="${g}" y="110" width="${30+c/3}" height="36" fill="var(--bg-neutral)"/>`);
+ for(let k=0;k<6;k++){const x=180+k*90,through=gaps.some(g=>x>=g&&x<=g+30+c/3);s+=`<line class="ray" x1="${x-50}" y1="20" x2="${through?x+70:x}" y2="${through?290:118}" stroke="#7F77DD" stroke-width="2.5"/>`}
+ s+=`<rect x="0" y="290" width="680" height="40" fill="#97C459"/><text x="20" y="314" style="font-size:13px;fill:#173404">Earth: ${holes?'harmful UV reaches the ground, raising the risk of skin cancer':'protected from most UV radiation'}</text>`;
+ s+=`<text class="ts" x="520" y="200">O₂ + UV → O + O</text><text class="ts" x="520" y="222">O + O₂ → O₃</text>`;document.getElementById('s').innerHTML=s}
+cf.oninput=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

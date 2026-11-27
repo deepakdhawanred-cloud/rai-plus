@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mendel's one-trait cross, step by step</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fly{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){.rise{animation:rise .6s ease-out both;transform-box:fill-box}.fly{animation:fly .7s ease-out both;transform-box:fill-box}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);display:inline-block}.dot.on{background:var(--text-primary)}</style>
+<svg id="mc" width="100%" viewBox="0 0 680 330" role="img"><title>Monohybrid cross</title></svg>
+<div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap"><button id="pv" aria-label="Previous step">←</button><button id="nv">Next step →</button><span id="dots" style="display:flex;gap:6px"></span></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:10px 0 0;min-height:48px"></p>
+<script>
+const G='#3B6D11',V='#7F77DD';
+function plant(x,base,tall,cls='rise',d=0){const h=tall?110:45;let s=`<g class="${cls}" style="animation-delay:${d}s"><line x1="${x}" y1="${base}" x2="${x}" y2="${base-h}" stroke="${G}" stroke-width="4" stroke-linecap="round"/>`;
+ const n=tall?3:1;for(let k=1;k<=n;k++){const y=base-h*k/(n+.7);s+=`<ellipse cx="${x-11}" cy="${y}" rx="11" ry="5" fill="#639922" transform="rotate(-25 ${x-11} ${y})"/><ellipse cx="${x+11}" cy="${y-7}" rx="11" ry="5" fill="#639922" transform="rotate(25 ${x+11} ${y-7})"/>`}
+ return s+`<circle cx="${x}" cy="${base-h-5}" r="6" fill="${V}"/></g>`}
+function gt(x,y,t,d=0){return `<text class="th rise" style="animation-delay:${d}s" x="${x}" y="${y}" text-anchor="middle">${t}</text>`}
+function gam(x,y,a,d){const dom=a==='T';return `<g class="fly" style="animation-delay:${d}s"><circle cx="${x}" cy="${y}" r="16" fill="${dom?'#FAC775':'#CECBF6'}" stroke="${dom?'#854F0B':'#534AB7'}"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" style="font-size:14px;font-weight:600;fill:${dom?'#633806':'#3C3489'}">${a}</text></g>`}
+const steps=[
+()=>({svg:plant(200,230,1)+gt(200,262,'TT')+`<text class="ts" x="200" y="285" text-anchor="middle">pure tall</text><text class="th rise" x="340" y="180" text-anchor="middle" style="font-size:22px">×</text>`+plant(480,230,0,'rise',.3)+gt(480,262,'tt',.3)+`<text class="ts" x="480" y="285" text-anchor="middle">pure short</text><text class="ts" x="20" y="30">Parents (P)</text>`,
+ c:'Parents: a pure-breeding tall pea plant (TT) is crossed with a pure-breeding short one (tt). Each plant carries two copies of the height factor.'}),
+()=>({svg:plant(200,150,1)+gt(200,175,'TT')+plant(480,150,0)+gt(480,175,'tt')+gam(170,240,'T',.1)+gam(230,240,'T',.25)+gam(450,240,'t',.4)+gam(510,240,'t',.55)+`<text class="ts" x="340" y="290" text-anchor="middle">each gamete carries only one copy</text><text class="ts" x="20" y="30">Gametes</text>`,
+ c:'Gametes: each parent passes on only one copy. The tall parent makes only T gametes; the short parent makes only t gametes.'}),
+()=>{let s='';[120,250,380,510].forEach((x,i)=>{s+=plant(x,230,1,'rise',i*.15)+gt(x,262,'Tt',i*.15)});return{svg:s+`<text class="ts" x="20" y="30">First generation (F1)</text><text class="ts" x="340" y="295" text-anchor="middle">all tall, no medium-height plants</text>`,
+ c:'F1: every plant is Tt and every plant is tall. The short trait has not disappeared; it is hidden because T is dominant over t.'}},
+()=>({svg:plant(340,150,1)+gt(340,175,'Tt')+`<text class="ts" x="340" y="30" text-anchor="middle">F1 plant self-pollinates</text>`+gam(230,240,'T',.1)+gam(290,240,'t',.25)+gam(390,240,'T',.4)+gam(450,240,'t',.55)+`<text class="ts" x="260" y="285" text-anchor="middle">pollen</text><text class="ts" x="420" y="285" text-anchor="middle">egg cells</text>`,
+ c:'F1 plants are self-pollinated. Each Tt plant makes two kinds of gametes in equal numbers: half T and half t.'}),
+()=>{const L=[['TT',1],['Tt',1],['Tt',1],['tt',0]];let s='';L.forEach(([g,t],i)=>{const x=130+i*140;s+=plant(x,220,t,'rise',i*.2)+gt(x,252,g,i*.2)});
+ return{svg:s+`<text class="ts" x="20" y="30">Second generation (F2)</text><g class="rise" style="animation-delay:.9s"><rect x="90" y="272" width="360" height="34" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/><text x="270" y="289" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#27500A">3 tall</text><rect x="460" y="272" width="120" height="34" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="520" y="289" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#3C3489">1 short</text></g>`,
+ c:'F2: the short plant reappears. Genotypes come in a 1 TT : 2 Tt : 1 tt ratio, so the plants look 3 tall : 1 short.'}}];
+let i=0;function show(){const r=steps[i]();mc.innerHTML='<title>Monohybrid cross</title>'+r.svg;cap.textContent=r.c;dots.innerHTML=steps.map((_,k)=>`<span class="dot ${k===i?'on':''}"></span>`).join('')}
+nv.onclick=()=>{i=(i+1)%steps.length;show()};pv.onclick=()=>{i=(i+steps.length-1)%steps.length;show()};show();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

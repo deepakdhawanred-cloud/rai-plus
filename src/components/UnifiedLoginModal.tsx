@@ -19,6 +19,7 @@ interface UnifiedLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   demoAccounts: PublicDemoAccount[];
+  demoLoginEnabled?: boolean;
   schools: Array<{ id: string; name: string; city: string; board: string }>;
   onLoginSuccess: (payload: { token: string; user: UserAccount; activeSchoolId: string | null }) => void;
 }
@@ -71,10 +72,12 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
   isOpen,
   onClose,
   demoAccounts,
+  demoLoginEnabled = true,
   schools,
   onLoginSuccess,
 }) => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [schoolFilter, setSchoolFilter] = useState<string>('school-vis-jjr');
   const [activeCategory, setActiveCategory] = useState<RoleCategoryTab>('leadership');
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,7 +128,10 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
     return match ? `${match.name} · ${match.city}` : schoolId;
   };
 
-  async function handleLogin(body: { userId?: string; email?: string }, labelId: string) {
+  async function handleLogin(
+    body: { userId?: string; email?: string; password?: string },
+    labelId: string,
+  ) {
     setError(null);
     setLoadingId(labelId);
     try {
@@ -139,6 +145,7 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       });
       saveRecentId(data.user.id);
       setRecentIds(loadRecentIds());
+      setPassword('');
       onLoginSuccess(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed.');
@@ -153,7 +160,14 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       setError('Please enter your registered institutional email address.');
       return;
     }
-    void handleLogin({ email: email.trim() }, 'email-form');
+    if (!demoLoginEnabled && !password) {
+      setError('Please enter your password to sign in.');
+      return;
+    }
+    void handleLogin(
+      { email: email.trim(), ...(password ? { password } : {}) },
+      'email-form',
+    );
   }
 
   return (
@@ -198,30 +212,54 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Email Login Form */}
-          <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
+          {/* Email & Password Login Form */}
+          <form onSubmit={handleEmailSubmit} className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-5">
               <label htmlFor="portal-email-input" className="sr-only">
                 Institutional Email Address
               </label>
               <input
                 id="portal-email-input"
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter school or parent email (e.g. pooja.dhillon@viratinternational.edu.in)"
+                placeholder="Registered school or parent email"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-900/15"
+              />
+            </div>
+            <div className="sm:col-span-4">
+              <label htmlFor="portal-password-input" className="sr-only">
+                Password
+              </label>
+              <input
+                id="portal-password-input"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={demoLoginEnabled ? 'Password (if configured)' : 'Password (required)'}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-900/15"
               />
             </div>
             <button
               type="submit"
               disabled={loadingId !== null}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60 whitespace-nowrap shrink-0 transition-colors"
+              className="sm:col-span-3 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60 whitespace-nowrap shrink-0 transition-colors"
             >
-              {loadingId === 'email-form' ? 'Signing in...' : 'Sign In with Email'}
+              {loadingId === 'email-form' ? 'Signing in...' : 'Sign In'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
+
+          {!demoLoginEnabled && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-xs text-emerald-900 flex items-center gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-700 shrink-0" />
+              <span>
+                Production Security Mode Active: Sign in with your verified school email and password. Sessions are protected with encrypted HttpOnly cookies.
+              </span>
+            </div>
+          )}
 
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
@@ -229,8 +267,8 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
             </div>
           )}
 
-          {/* Recently Used 1-Tap Switch Strip */}
-          {recentAccounts.length > 0 && (
+          {/* Recently Used 1-Tap Switch Strip (Demo Sandbox Mode Only) */}
+          {demoLoginEnabled && recentAccounts.length > 0 && (
             <div className="space-y-2" data-testid="login-recent-accounts">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                 <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -253,7 +291,8 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
             </div>
           )}
 
-          {/* Tabbed Role Directory */}
+          {/* Tabbed Role Directory (Demo Sandbox Mode Only) */}
+          {demoLoginEnabled && demoAccounts.length > 0 && (
           <div className="border-t border-slate-200 pt-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
@@ -377,6 +416,7 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

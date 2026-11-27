@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The investigation cycle: why puris puff</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 280" role="img"><title>Scientific method</title></svg>
+<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><button id="pv">◀</button><button id="pb">Pause</button><button id="nx">▶</button><span id="cap" style="font-size:14px"></span></div>
+<script>
+const ST=["Observe.", "Ask a question.", "Make a hypothesis.", "Test fairly.", "Analyse the data.", "Conclude."];let k=0,run=true,tm=null;
+function draw(i){const S=[['Observe','A puri puffs up in hot oil.','#1f5f8b'],['Question','What makes it puff?','#6a4fb3'],['Hypothesis','If dough has water, then steam puffs it, because water turns to steam.','#b04a1f'],['Experiment','Fry puris from normal and very dry dough; keep oil temperature the same.','#3b6d11'],['Analyse','Normal dough puffed; dry dough barely puffed.','#1f5f8b'],['Conclude','Evidence supports the steam hypothesis.','#6a4fb3']];const cx=150,cy=130,r=95;let s='';
+S.forEach(([t,,c],k)=>{const a=-Math.PI/2+k*Math.PI/3;const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);const on=k<=i;s+=`<circle cx="${x}" cy="${y}" r="${k===i?30:24}" fill="${on?c:'#ddd'}" fill-opacity="${on?.25:.4}" stroke="${on?c:'#bbb'}" stroke-width="2"/><text x="${x}" y="${y+4}" font-size="10" font-weight="700" text-anchor="middle" fill="${on?c:'#aaa'}">${t}</text>`});
+const words=S[i][1].split(' ');let line='',L=[];words.forEach(w=>{if((line+' '+w).length>28){L.push(line);line=w}else line=(line+' '+w).trim()});L.push(line);L.forEach((l,k)=>s+=`<text x="390" y="${110+k*20}" font-size="13" text-anchor="middle">${l}</text>`);return s;}
+function show(){document.getElementById('s').innerHTML=draw(k);cap.textContent=(k+1)+'/'+ST.length+' · '+ST[k]}
+function tick(){if(run){k=(k+1)%ST.length;show()}tm=setTimeout(tick,3200)}
+pb.onclick=()=>{run=!run;pb.textContent=run?'Pause':'Play'};nx.onclick=()=>{run=false;pb.textContent='Play';k=Math.min(ST.length-1,k+1);show()};pv.onclick=()=>{run=false;pb.textContent='Play';k=Math.max(0,k-1);show()};
+show();tm=setTimeout(tick,3200);
+</script>
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

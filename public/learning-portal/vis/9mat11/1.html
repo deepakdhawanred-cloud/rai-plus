@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Unroll a cone: its net is a sector</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px">
+<svg id="c" width="100%" viewBox="0 0 240 260" role="img"><title>The cone</title></svg>
+<svg id="n" width="100%" viewBox="0 0 300 260" role="img"><title>Its net: a sector</title></svg></div>
+<div style="display:flex;gap:12px;align-items:center;font-size:14px;color:var(--text-secondary);margin-top:6px"><label for="r">Base radius r</label><input type="range" id="r" min="2" max="10" step="1" value="6" style="flex:1"><label for="l">Slant height l</label><input type="range" id="l" min="5" max="12" step="1" value="10" style="flex:1"></div>
+<p id="cap" style="font-size:14px;margin:8px 0 0"></p>
+<script>
+function draw(){let R=+r.value,L=+l.value;if(R>=L){R=L-1;r.value=R}const k=10,rr=R*k,h=Math.sqrt(L*L-R*R)*k,by=215,ry=rr*.28;
+ c.innerHTML='<title>Cone</title><path d="M'+(120-rr)+' '+by+' L120 '+(by-h)+' L'+(120+rr)+' '+by+' A'+rr+' '+ry+' 0 0 1 '+(120-rr)+' '+by+'Z" fill="#b5d4f4" opacity=".6"/><path d="M'+(120-rr)+' '+by+' L120 '+(by-h)+' L'+(120+rr)+' '+by+'" fill="none" stroke="var(--text-primary)" stroke-width="2"/><ellipse cx="120" cy="'+by+'" rx="'+rr+'" ry="'+ry+'" fill="none" stroke="var(--text-primary)" stroke-width="1.6"/><text class="ts" x="'+(120+rr/2+12)+'" y="'+(by-h/2)+'">l = '+L+'</text><text class="ts" x="120" y="'+(by+ry+18)+'" text-anchor="middle">r = '+R+'</text>';
+ const th=360*R/L,LL=L*12,cx=150,cy=130-LL/2+10;const a0=90-th/2,a1=90+th/2,p=a=>[cx+LL*Math.cos(a*Math.PI/180),cy+LL*Math.sin(a*Math.PI/180)];const [x0,y0]=p(a0),[x1,y1]=p(a1);
+ n.innerHTML='<title>Net</title><path d="M'+cx+' '+cy+' L'+x0+' '+y0+' A'+LL+' '+LL+' 0 '+(th>180?1:0)+' 1 '+x1+' '+y1+'Z" fill="#b5d4f4" opacity=".6" stroke="var(--text-primary)" stroke-width="2"/><circle cx="'+cx+'" cy="'+cy+'" r="3" fill="var(--text-primary)"/><text class="th" x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle">'+th.toFixed(0)+'°</text>';
+ cap.innerHTML='Sector angle = 360° × r / l = 360 × '+R+'/'+L+' = <b>'+th.toFixed(1)+'°</b>. Arc = 2πr. Area = πrl = π × '+R+' × '+L+' = <b>'+(Math.PI*R*L).toFixed(1)+'</b> square units.'}
+r.oninput=draw;l.oninput=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

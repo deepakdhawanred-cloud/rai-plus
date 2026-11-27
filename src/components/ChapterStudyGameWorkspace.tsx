@@ -49,7 +49,7 @@ import {
 import { emitRevisionStreakUpdated } from '../utils/revisionStreakReminderEngine';
 import { pushToast } from './ToastProvider';
 
-const QUICK_REVISE_V2_STUDIO_PATH = '/assets/aistudio/quick-revision-games_5d869b72.html';
+const QUICK_REVISE_V2_STUDIO_PATH = '/assets/games/quick-revision-studio.html';
 
 type StudioClassCode = -2 | -1 | 0 | SchoolClassNumber;
 

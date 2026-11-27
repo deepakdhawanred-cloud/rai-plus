@@ -1,7 +1,7 @@
 {
-  "name": "react-example",
+  "name": "rai-plus",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": ">=22.18.0"
@@ -12,7 +12,10 @@
     "start": "node server.ts",
     "preview": "NODE_ENV=production node server.ts",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "tsx --test src/utils/*.test.ts server/supabaseStore.test.ts server/thinkingMigrations.test.ts server/security.test.ts server/learningPortal.test.ts",
+    "test:audit": "tsx --test server/preLaunchAudit.test.ts",
+    "test:stress": "tsx scripts/stressTest.ts"
   },
   "dependencies": {
     "@google/genai": "^3.3.0",
@@ -38,7 +41,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",

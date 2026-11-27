@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Method of mixtures: heat lost = heat gained</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 220" role="img"><title>Method of mixtures</title></svg>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 16px;font-size:14px;color:var(--text-secondary)">
+<label>Hot water: <b id="a1" style="color:var(--text-primary)"></b><input type="range" id="m1" min="0.1" max="1" step="0.05" value="0.2" style="width:100%"></label>
+<label>Hot water temperature: <b id="a2" style="color:var(--text-primary)"></b><input type="range" id="t1" min="40" max="100" step="5" value="80" style="width:100%"></label>
+<label>Cold water: <b id="a3" style="color:var(--text-primary)"></b><input type="range" id="m2" min="0.1" max="1" step="0.05" value="0.3" style="width:100%"></label>
+<label>Cold water temperature: <b id="a4" style="color:var(--text-primary)"></b><input type="range" id="t2" min="0" max="35" step="1" value="20" style="width:100%"></label></div>
+<p id="cap" style="font-size:14px;margin:8px 0 0"></p>
+<script>
+function col(T){const k=T/100;return `rgb(${Math.round(55+200*k)},${Math.round(138-60*k)},${Math.round(221-180*k)})`}
+function draw(){const M1=+m1.value,T1=+t1.value,M2=+m2.value,T2=+t2.value,Tf=(M1*T1+M2*T2)/(M1+M2);a1.textContent=M1+' kg';a2.textContent=T1+' °C';a3.textContent=M2+' kg';a4.textContent=T2+' °C';
+ const cup=(x,h,c,t,l)=>`<rect x="${x}" y="${190-h}" width="120" height="${h}" fill="${c}" opacity=".75"/><rect x="${x}" y="40" width="120" height="150" fill="none" stroke="var(--text-primary)" stroke-width="2"/><text class="th" x="${x+60}" y="210" text-anchor="middle">${l}</text><text class="t" x="${x+60}" y="${180-h/2}" text-anchor="middle">${t}</text>`;
+ let s='<title>Mixing</title>'+cup(40,M1*140,col(T1),T1+' °C','hot')+'<text class="th" x="190" y="120">+</text>'+cup(220,M2*140,col(T2),T2+' °C','cold')+'<text class="th" x="370" y="120">=</text>'+cup(410,Math.min(150,(M1+M2)*70),col(Tf),Tf.toFixed(1)+' °C','mixture');
+ document.getElementById('s').innerHTML=s;const lost=M1*4186*(T1-Tf),gain=M2*4186*(Tf-T2);
+ cap.innerHTML=`Heat lost by hot water = ${M1} × 4186 × (${T1} − ${Tf.toFixed(1)}) = <b>${Math.round(lost).toLocaleString('en-IN')} J</b>. Heat gained by cold water = ${M2} × 4186 × (${Tf.toFixed(1)} − ${T2}) = <b>${Math.round(gain).toLocaleString('en-IN')} J</b>. Equal, assuming no heat is lost to the surroundings.`}
+document.querySelectorAll('input').forEach(i=>i.oninput=draw);draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

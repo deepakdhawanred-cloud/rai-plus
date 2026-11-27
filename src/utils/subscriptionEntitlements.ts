@@ -108,11 +108,11 @@ export const PLATFORM_FEATURES: PlatformFeatureSpec[] = [
   },
   {
     key: 'school_operations',
-    label: 'Operations, Digital Gate Pass & Visitors Register',
+    label: 'School Control Room, Smart Calendar, Gate Pass & Governance',
     category: 'Core ERP',
-    description: 'Digital gate pass approvals, campus visitors register, complaints, staff accounts & audit logs.',
+    description: 'Live School Control Room timeline, Smart Academic Calendar & rescheduling engine, digital gate pass, visitors register & audit logs.',
     includedInPlans: ['Starter ERP', 'Growth ERP', 'Premium Campus', 'Enterprise 360°'],
-    governedTabs: ['operations', 'campus_gate'],
+    governedTabs: ['operations', 'campus_gate', 'control_room', 'academic_calendar', 'learning_portal'],
     isCore: true,
   },
 

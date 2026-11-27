@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Electricity bill calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>.ap{display:grid;grid-template-columns:minmax(0,1.4fr) 70px minmax(0,1fr) 80px;gap:8px;align-items:center;font-size:14px;padding:6px 0;border-bottom:0.5px solid var(--border)}</style>
+<div id="rows"></div>
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:14px;color:var(--text-secondary)"><label for="rate">Example rate per unit (₹)</label><input type="range" id="rate" min="3" max="10" step="0.5" value="6" style="max-width:200px;flex:1"><span id="rv" style="font-weight:600;color:var(--text-primary)"></span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px">
+<div style="background:var(--bg-neutral);border-radius:var(--radius);padding:10px"><div style="font-size:13px;color:var(--text-secondary)">Energy in 30 days</div><div id="u" style="font-size:22px;font-weight:600"></div></div>
+<div style="background:var(--bg-neutral);border-radius:var(--radius);padding:10px"><div style="font-size:13px;color:var(--text-secondary)">In joules</div><div id="j" style="font-size:22px;font-weight:600"></div></div>
+<div style="background:var(--bg-neutral);border-radius:var(--radius);padding:10px"><div style="font-size:13px;color:var(--text-secondary)">Estimated cost</div><div id="c" style="font-size:22px;font-weight:600"></div></div></div>
+<p style="font-size:13px;color:var(--text-secondary);margin:8px 0 0">Energy (kWh) = power (kW) × hours. 1 unit = 1 kWh = 3.6 × 10⁶ J. Wattages are typical examples; the rate is only an example, so check your own bill for the real tariff.</p>
+<script>
+const A=[['LED bulb',10,6],['Ceiling fan',75,10],['Television',100,4],['Refrigerator',200,12],['Electric iron',1000,0.5],['Geyser',2000,1]];
+rows.innerHTML='<div class="ap" style="color:var(--text-secondary);font-size:13px"><span>Appliance</span><span>Power</span><span>Hours per day</span><span>kWh/day</span></div>'+A.map((a,i)=>`<div class="ap"><span>${a[0]}</span><span>${a[1]} W</span><input type="range" min="0" max="24" step="0.5" value="${a[2]}" data-i="${i}" aria-label="Hours per day for ${a[0]}"><span id="k${i}"></span></div>`).join('');
+function calc(){let tot=0;document.querySelectorAll('[data-i]').forEach(r=>{const a=A[+r.dataset.i],k=a[1]/1000*+r.value;tot+=k;document.getElementById('k'+r.dataset.i).textContent=(Math.round(k*100)/100)+' ('+r.value+' h)'});
+ const m=tot*30;u.textContent=Math.round(m*10)/10+' units';j.textContent=(x=>{const[m,e]=x.toExponential(2).split('e+');return m+' × 10'+e.replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d])})(m*3.6e6)+' J';rv.textContent='₹'+rate.value;c.textContent='₹'+Math.round(m*+rate.value).toLocaleString('en-IN')}
+document.querySelectorAll('input').forEach(x=>x.oninput=calc);calc();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

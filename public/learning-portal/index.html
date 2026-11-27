@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rai Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a patient science teacher – clear, warm, exam-aware
+   IDEA: Mendel's pea garden notebook – every concept is a plot you can open, cross and count
+   PICTURE: live Punnett grid of real pea shapes (round/wrinkled, yellow/green, tall/short)
+   COLOUR and TYPE: pea-pod green fields, pod-yellow support, violet flower accent; Literata titles, Source Sans 3 text
+   LAYOUT: green header band with progress, tab row, concept list + lesson pane, stacks below 760px */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e1711);--ink:light-dark(#15211a,#e6efe7);--mute:light-dark(#566358,#9fb1a3);
+--g:light-dark(#2f6a32,#7fc283);--g2:light-dark(#e9f3e6,#18281b);--line:light-dark(#d5e3d2,#2a3d2d);
+--y:light-dark(#f2c230,#e5b92c);--y2:light-dark(#fff6d6,#2b2612);--v:light-dark(#6a3d9a,#b896e3);--v2:light-dark(#f1eaf9,#241a31);
+--hd:#1e4a22;--bad:light-dark(#b3261e,#ff8a80);--ok:light-dark(#1d6b2a,#8be19a);--card:light-dark(#ffffff,#132017)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.55 "Source Sans 3",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Literata,Georgia,serif;font-weight:600;line-height:1.1;text-wrap:balance;margin:0 0 .4em}
+h1{font-size:clamp(30px,5vw,46px)}h2{font-size:clamp(24px,3.4vw,32px)}h3{font-size:19px;font-family:"Source Sans 3",sans-serif;font-weight:700}
+p{margin:.3em 0 .8em;max-width:68ch}
+header{background:var(--g);color:#fff;padding:22px max(5vw,16px) 18px}
+:root[data-theme=dark] header,header{--hink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) header{background:var(--hd)}}
+:root[data-theme=dark] header{background:var(--hd)}
+
+.hero{width:min(380px,100%)}.hero svg{width:100%;height:auto;display:block;margin-bottom:6px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+.crumb{font-size:14px;opacity:.85;margin-bottom:6px}
+.hrow{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:flex-end;justify-content:space-between}
+.meter{width:min(320px,100%)}.meter small{display:block;font-size:14px;opacity:.9}
+.bar{height:10px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--y);width:0;transition:width .4s}
+nav{display:flex;gap:4px;overflow-x:auto;padding:0 max(5vw,16px);border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:5}
+nav a{flex:none;padding:13px 14px;color:var(--mute);text-decoration:none;font-weight:600;border-bottom:3px solid transparent;min-height:44px}
+nav a[aria-current=page]{color:var(--g);border-color:var(--g)}
+main{max-width:1240px;margin:0 auto;padding:24px max(4vw,16px) 60px}
+section[hidden]{display:none}
+.learn{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px}
+.clist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.clist button{width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;cursor:pointer;display:flex;gap:10px;align-items:flex-start;min-height:44px}
+.clist button[aria-current=true]{border-color:var(--g);background:var(--g2)}
+.clist b{color:var(--g);flex:none;width:44px}.tick{margin-left:auto;color:var(--ok);font-weight:700}
+.ftabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.ftabs button,.btn{font:inherit;font-weight:600;padding:9px 16px;border-radius:999px;border:1.5px solid var(--g);background:transparent;color:var(--g);cursor:pointer;min-height:44px}
+.ftabs button[aria-pressed=true],.btn.p{background:var(--g);color:var(--bg)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--v);outline-offset:2px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:8px 0 4px}
+.meta div{background:var(--g2);border-radius:10px;padding:10px 14px;font-size:15px}.meta b{display:block;color:var(--g);font-size:14px}
+.pane{border-top:1px solid var(--line);padding-top:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.box.y{background:var(--y2);border-color:transparent}.box.v{background:var(--v2);border-color:transparent}
+.fig{position:relative;width:100%;max-width:640px}.fig svg{width:100%;height:auto;display:block}
+ol,ul{padding-left:1.3em}li{margin:.25em 0}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opts button{text-align:left;font:inherit;padding:11px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:44px}
+.opts button.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.opts button.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.fb{font-weight:600}.fb.ok{color:var(--ok)}.fb.no{color:var(--bad)}
+.exam{font-size:15px;color:var(--mute);border-left:3px solid var(--y);padding-left:12px;margin-top:18px}
+.sim{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;margin:10px 0}
+label{font-size:14px;font-weight:600;color:var(--mute);display:flex;flex-direction:column;gap:4px}
+select,input[type=number],textarea{font:inherit;font-size:16px;padding:9px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);min-height:44px}
+textarea{width:100%;min-height:140px}
+.grid{display:grid;gap:4px;margin:12px 0}
+.grid div{border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;font-weight:700;font-size:15px;min-height:64px;text-align:center}
+.gh{background:var(--y2);color:var(--ink)}.gc{background:var(--g2)}
+.gc svg{width:46px;height:46px}.gc{animation:pop .45s both}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.st{transition:opacity .6s,transform .6s}.st.off{opacity:0;transform:translateY(8px)}
+.cap{min-height:3.2em;font-size:18px;font-weight:600;color:var(--g);margin:10px 0}
+.dots{display:flex;gap:6px;margin:6px 0}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--g)}
+.rows{display:grid;gap:8px;margin:10px 0}
+.row{display:grid;grid-template-columns:9em minmax(0,1fr) 4.5em;gap:10px;align-items:center;font-size:15px}
+.row .t{height:20px;background:var(--g2);border-radius:5px;overflow:hidden}.row .t i{display:block;height:100%;background:var(--g)}
+.row .t i.e{background:var(--y)}.row span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.card{min-height:200px;border-radius:16px;background:var(--g);color:#fff;padding:26px;display:flex;flex-direction:column;justify-content:center;font-size:20px;cursor:pointer;border:0;font-family:inherit;text-align:left;width:100%}
+.card.back{background:var(--v)}.card small{font-size:14px;opacity:.85;margin-bottom:8px}
+.lv{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
+table{border-collapse:collapse;width:100%;font-size:15px}th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle}
+th{color:var(--mute);font-weight:600}td input[type=checkbox]{width:22px;height:22px}
+.note{font-size:14px;color:var(--mute)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.scroll{overflow-x:auto}
+@media(max-width:760px){.learn,.sim{grid-template-columns:minmax(0,1fr)}.clist{flex-direction:row;overflow-x:auto}.clist li{flex:none;width:220px}}
+@media(max-width:600px){table{font-size:13px}.row{grid-template-columns:7em minmax(0,1fr) 3.8em}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.top{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:12px max(5vw,16px);background:var(--hd);color:#fff}
+.brand{font-family:Literata,Georgia,serif;font-weight:600;font-size:22px;color:#fff;text-decoration:none}
+.school{opacity:.9;font-size:15px}.top .sp{flex:1}
+#sync{font-size:13px;opacity:.85;color:#fff}
+#roleBox label{flex-direction:row;align-items:center;gap:8px;color:#fff;font-weight:600}#roleBox select{min-height:36px;padding:4px 8px}
+.pill{background:rgba(255,255,255,.2);border-radius:999px;padding:4px 12px;font-size:14px}
+body.in-ch #pnav{display:none}
+.hrow2{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;align-items:flex-end;margin-bottom:8px}
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0 24px}
+.lcard{display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:14px;background:var(--c);color:#fff;text-decoration:none;min-height:130px;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.lcard small{opacity:.85}.lcard b{font-family:Literata,Georgia,serif;font-size:21px;line-height:1.15}.lcard span{font-size:14px;opacity:.95;margin-top:auto}
+.subs{display:flex;flex-direction:column;gap:8px}
+details.sub{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:0 14px}
+details.sub summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;cursor:pointer;padding:12px 0;min-height:44px}
+details.sub summary .mbar{grid-column:1/-1}
+.mbar{display:block;height:8px;background:var(--g2);border-radius:5px;overflow:hidden}.mbar i{display:block;height:100%;background:var(--g)}
+.chip{display:inline-block;font-size:12.5px;padding:2px 9px;border-radius:999px;background:var(--g2);color:var(--mute);white-space:nowrap}
+.chip.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}.chip.mid{background:var(--y2);color:#8a6508}
+.chip.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}.chip.due{background:var(--v2);color:var(--v)}
+.warn{color:var(--bad);font-weight:600}
+.btn.sm{min-height:34px;padding:5px 12px;font-size:14px;text-decoration:none;display:inline-block}
+a.btn{text-decoration:none;display:inline-block}
+.linkbtn{background:none;border:0;color:var(--g);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0 22px}
+.kpis div{background:var(--g2);border-radius:12px;padding:14px 16px}.kpis b{display:block;font-family:Literata,Georgia,serif;font-size:clamp(26px,4vw,34px);color:var(--g);line-height:1.1}.kpis span{font-size:14px;color:var(--mute)}
+.kpis div.bad b{color:var(--bad)}
+.row3{display:grid;grid-template-columns:11em minmax(0,1fr) 8.5em;gap:10px;align-items:center;font-size:15px}
+.t2{position:relative;height:16px;background:var(--g2);border-radius:5px;overflow:visible}.t2 i{display:block;height:100%;background:var(--g);border-radius:5px}
+.t2 em{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--y);border-radius:2px;transform:translateX(-1px)}
+td select{min-height:36px;font-size:14px;padding:4px 6px}
+#v-teacher .ctrl label{min-width:150px}
+.vis{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 18px;background:var(--card)}.vis h3{margin:6px 0 8px}.vhd{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.vhd small{color:var(--mute)}.vis iframe{width:100%;border:0;display:block;background:transparent}
+@media(max-width:600px){.row3{grid-template-columns:7.5em minmax(0,1fr) 5em;font-size:13px}.school{display:none}}
+</style>
+<style id="chTheme"></style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="pgY" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#f0c437"/><stop offset="1" stop-color="#b8860b"/></radialGradient>
+<radialGradient id="pgG" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#c8ec9a"/><stop offset=".45" stop-color="#6aac45"/><stop offset="1" stop-color="#2f5d1e"/></radialGradient>
+<linearGradient id="pod" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd46b"/><stop offset="1" stop-color="#3f7d2b"/></linearGradient>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6b7a6d"/></marker>
+</defs></svg>
+<div class="top"><a class="brand" href="#home">Rai Plus</a><span class="school">Virat International School · HBSE 2026-27</span><span class="sp"></span><span id="sync" aria-live="polite"></span><span id="roleBox"></span></div>
+<nav id="pnav" aria-label="Portal"></nav>
+<main id="portal"><p class="note">Loading…</p></main>
+<div id="player" hidden>
+<header>
+  <div class="crumb" id="chCrumb"></div>
+  <div class="hrow">
+    <div><h1 id="chH1"></h1><div id="chSub"></div></div>
+    <div class="hero"><svg viewBox="0 0 360 120" role="img" id="heroPod"></svg>
+    <div class="meter"><small id="ptext"></small><div class="bar"><i id="pbar"></i></div></div></div>
+  </div>
+</header>
+<nav id="chnav" aria-label="Chapter sections">
+  <a href="#home">← All chapters</a><a data-v="learn">Learn</a><a data-v="visuals" id="visLink">Visuals</a><a data-v="lab" id="labLink">Lab</a><a data-v="cards">Flashcards</a><a data-v="test">Test</a><a data-v="revise">Revise</a><a data-v="teacher" id="tLink">Teacher</a>
+</nav>
+<main>
+<section id="v-learn"><div class="learn"><ul class="clist" id="clist"></ul><div id="lesson"></div></div></section>
+<section id="v-visuals" hidden><h2>Visuals</h2><p>Infographics, motion graphics and 3D models for every concept. Most of them move or can be changed: press the buttons, drag the 3D models, change the settings.</p><div id="visRoot"></div></section>
+<section id="v-lab" hidden><div id="labRoot"></div></section>
+<section id="v-cards" hidden>
+  <h2>Flashcards</h2><p id="dueText"></p>
+  <div style="max-width:560px"><button class="card" id="card"></button>
+  <div class="ctrl"><button class="btn" id="again">Again</button><button class="btn p" id="got">Got it</button><button class="btn" id="skip">Next card</button></div>
+  <p class="note">Cards you know come back after 1, 4, 7, 15 and then 30 days. Cards you miss come back today.</p></div>
+</section>
+<section id="v-test" hidden>
+  <h2>Test yourself</h2><p>Five levels, from recall to board-exam answers. Objective questions mark themselves; for written answers, compare with the model answer and give yourself the marks honestly.</p>
+  <div class="lv" id="lvBtns"></div><div id="quiz"></div>
+</section>
+<section id="v-revise" hidden>
+  <h2>Revise</h2>
+  <div class="two"><div><h3>Chapter mind map</h3><div class="fig" id="mind"></div><h3>One-minute revision</h3><ol id="oneMin"></ol></div>
+  <div><h3>Blurting</h3><p>Write everything you remember about this chapter, without looking. Then check it against the key points.</p>
+  <textarea id="blurt" aria-label="Your blurt"></textarea><div class="ctrl"><button class="btn p" id="blurtCheck">Check my blurt</button></div><div id="blurtOut"></div>
+  <h3>Your revision dates</h3><p class="note">Spaced repetition: revise 1, 4, 7, 15 and 30 days after you first study the chapter.</p>
+  <div class="ctrl"><label>First studied on<input type="date" id="studyDate"></label></div><ul id="dates"></ul></div></div>
+</section>
+<section id="v-teacher" hidden>
+  <h2>Teacher controls</h2>
+  <div id="chCov"></div>
+  <h3>Lesson formats</h3>
+  <p>Choose which ways of learning each concept students see, which opens first, and which concepts you teach live. These settings apply to every student.</p>
+  <div class="scroll"><table id="tTable"></table></div>
+  <div class="ctrl"><button class="btn" id="tAll">Switch everything on</button></div>
+</section>
+</main>
+</div>
+<script src="raiplus-bridge.js"></script>
+<script src="engine.js"></script>
+<script src="plan.js"></script>
+<script src="lib/mol3d.js"></script>
+<script src="content/11phy10.js"></script>
+<script src="content/11phy11.js"></script>
+<script src="content/11bio14.js"></script>
+<script src="content/12bio11.js"></script>
+<script src="content/12mat10.js"></script>
+<script src="content/12phy11.js"></script>
+<script src="content/12phy12.js"></script>
+<script src="content/12che08.js"></script>
+<script src="content/9sci04.js"></script>
+<script src="content/7sci01.js"></script>
+<script src="content/7sci02.js"></script>
+<script src="content/7sci03.js"></script>
+<script src="content/7sci04.js"></script>
+<script src="content/7sci05.js"></script>
+<script src="content/7sci06.js"></script>
+<script src="content/7sci07.js"></script>
+<script src="content/7sci08.js"></script>
+<script src="content/7sci09.js"></script>
+<script src="content/7sci10.js"></script>
+<script src="content/7sci11.js"></script>
+<script src="content/7sci12.js"></script>
+<script src="content/9mat11.js"></script>
+<script src="content/10mat12.js"></script>
+<script src="content/9sci11.js"></script>
+<script src="content/9mat08.js"></script>
+<script src="content/9sci12.js"></script>
+<script src="content/11bio15.js"></script>
+<script src="content/11che08.js"></script>
+<script src="content/11mat10.js"></script>
+<script src="content/12phy13.js"></script>
+<script src="content/12che09.js"></script>
+<script src="content/12bio12.js"></script>
+<script src="content/12mat11.js"></script>
+<script src="content/6sci01.js"></script>
+<script src="content/6sci02.js"></script>
+<script src="content/6sci03.js"></script>
+<script src="content/6sci04.js"></script>
+<script src="content/6sci05.js"></script>
+<script src="content/6sci06.js"></script>
+<script src="content/6sci07.js"></script>
+<script src="content/6sci08.js"></script>
+<script src="content/6sci09.js"></script>
+<script src="content/6sci10.js"></script>
+<script src="content/6sci11.js"></script>
+<script src="content/6sci12.js"></script>
+<script src="content/6mat01.js"></script>
+<script src="content/6mat02.js"></script>
+<script src="content/6mat03.js"></script>
+<script src="content/6mat04.js"></script>
+<script src="content/6mat05.js"></script>
+<script src="content/6mat06.js"></script>
+<script src="content/6mat07.js"></script>
+<script src="content/6mat08.js"></script>
+<script src="content/6mat09.js"></script>
+<script src="content/6mat10.js"></script>
+<script src="content/7mat01.js"></script>
+<script src="content/7mat02.js"></script>
+<script src="content/7mat03.js"></script>
+<script src="content/7mat04.js"></script>
+<script src="content/7mat05.js"></script>
+<script src="content/7mat06.js"></script>
+<script src="content/7mat07.js"></script>
+<script src="content/7mat08.js"></script>
+<script src="content/7matb1.js"></script>
+<script src="content/7matb2.js"></script>
+<script src="content/7matb3.js"></script>
+<script src="content/7matb4.js"></script>
+<script src="content/7matb5.js"></script>
+<script src="content/7matb6.js"></script>
+<script src="content/7matb7.js"></script>
+<script src="content/9sstg4.js"></script>
+<script src="content/9sstp4.js"></script>
+<script src="content/9eng07.js"></script>
+<script src="content/8sci01.js"></script>
+<script src="content/8sci02.js"></script>
+<script src="content/8sci03.js"></script>
+<script src="content/8sci04.js"></script>
+<script src="content/8mat01.js"></script>
+<script src="content/8sci05.js"></script>
+<script src="content/8sci06.js"></script>
+<script src="content/8mat02.js"></script>
+<script src="content/8sci07.js"></script>
+<script src="content/8sci08.js"></script>
+<script src="content/8mat03.js"></script>
+<script src="content/8sci09.js"></script>
+<script src="content/8sci10.js"></script>
+<script src="content/8mat04.js"></script>
+<script src="content/8sci11.js"></script>
+<script src="content/8sci12.js"></script>
+<script src="content/8mat05.js"></script>
+<script src="content/8mat06.js"></script>
+<script src="content/10mat10.js"></script>
+<script src="content/10mat11.js"></script>
+<script src="content/10sci03.js"></script>
+<script src="content/10sci04.js"></script>
+<script src="content/10sci08.js"></script>
+<script src="content/10sci11.js"></script>
+<script src="content/10sci12.js"></script>
+<script src="content/10sci13.js"></script>
+<script src="vis/index.js"></script>
+<script>boot();</script>
+</body>
+</html>

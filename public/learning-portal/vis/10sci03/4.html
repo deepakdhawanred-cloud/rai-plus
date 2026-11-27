@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Electron transfer: NaCl and MgCl₂</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 280" role="img"><title>Forming an ionic bond</title></svg>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button data-c="nacl">NaCl</button><button data-c="mgcl2">MgCl₂</button><button id="go">Transfer electrons</button></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+let c='nacl',p=0;
+function shells(x,y,n,col){let s='';const R=[22,40,58];let k=0;n.forEach((e,si)=>{s+=`<circle cx="${x}" cy="${y}" r="${R[si]}" fill="none" stroke="var(--border-strong)" stroke-width="1"/>`;for(let j=0;j<e;j++){const a=j/e*Math.PI*2-Math.PI/2;s+=`<circle cx="${x+R[si]*Math.cos(a)}" cy="${y+R[si]*Math.sin(a)}" r="4.5" fill="${col}"/>`}});return s}
+function draw(){let s='<title>Ionic bond</title>';const t=Math.min(1,p);
+ if(c==='nacl'){if(t<1)s+=`<circle cx="170" cy="130" r="58" fill="none" stroke="var(--border-strong)" stroke-dasharray="3 3"/>`;s+=shells(170,130,[2,8],'#378ADD')+shells(470,130,[2,8,t>=1?8:7],'#3B6D11');
+  if(t<1){const x=170+58+(470-58-170-58)*t,y=130-50*Math.sin(t*Math.PI);s+=`<circle cx="${t?x:228}" cy="${t?y:130}" r="5.5" fill="#E24B4A"/>`}else s+=`<circle cx="${470+58*Math.cos(Math.PI*2*7/8-Math.PI/2)}" cy="${130+58*Math.sin(Math.PI*2*7/8-Math.PI/2)}" r="5.5" fill="#E24B4A"/>`;
+  s+=`<text class="th" x="170" y="215" text-anchor="middle">${t>=1?'Na⁺ (2, 8)':'Na (2, 8, 1)'}</text><text class="th" x="470" y="215" text-anchor="middle">${t>=1?'Cl⁻ (2, 8, 8)':'Cl (2, 8, 7)'}</text>`;
+  cap.textContent=t>=1?'Both now have a full outer shell. Na⁺ and Cl⁻ attract strongly: an ionic bond in sodium chloride.':'Sodium has one outer electron (red); chlorine needs one more.'}
+ else{if(t<1)s+=`<circle cx="340" cy="130" r="58" fill="none" stroke="var(--border-strong)" stroke-dasharray="3 3"/>`;s+=shells(340,130,[2,8],'#378ADD')+shells(110,130,[2,8,t>=1?8:7],'#3B6D11')+shells(570,130,[2,8,t>=1?8:7],'#3B6D11');
+  [[-1,110],[1,570]].forEach(([d,cx])=>{const sx=340+d*58,ex=cx-d*58;const x=sx+(ex-sx)*t,y=130-40*Math.sin(t*Math.PI);s+=`<circle cx="${x}" cy="${y}" r="5.5" fill="#E24B4A"/>`});
+  s+=`<text class="th" x="340" y="215" text-anchor="middle">${t>=1?'Mg²⁺ (2, 8)':'Mg (2, 8, 2)'}</text><text class="th" x="110" y="215" text-anchor="middle">${t>=1?'Cl⁻':'Cl'}</text><text class="th" x="570" y="215" text-anchor="middle">${t>=1?'Cl⁻':'Cl'}</text>`;
+  cap.textContent=t>=1?'Magnesium gives one electron to each chlorine atom. Mg²⁺ attracts two Cl⁻ ions: MgCl₂.':'Magnesium has two outer electrons (red); each chlorine needs one.'}
+ s+=`<text class="ts" x="340" y="262" text-anchor="middle">Metals lose electrons (positive ions); non-metals gain them (negative ions).</text>`;document.getElementById('s').innerHTML=s}
+function play(){if(matchMedia('(prefers-reduced-motion: reduce)').matches){p=1;draw();return}const t0=performance.now();(function f(tt){p=(tt-t0)/1500;draw();if(p<1)requestAnimationFrame(f)})(t0)}
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{c=b.dataset.c;p=0;draw()});go.onclick=play;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

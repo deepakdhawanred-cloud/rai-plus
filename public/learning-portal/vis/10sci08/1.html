@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Variation builds up over generations</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}@media (prefers-reduced-motion:no-preference){.nw{animation:pop .5s ease-out both;transform-box:fill-box;transform-origin:center}}</style>
+<svg id="tree" width="100%" viewBox="0 0 680 330" role="img"><title>Variation over generations</title></svg>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px"><button id="nx">Next generation</button><button id="rs">Start again</button><span id="info" style="font-size:13px;color:var(--text-secondary)"></span></div>
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--text-secondary)">
+<span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#B5D4F4" stroke="#185FA5"/></svg> Same as parent</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#FAC775" stroke="#854F0B"/></svg> One small change</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#F0997B" stroke="#993C1D"/></svg> Two changes</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#ED93B1" stroke="#993556"/></svg> Three changes</span></div>
+<script>
+const S=document.getElementById('tree'),cols=[['#B5D4F4','#185FA5'],['#FAC775','#854F0B'],['#F0997B','#993C1D'],['#ED93B1','#993556']];
+const changes=[[0],[0,1],[0,1,1,2],[0,1,1,1,2,2,2,3]],rows=[50,130,210,290];let g=0;
+function xs(n){const w=600/n;return Array.from({length:n},(_,i)=>40+w*i+w/2)}
+function draw(){let out='<title>Variation over generations</title>';
+ for(let k=0;k<=g;k++){const X=xs(2**k);X.forEach((x,i)=>{if(k>0){const px=xs(2**(k-1))[i>>1];out+=`<line x1="${px}" y1="${rows[k-1]+16}" x2="${x}" y2="${rows[k]-16}" stroke="var(--border-strong)" stroke-width="1"/>`}
+  const c=cols[changes[k][i]];out+=`<g class="${k===g?'nw':''}"><circle cx="${x}" cy="${rows[k]}" r="15" fill="${c[0]}" stroke="${c[1]}" stroke-width="1.2"/>${changes[k][i]?`<text x="${x}" y="${rows[k]}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:${c[1]}">+${changes[k][i]}</text>`:''}</g>`})}
+ for(let k=0;k<=3;k++)out+=`<text class="ts" x="8" y="${rows[k]+4}">G${k+1}</text>`;S.innerHTML=out;
+ const n=2**g,v=changes[g].filter(x=>x).length;document.getElementById('info').textContent=`Generation ${g+1}: ${n} individual${n>1?'s':''}, ${v} with some variation`}
+nx.onclick=()=>{g=Math.min(3,g+1);draw()};rs.onclick=()=>{g=0;draw()};draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

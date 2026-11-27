@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Valence electrons and valency, element by element</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>.g{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}.c{border:0.5px solid var(--border-strong);border-radius:6px;padding:4px 2px;text-align:center;cursor:pointer;font-size:12px;background:transparent;color:var(--text-primary)}.c b{display:block;font-size:15px}.c.on{outline:2px solid #378ADD}</style>
+<div class="g" id="g"></div>
+<svg id="s" width="100%" viewBox="0 0 680 170" role="img"><title>Valence electrons and valency</title></svg>
+<p id="cap" style="font-size:14px;margin:4px 0 0"></p>
+<script>
+const E=['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'],V=[1,0,1,2,3,4,3,2,1,0,1,2,3,4,'3, 5',2,1,0,1,2];
+function cfg(e){const o=[];for(const c of [2,8,8,2]){if(e<=0)break;const k=Math.min(c,e);o.push(k);e-=k}return o}
+let z=8;g.innerHTML=E.map((e,i)=>`<button class="c" data-z="${i+1}"><b>${e}</b>${i+1}</button>`).join('');
+function draw(){const c=cfg(z),ve=c[c.length-1],full=(z===2)||ve===8,v=V[z-1];let s='<title>Valency</title>';
+ c.forEach((n,k)=>{const x=40+k*150;s+=`<rect x="${x}" y="30" width="130" height="60" rx="8" fill="${k===c.length-1?'#FAEEDA':'var(--bg-neutral)'}" stroke="${k===c.length-1?'#BA7517':'transparent'}"/><text class="th" x="${x+65}" y="55" text-anchor="middle">${'KLMN'[k]} shell</text><text class="t" x="${x+65}" y="78" text-anchor="middle">${n} electron${n>1?'s':''}</text>`});
+ s+=`<text class="ts" x="40" y="120">Outermost shell (orange) holds ${ve} valence electron${ve>1?'s':''}.</text><text class="th" x="40" y="150">Valency = ${v}</text>`;document.getElementById('s').innerHTML=s;
+ let why;if(full)why='Outer shell is full (a duplet for helium, an octet otherwise): the atom is stable, valency 0.';else if(z===1)why='Hydrogen can lose or share its 1 electron: valency 1.';else if(ve<=3)why=`Easier to lose ${ve} electron${ve>1?'s':''} than gain ${8-ve}: valency = ${ve}.`;else if(ve===4)why='Gaining or losing 4 is hard, so it shares 4: valency 4.';else why=`Easier to gain ${8-ve} than lose ${ve}: valency = 8 − ${ve} = ${8-ve}`+(z===15?'. Phosphorus also shows valency 5.':'.');
+ cap.textContent=why;document.querySelectorAll('.c').forEach(b=>b.classList.toggle('on',+b.dataset.z===z))}
+document.querySelectorAll('.c').forEach(b=>b.onclick=()=>{z=+b.dataset.z;draw()});draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

@@ -149,7 +149,19 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: nowIso,
   }));
 
-  const attendance = (db.attendance || []).slice(0, 2000).map((a) => ({
+  const MAX_RELATIONAL_SYNC_ROWS = Number(process.env.SUPABASE_SYNC_MAX_ROWS) || 25000;
+  const capRows = <T>(items: T[] | undefined, label: string): T[] => {
+    const arr = items || [];
+    if (arr.length > MAX_RELATIONAL_SYNC_ROWS) {
+      console.warn(
+        `Supabase sync: ${label} has ${arr.length} rows exceeding SUPABASE_SYNC_MAX_ROWS (${MAX_RELATIONAL_SYNC_ROWS}); syncing most recent ${MAX_RELATIONAL_SYNC_ROWS}.`,
+      );
+      return arr.slice(0, MAX_RELATIONAL_SYNC_ROWS);
+    }
+    return arr;
+  };
+
+  const attendance = capRows(db.attendance, 'attendance').map((a) => ({
     id: a.id,
     school_id: a.schoolId,
     student_id: a.studentId,
@@ -161,7 +173,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: nowIso,
   }));
 
-  const examMarks = (db.examMarks || []).slice(0, 2500).map((m) => ({
+  const examMarks = capRows(db.examMarks, 'examMarks').map((m) => ({
     id: m.id,
     school_id: m.schoolId,
     student_id: m.studentId,
@@ -173,7 +185,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: nowIso,
   }));
 
-  const feeTransactions = (db.feeTransactions || []).slice(0, 1500).map((f) => ({
+  const feeTransactions = capRows(db.feeTransactions, 'feeTransactions').map((f) => ({
     id: f.id,
     school_id: f.schoolId,
     student_id: f.studentId,
@@ -185,7 +197,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: nowIso,
   }));
 
-  const publicEnquiries = (db.publicEnquiries || []).slice(0, 500).map((e) => ({
+  const publicEnquiries = capRows(db.publicEnquiries, 'publicEnquiries').map((e) => ({
     id: e.id,
     enquiry_type: e.type,
     school_or_org_name: e.schoolOrOrgName ?? null,
@@ -198,7 +210,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: nowIso,
   }));
 
-  const auditLogs = (db.auditLogs || []).slice(0, 500).map((l) => ({
+  const auditLogs = capRows(db.auditLogs, 'auditLogs').map((l) => ({
     id: l.id,
     school_id: l.schoolId ?? null,
     actor_name: l.actorName,
@@ -210,7 +222,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     logged_at: l.timestamp,
   }));
 
-  const staffAttendance = (db.staffAttendance || []).slice(0, 2000).map((a) => ({
+  const staffAttendance = capRows(db.staffAttendance, 'staffAttendance').map((a) => ({
     id: a.id,
     school_id: a.schoolId,
     staff_id: a.staffId,
@@ -223,7 +235,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: a.updatedAt || nowIso,
   }));
 
-  const gatePasses = (db.gatePasses || []).slice(0, 1000).map((g) => ({
+  const gatePasses = capRows(db.gatePasses, 'gatePasses').map((g) => ({
     id: g.id,
     school_id: g.schoolId,
     pass_code: g.passCode,
@@ -236,7 +248,7 @@ export function mapDatabaseToSupabaseTables(db: DatabaseState): NormalizedSupaba
     updated_at: g.updatedAt || nowIso,
   }));
 
-  const visitors = (db.visitorLogs || []).slice(0, 1000).map((v) => ({
+  const visitors = capRows(db.visitorLogs, 'visitorLogs').map((v) => ({
     id: v.id,
     school_id: v.schoolId,
     badge_code: v.badgeCode,
@@ -341,17 +353,20 @@ export async function persistStateToSupabase(
     }
 
     const tables = mapDatabaseToSupabaseTables(db);
+    // Parent master table first, then parallel child table upserts for fast non-blocking sync
     await upsertInChunks(client, 'rai_schools', tables.schools);
-    await upsertInChunks(client, 'rai_users', tables.users);
-    await upsertInChunks(client, 'rai_students', tables.students);
-    await upsertInChunks(client, 'rai_attendance', tables.attendance);
-    await upsertInChunks(client, 'rai_exam_marks', tables.examMarks);
-    await upsertInChunks(client, 'rai_fee_transactions', tables.feeTransactions);
-    await upsertInChunks(client, 'rai_public_enquiries', tables.publicEnquiries);
-    await upsertInChunks(client, 'rai_audit_logs', tables.auditLogs);
-    await upsertInChunks(client, 'rai_staff_attendance', tables.staffAttendance);
-    await upsertInChunks(client, 'rai_gate_passes', tables.gatePasses);
-    await upsertInChunks(client, 'rai_visitors', tables.visitors);
+    await Promise.all([
+      upsertInChunks(client, 'rai_users', tables.users),
+      upsertInChunks(client, 'rai_students', tables.students),
+      upsertInChunks(client, 'rai_attendance', tables.attendance),
+      upsertInChunks(client, 'rai_exam_marks', tables.examMarks),
+      upsertInChunks(client, 'rai_fee_transactions', tables.feeTransactions),
+      upsertInChunks(client, 'rai_public_enquiries', tables.publicEnquiries),
+      upsertInChunks(client, 'rai_audit_logs', tables.auditLogs),
+      upsertInChunks(client, 'rai_staff_attendance', tables.staffAttendance),
+      upsertInChunks(client, 'rai_gate_passes', tables.gatePasses),
+      upsertInChunks(client, 'rai_visitors', tables.visitors),
+    ]);
     return true;
   } catch (err) {
     console.warn(

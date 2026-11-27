@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chain reaction: with and without control rods</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 300" role="img"><title>Neutrons causing a chain of fissions</title></svg>
+<div style="display:flex;gap:12px;align-items:center;font-size:14px;margin-top:6px"><button id="go">Restart</button><label><input type="checkbox" id="cr"> Control rods in (absorb extra neutrons)</label></div>
+<p id="cap" style="font-size:14px;margin:6px 0 0"></p>
+<script>
+let U=[],N=[],F=0,t=0,gen=0;
+function reset(){U=[];for(let i=0;i<90;i++)U.push({x:30+(i%15)*34+(Math.floor(i/15)%2)*17,y:30+Math.floor(i/15)*44,on:true});N=[{x:5,y:118,vx:2.2,vy:0}];F=0;t=0;gen++}
+function frame(g){if(g!==gen)return;t++;const rods=cr.checked;
+ N.forEach(n=>{n.x+=n.vx;n.y+=n.vy});N=N.filter(n=>n.x>-10&&n.x<570&&n.y>-10&&n.y<310&&!n.dead);
+ const born=[];N.forEach(n=>{for(const u of U){if(u.on&&Math.hypot(u.x-n.x,u.y-n.y)<10){u.on=false;n.dead=true;F++;const k=3;for(let j=0;j<k;j++){const a=Math.random()*6.28;born.push({x:u.x,y:u.y,vx:2.2*Math.cos(a),vy:2.2*Math.sin(a)})}break}}});
+ N=N.filter(n=>!n.dead).concat(born);if(rods&&N.length>4)N=N.slice(N.length-4);
+ let s='<title>Chain</title>';U.forEach(u=>s+=u.on?'<circle cx="'+u.x+'" cy="'+u.y+'" r="8" fill="#5a3d82" opacity=".75"/>':'<circle cx="'+u.x+'" cy="'+u.y+'" r="10" fill="#f2b632" opacity=".35"/>');
+ N.forEach(n=>s+='<circle cx="'+n.x+'" cy="'+n.y+'" r="3.5" fill="#888"/>');
+ if(rods)for(let i=0;i<4;i++)s+='<rect x="'+(110+i*120)+'" y="0" width="8" height="300" fill="#2c2c2a" opacity=".35"/>';
+ document.getElementById('s').innerHTML=s;cap.textContent='Fissions so far: '+F+' · free neutrons: '+N.length+(rods?' — control rods absorb the extras, so only a few neutrons stay free at a time: a steady, controlled rate of fission.':' — each fission frees about 3 neutrons, so the number grows rapidly.');
+ if(N.length)requestAnimationFrame(()=>frame(g));else cap.textContent+=' Reaction stopped (no free neutrons left).'}
+function start(){reset();const g=gen;requestAnimationFrame(()=>frame(g))}
+go.onclick=start;cr.onchange=start;start();
+</script>
+<p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0">Purple: ²³⁵U nuclei; yellow: already split; grey: neutrons. A simplified model, not a real reactor.</p>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

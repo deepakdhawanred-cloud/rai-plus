@@ -32,6 +32,12 @@ import {
   PublicInteractivePreview,
   type PublicLang,
 } from './PublicInteractivePreview';
+import {
+  FloatingWhatsAppDemoButton,
+  LegalComplianceModal,
+  PublicPricingAndRoiSection,
+  type LegalDocKind,
+} from './PublicMarketingEnhancements';
 import { apiRequest } from '../utils/api';
 import {
   ARCHITECTURE_PILLARS,
@@ -106,8 +112,9 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   onQuickLoginRole,
 }) => {
   const [activeSection, setActiveSection] = useState<
-    'home' | 'architecture' | 'roles' | 'career' | 'blog' | 'contact'
+    'home' | 'architecture' | 'roles' | 'pricing' | 'career' | 'blog' | 'contact'
   >('home');
+  const [legalDocOpen, setLegalDocOpen] = useState<LegalDocKind | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [lang, setLang] = useState<PublicLang>('en');
   const isHi = lang === 'hi';
@@ -166,7 +173,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
     const sectionMap: Array<{
       id: string;
-      nav: 'home' | 'architecture' | 'roles' | 'career' | 'blog' | 'contact';
+      nav: 'home' | 'architecture' | 'roles' | 'pricing' | 'career' | 'blog' | 'contact';
     }> = [
       { id: 'section-home', nav: 'home' },
       { id: 'section-architecture', nav: 'architecture' },
@@ -175,6 +182,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
       { id: 'section-career', nav: 'career' },
       { id: 'section-blog', nav: 'blog' },
       { id: 'section-faq', nav: 'blog' },
+      { id: 'section-pricing', nav: 'pricing' },
       { id: 'section-contact', nav: 'contact' },
     ];
     const observer = new IntersectionObserver(
@@ -211,7 +219,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   }, [schools]);
 
   function scrollToSection(
-    id: 'home' | 'architecture' | 'roles' | 'career' | 'blog' | 'contact',
+    id: 'home' | 'architecture' | 'roles' | 'pricing' | 'career' | 'blog' | 'contact',
     presetEnquiryType?:
       | 'Parent Admission & Campus Visit'
       | 'School Demo & Onboarding'
@@ -470,6 +478,15 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             >
               Knowledge Centre
             </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('pricing')}
+              className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
+                activeSection === 'pricing' ? 'text-blue-900 font-semibold' : ''
+              }`}
+            >
+              Plans &amp; ROI
+            </button>
           </nav>
 
           {/* Zone 3: 1 primary CTA (+ mobile menu affordance below md) */}
@@ -629,6 +646,8 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                     src="/assets/images/hero_campus_india_1794713007660.jpg"
                     alt="North India senior secondary school campus courtyard"
                     referrerPolicy="no-referrer"
+                    fetchPriority="high"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#142B46]/95 via-[#142B46]/65 to-transparent p-6 pt-16 text-white">
@@ -1419,6 +1438,15 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         {/* ==================== SECTION 5B: PRINCIPAL & PARENT FAQ ACCORDION ==================== */}
         <PublicFaqAccordion lang={lang} />
 
+        {/* ==================== SECTION 5C: TRANSPARENT PLANS & ROI CALCULATOR ==================== */}
+        <PublicPricingAndRoiSection
+          lang={lang}
+          onSelectPlan={(planName) => {
+            setMessage(`Interested in ${planName} plan — please schedule a 15-minute live walkthrough.`);
+            scrollToSection('contact', 'School Demo & Onboarding');
+          }}
+        />
+
         {/* ==================== SECTION 6: PARENT ADMISSIONS & SCHOOL ONBOARDING ==================== */}
         <section id="section-contact" className="bg-slate-900 text-white py-16 lg:py-20">
           <div className="mx-auto max-w-7xl px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
@@ -1862,6 +1890,34 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => scrollToSection('pricing')}
+              className="hover:text-slate-900"
+            >
+              Plans &amp; ROI
+            </button>
+            <button
+              type="button"
+              onClick={() => setLegalDocOpen('privacy')}
+              className="hover:text-slate-900"
+            >
+              Privacy Policy
+            </button>
+            <button
+              type="button"
+              onClick={() => setLegalDocOpen('dpdp')}
+              className="hover:text-slate-900"
+            >
+              DPDP Child Data Safeguards
+            </button>
+            <button
+              type="button"
+              onClick={() => setLegalDocOpen('terms')}
+              className="hover:text-slate-900"
+            >
+              Terms
+            </button>
+            <button
+              type="button"
               onClick={onOpenLogin}
               className="hover:text-slate-900 font-semibold text-blue-900"
             >
@@ -1870,6 +1926,9 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
           </div>
         </div>
       </footer>
+
+      <FloatingWhatsAppDemoButton isHi={isHi} />
+      <LegalComplianceModal doc={legalDocOpen} onClose={() => setLegalDocOpen(null)} />
 
       {/* Blog Article Reader Modal */}
       {selectedArticle && (

@@ -19,7 +19,7 @@ import type { AccountingEntry } from '../types';
 test('parseVisSalarySheetCsv parses uploaded VIS salary sheet accurately', () => {
   const csvPath = path.resolve(
     process.cwd(),
-    'public/assets/aistudio/SALARY_SHEET_2026-2027_7f354103',
+    'server/private_seeds/vis_salary_2026_27.csv',
   );
   const raw = fs.readFileSync(csvPath, 'utf-8');
   const parsed = parseVisSalarySheetCsv(raw);
@@ -55,7 +55,7 @@ test('normalizeIfscCode and inferBankNameFromIfsc handle standard Indian IFSC pr
 test('parseVisExpenseSheetCsv reconciles all monthly VIS 2026-27 income and expense totals', () => {
   const csvPath = path.resolve(
     process.cwd(),
-    'public/assets/aistudio/EXPENSE_2026-27_034069f4',
+    'server/private_seeds/vis_expense_2026_27.csv',
   );
   const raw = fs.readFileSync(csvPath, 'utf-8');
   const parsed = parseVisExpenseSheetCsv(raw, 'school-vis-jjr', 'vis_expense_2026_27');

@@ -40,6 +40,7 @@ import {
 } from '../src/utils/accountantRbacEngine.ts';
 import type { ExpenseClassification } from '../src/types';
 import {
+  DEFAULT_GEMINI_MODEL,
   GeminiApiError,
   categorizeExpensesWithGemini,
 } from './gemini.ts';
@@ -1742,7 +1743,7 @@ export function registerContinuationRoutes(
         if (targetEntries.length === 0) {
           res.json({
             ok: true,
-            model: 'gemini-4-hydrogen',
+            model: DEFAULT_GEMINI_MODEL,
             categorizedCount: 0,
             message: 'All matching expense rows are already categorized.',
             breakdown: { Operational: 0, Administrative: 0, Developmental: 0 },

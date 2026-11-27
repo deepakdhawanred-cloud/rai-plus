@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>3D Bohr model of the first 20 elements</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<canvas id="cv" width="680" height="340" style="width:100%;height:auto;display:block;touch-action:none;cursor:grab" aria-label="3D Bohr model, drag to tilt"></canvas>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><label for="z">Element (atomic number)</label><input type="range" id="z" min="1" max="20" step="1" value="11" style="flex:1;max-width:260px"><span id="zn" style="font-weight:600;color:var(--text-primary)"></span></div>
+<p style="font-size:13px;color:var(--text-secondary);margin:6px 0 0">Drag to tilt the model. Electrons fill K (2), then L (8), then M (8), then N. Shells are drawn as tilted rings; real atoms are not to scale.</p>
+<script>
+const E=[['',''],['H','Hydrogen',1],['He','Helium',4],['Li','Lithium',7],['Be','Beryllium',9],['B','Boron',11],['C','Carbon',12],['N','Nitrogen',14],['O','Oxygen',16],['F','Fluorine',19],['Ne','Neon',20],['Na','Sodium',23],['Mg','Magnesium',24],['Al','Aluminium',27],['Si','Silicon',28],['P','Phosphorus',31],['S','Sulphur',32],['Cl','Chlorine',35],['Ar','Argon',40],['K','Potassium',39],['Ca','Calcium',40]];
+const ctx=cv.getContext('2d');let tilt=1.05,yaw=0,drag=null,t=0;
+function cfg(e){const o=[];for(const c of [2,8,8,2]){if(e<=0)break;const k=Math.min(c,e);o.push(k);e-=k}return o}
+function P(x,y,z){const cy=Math.cos(yaw),sy=Math.sin(yaw);let X=x*cy+z*sy,Z=-x*sy+z*cy;const ct=Math.cos(tilt),st=Math.sin(tilt);let Y=y*ct-Z*st;Z=y*st+Z*ct;const k=700/(700+Z);return[340+X*k,170+Y*k,Z,k]}
+function frame(){const Z=+z.value,el=E[Z],A=el[2],N=A-Z,c=cfg(Z);zn.textContent=`${el[1]} (${el[0]}): ${c.join(', ')}`;ctx.clearRect(0,0,680,340);const items=[];const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+ c.forEach((n,k)=>{const R=50+k*36;const ring=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;ring.push(P(R*Math.cos(a),0,R*Math.sin(a)))}
+  for(let i=1;i<ring.length;i++){const a=ring[i-1],b=ring[i];items.push({z:(a[2]+b[2])/2,d:()=>{ctx.strokeStyle=dark?'rgba(255,255,255,.3)':'rgba(0,0,0,.25)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()}})}
+  for(let j=0;j<n;j++){const a=j/n*Math.PI*2+t*(1.2-k*.25);const p=P(R*Math.cos(a),0,R*Math.sin(a));items.push({z:p[2],d:()=>{ctx.fillStyle='#378ADD';ctx.beginPath();ctx.arc(p[0],p[1],6*p[3],0,7);ctx.fill()}})}});
+ const tot=Z+N;for(let i=0;i<tot;i++){const ph=Math.acos(1-2*(i+.5)/tot),th=Math.PI*(1+Math.sqrt(5))*i,r=Math.cbrt(tot)*5.2;const p=P(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));const isP=i%2===0?i/2<Z:i>=2*Math.min(Z,N)?Z>N:false;items.push({z:p[2],d:()=>{ctx.fillStyle=(i<2*Math.min(Z,N)?(i%2===0):(Z>N))?'#D85A30':'#888780';ctx.beginPath();ctx.arc(p[0],p[1],5*p[3],0,7);ctx.fill()}})}
+ items.sort((a,b)=>b.z-a.z).forEach(o=>o.d());ctx.fillStyle=dark?'#ecebe6':'#1d1d1b';ctx.font='13px "Source Sans 3",sans-serif';ctx.fillText(`Nucleus: ${Z} protons (orange), ${N} neutrons (grey)`,16,22);
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches)t+=.02;requestAnimationFrame(frame)}
+cv.onpointerdown=e=>{drag=[e.clientX,e.clientY,yaw,tilt];cv.setPointerCapture(e.pointerId)};cv.onpointermove=e=>{if(!drag)return;yaw=drag[2]+(e.clientX-drag[0])*.01;tilt=Math.max(.1,Math.min(1.5,drag[3]+(e.clientY-drag[1])*.01))};cv.onpointerup=()=>drag=null;frame();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

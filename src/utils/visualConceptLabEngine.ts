@@ -58,14 +58,14 @@ export interface VisualConceptLabConfig {
   rounds: VisualPlatterRound[];
 }
 
-// Client-side public/Vite asset URLs (never imported as binary modules so server tooling stays safe)
+// Client-side public asset URLs (served cleanly from public/assets/images in both dev and production dist)
 export const FOOD_LAB_IMAGES = {
-  carbs: '/src/assets/images/food_carbs_platter_1795355234339.jpg',
-  proteins: '/src/assets/images/food_protein_platter_1795355236074.jpg',
-  fats: '/src/assets/images/food_fats_platter_1795355236060.jpg',
-  vitamins: '/src/assets/images/food_vitamins_platter_1795355235769.jpg',
-  iodineTest: '/src/assets/images/science_food_test_lab_1795355235616.jpg',
-  balancedThali: '/src/assets/images/balanced_indian_thali_1795355235480.jpg',
+  carbs: '/assets/images/food_carbs_platter_1795355234339.jpg',
+  proteins: '/assets/images/food_protein_platter_1795355236074.jpg',
+  fats: '/assets/images/food_fats_platter_1795355236060.jpg',
+  vitamins: '/assets/images/food_vitamins_platter_1795355235769.jpg',
+  iodineTest: '/assets/images/science_food_test_lab_1795355235616.jpg',
+  balancedThali: '/assets/images/balanced_indian_thali_1795355235480.jpg',
 } as const;
 
 const NUTRITION_FOOD_ITEMS: VisualPlatterItem[] = [

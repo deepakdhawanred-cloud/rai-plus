@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Triangle and parallelogram laws of addition</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 300" role="img"><title>Adding vectors</title></svg>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button id="tri">Triangle law</button><button id="par">Parallelogram law</button><button id="com">Show a + b = b + a</button></div>
+<p id="cap" style="font-size:14px;margin:8px 0 0"></p>
+<script>
+const O=[120,240],A=[220,-60],B=[110,-150];
+function ar(x1,y1,x2,y2,c,w=3.5){const a=Math.atan2(y2-y1,x2-x1);return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}"/><path d="M${x2} ${y2} L${x2-13*Math.cos(a-.4)} ${y2-13*Math.sin(a-.4)} L${x2-13*Math.cos(a+.4)} ${y2-13*Math.sin(a+.4)} Z" fill="${c}"/>`}
+function draw(mode,p){const k=Math.min(1,p);const Ah=[O[0]+A[0],O[1]+A[1]],Bh=[O[0]+B[0],O[1]+B[1]],S=[O[0]+A[0]+B[0],O[1]+A[1]+B[1]];let s='<title>Addition</title>';
+ s+=ar(O[0],O[1],Ah[0],Ah[1],'#D85A30')+`<text class="th" x="${(O[0]+Ah[0])/2}" y="${(O[1]+Ah[1])/2+24}">a</text>`;
+ if(mode==='tri'){const st=[O[0]+(Ah[0]-O[0])*1,O[1]+(Ah[1]-O[1])*1];const bx=O[0]+(Ah[0]-O[0])*k,by=O[1]+(Ah[1]-O[1])*k;s+=ar(bx,by,bx+B[0],by+B[1],'#185FA5')+`<text class="th" x="${bx+B[0]/2+10}" y="${by+B[1]/2}">b</text>`;if(k>=1)s+=ar(O[0],O[1],S[0],S[1],'#7F77DD',4)+`<text class="th" x="${(O[0]+S[0])/2-50}" y="${(O[1]+S[1])/2}">a + b</text>`}
+ else{s+=ar(O[0],O[1],Bh[0],Bh[1],'#185FA5')+`<text class="th" x="${(O[0]+Bh[0])/2-22}" y="${(O[1]+Bh[1])/2}">b</text>`;s+=`<line x1="${Ah[0]}" y1="${Ah[1]}" x2="${Ah[0]+B[0]*k}" y2="${Ah[1]+B[1]*k}" stroke="#185FA5" stroke-dasharray="5 4"/><line x1="${Bh[0]}" y1="${Bh[1]}" x2="${Bh[0]+A[0]*k}" y2="${Bh[1]+A[1]*k}" stroke="#D85A30" stroke-dasharray="5 4"/>`;if(k>=1)s+=`<path d="M${O[0]} ${O[1]} L${Ah[0]} ${Ah[1]} L${S[0]} ${S[1]} L${Bh[0]} ${Bh[1]} Z" fill="#7F77DD" opacity=".1"/>`+ar(O[0],O[1],S[0],S[1],'#7F77DD',4)+`<text class="th" x="${S[0]+10}" y="${S[1]}">${mode==='com'?'a + b = b + a':'a + b'}</text>`}
+ document.getElementById('s').innerHTML=s;cap.textContent={tri:'Triangle law: put the tail of b at the head of a. The sum goes from the tail of a to the head of b.',par:'Parallelogram law: draw a and b from the same point and complete the parallelogram. The diagonal from that point is a + b.',com:'Going along a then b, or along b then a, reaches the same corner: vector addition is commutative.'}[mode]}
+function play(m){if(matchMedia('(prefers-reduced-motion: reduce)').matches){draw(m,1);return}const t0=performance.now();(function f(t){const p=(t-t0)/1200;draw(m,p);if(p<1.05)requestAnimationFrame(f)})(t0)}
+tri.onclick=()=>play('tri');par.onclick=()=>play('par');com.onclick=()=>play('com');draw('tri',1);
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

@@ -2,7 +2,10 @@ node_modules/
 build/
 dist/
 coverage/
+.data/
+.gmp_cache/
 .DS_Store
 *.log
+*.tmp
 .env*
 !.env.example

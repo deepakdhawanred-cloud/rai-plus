@@ -43,7 +43,7 @@ test('parseInrCurrency and normalizeFeeClassName handle real VIS formats', () =>
 test('parseVisFeeCsv parses full VIS 2026-27 fee CSV to exact ledger totals', () => {
   const csvPath = path.resolve(
     process.cwd(),
-    'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1__efc80f07',
+    'server/private_seeds/vis_fees_2026_27.csv',
   );
   const raw = fs.readFileSync(csvPath, 'utf-8');
   const accounts = parseVisFeeCsv(raw, 'school-vis-jjr');
@@ -431,7 +431,7 @@ test('buildStudentPaymentTimeline classifies payment nature accurately across th
 test('financialPdfExporter generates valid PDFs for defaulter lists and student payment timelines', () => {
   const csvPath = path.resolve(
     process.cwd(),
-    'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1__efc80f07',
+    'server/private_seeds/vis_fees_2026_27.csv',
   );
   const raw = fs.readFileSync(csvPath, 'utf-8');
   const accounts = parseVisFeeCsv(raw, 'school-vis-jjr');

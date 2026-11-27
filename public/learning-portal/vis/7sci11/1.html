@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your shadow through the day · दिन भर छाया</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 270" overflow="hidden" role="img"><title>A pole and its shadow as the Sun moves across the sky</title></svg>
+<div style="display:flex;gap:12px;align-items:center;font-size:14px;color:var(--text-secondary);margin-top:6px"><label for="t">Time of day · समय</label><input type="range" id="t" min="7" max="17" step="0.25" value="9" style="flex:1"><span id="tv" style="font-weight:600;color:var(--text-primary);min-width:5em"></span></div>
+<p id="cap" style="font-size:14px;margin:8px 0 0"></p>
+<p style="font-size:12px;color:var(--text-secondary);margin:4px 0 0">Simplified model: the Sun rises at 6, sets at 6 and is highest at noon. Real angles change with season and place.</p>
+<script>
+const GX=280,GY=240,H=60,MAX=60*Math.PI/180;
+function draw(){const h=+t.value;const f=Math.sin(Math.PI*(h-6)/12),el=Math.asin(Math.min(1,f*Math.sin(MAX)));
+ const L=H/Math.tan(el),dir=h<12?1:-1;const PT=GY-H,SR=170,sx=GX-dir*SR*Math.cos(el),sy=PT-SR*Math.sin(el);
+ const hh=Math.floor(h),mm=Math.round((h-hh)*60);tv.textContent=(hh>12?hh-12:hh)+':'+String(mm).padStart(2,'0')+(h<12?' AM':' PM');
+ let s='<title>Shadow</title><path d="M'+(GX-SR)+' '+PT+' A'+SR+' '+SR+' 0 0 1 '+(GX+SR)+' '+PT+'" fill="none" stroke="var(--text-secondary)" stroke-dasharray="4 5"/>';
+ s+='<line x1="10" y1="'+GY+'" x2="550" y2="'+GY+'" stroke="var(--text-secondary)" stroke-width="2"/><text class="ts" x="20" y="'+(GY+22)+'">East · पूर्व</text><text class="ts" x="540" y="'+(GY+22)+'" text-anchor="end">West · पश्चिम</text>';
+ s+='<circle cx="'+sx+'" cy="'+sy+'" r="16" fill="#f2b632"/>';
+ s+='<line x1="'+sx+'" y1="'+sy+'" x2="'+(GX+dir*L)+'" y2="'+GY+'" stroke="#e0a02a" stroke-width="1.5" stroke-dasharray="5 4"/>';
+ const Lx=Math.min(L,265);s+='<rect x="'+(dir>0?GX:GX-Lx)+'" y="'+(GY-3)+'" width="'+Lx+'" height="6" fill="#2c2c2a" opacity=".8"/>';
+ s+='<rect x="'+(GX-4)+'" y="'+(GY-H)+'" width="8" height="'+H+'" fill="#8a5a12"/>';
+ s+='<text class="ts" x="'+(GX+dir*Lx/2)+'" y="'+(GY+22)+'" text-anchor="middle">shadow · छाया = '+(L/H).toFixed(1)+' × pole</text>';
+ s+='<text class="ts" x="'+sx+'" y="'+(sy-24)+'" text-anchor="middle">Sun '+Math.round(el*180/Math.PI)+'° high</text>';
+document.getElementById('s').innerHTML=s;
+ cap.textContent=Math.abs(h-12)<0.6?'Near noon the Sun is highest, so the shadow is shortest.':h<12?'Morning: the Sun is low in the east, so the shadow is long and points west.':'Afternoon: the Sun is low in the west, so the shadow is long and points east.'}
+t.oninput=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

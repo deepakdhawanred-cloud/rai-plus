@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Food chains in a forest, grassland and pond</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>@keyframes en{from{offset-distance:0%}to{offset-distance:100%}}.lv{transition:opacity .4s}</style>
+<svg id="s" width="100%" viewBox="0 0 680 250" role="img"><title>A food chain</title></svg>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"><button data-c="0">Forest</button><button data-c="1">Grassland</button><button data-c="2">Pond</button><button id="pl">Play energy flow</button></div>
+<script>
+const chains=[[['Grass','Producer'],['Deer','Herbivore'],['Lion','Carnivore']],[['Grass','Producer'],['Grasshopper','Herbivore'],['Frog','Carnivore'],['Snake','Carnivore'],['Eagle','Top carnivore']],[['Phytoplankton','Producer'],['Zooplankton','Herbivore'],['Small fish','Carnivore'],['Large fish','Carnivore']]];
+let ci=1,t=-1,tm;
+function draw(){const c=chains[ci],n=c.length,w=Math.min(120,(600-(n-1)*20)/n),gap=(640-n*w)/(n-1||1);let s='<title>Food chain</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs>';
+ c.forEach(([a,b],i)=>{const x=20+i*(w+gap);const cl=i===0?'c-green':i===n-1&&n>2?'c-coral':'c-amber';s+=`<g class="${cl} lv" style="opacity:${t<0||i<=t?1:.25}"><rect x="${x}" y="80" width="${w}" height="64" rx="8" stroke-width="0.5"/><text class="th" x="${x+w/2}" y="104" text-anchor="middle" dominant-baseline="central">${a}</text><text class="ts" x="${x+w/2}" y="124" text-anchor="middle" dominant-baseline="central">${b}</text></g><text class="ts" x="${x+w/2}" y="170" text-anchor="middle">Level ${i+1}</text>`;
+  if(i<n-1)s+=`<line x1="${x+w+3}" y1="112" x2="${x+w+gap-5}" y2="112" class="arr" marker-end="url(#arrow)"/>`});
+ s+=`<text class="ts" x="340" y="40" text-anchor="middle">Arrows show the direction food and energy move</text><text class="ts" x="340" y="215" text-anchor="middle">Each step is a trophic level. Energy only flows one way: it never comes back to the plants.</text>`;document.getElementById('s').innerHTML=s}
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ci=+b.dataset.c;t=-1;clearInterval(tm);draw()});
+pl.onclick=()=>{clearInterval(tm);t=0;draw();tm=setInterval(()=>{t++;draw();if(t>=chains[ci].length-1)clearInterval(tm)},700)};draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

@@ -71,6 +71,8 @@ export interface UserAccount {
   credentialVerified?: boolean;
   /** True exclusively for the COO of Rai Plus authorized to customize global plan pricing */
   isPlatformCoo?: boolean;
+  /** Server-only salted scrypt password hash (stripped before API responses) */
+  passwordHash?: string;
 }
 
 export type OlqGroup =

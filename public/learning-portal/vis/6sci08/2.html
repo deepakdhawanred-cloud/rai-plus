@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The water cycle, step by step</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 280" role="img"><title>Water cycle</title></svg>
+<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><button id="pv">◀</button><button id="pb">Pause</button><button id="nx">▶</button><span id="cap" style="font-size:14px"></span></div>
+<script>
+const ST=["Sea, land and Sun.", "The Sun heats the sea: water evaporates.", "Vapour rises and cools high up.", "It condenses on tiny dust particles: a cloud forms.", "Winds carry clouds over land; droplets join and grow.", "Big drops fall as rain.", "Rainwater flows in rivers back to the sea.", "Some soaks into the ground. The cycle repeats."];let k=0,run=true,tm=null;
+function draw(i){const sea=`<path d="M0 230 q70 -12 140 0 t140 0 v50 h-280z" fill="#185fa5" opacity=".5"/>`,land=`<path d="M280 230 L340 150 L400 120 L560 120 v160 H280z" fill="#a3c47a"/>`,sun=`<circle cx="60" cy="45" r="24" fill="#f2b632"/>`;let s=sea+land+sun;const cl=(x,y)=>`<g transform="translate(${x} ${y})"><circle r="20" fill="#cfd8e3"/><circle cx="22" cy="-8" r="24" fill="#cfd8e3"/><circle cx="46" r="20" fill="#cfd8e3"/><rect y="0" width="46" height="18" fill="#cfd8e3"/></g>`;
+if(i>=1)for(let k=0;k<5;k++)s+=`<path d="M${50+k*40} ${215-(i===1?0:0)} q-6 -12 0 -24 q6 -12 0 -24" fill="none" stroke="#888" stroke-width="2"/>`;
+if(i>=2)s+=`<path d="M140 150 C150 100 200 90 240 80" fill="none" stroke="#888" stroke-dasharray="4 4"/><text x="120" y="120" font-size="13">vapour rises and cools</text>`;
+if(i>=3)s+=cl(250,70)+`<text x="270" y="40" font-size="13" text-anchor="middle">condenses on dust → cloud</text>`;
+if(i>=4)s+=cl(380,60)+`<path d="M300 85 L370 70" stroke="#888" marker-end="none"/>`;
+if(i>=5)for(let k=0;k<6;k++)s+=`<line x1="${390+k*9}" y1="${95}" x2="${385+k*9}" y2="${115}" stroke="#185fa5" stroke-width="2"/>`;
+if(i>=6)s+=`<path d="M450 150 C420 190 360 200 290 225" fill="none" stroke="#185fa5" stroke-width="4"/><text x="430" y="200" font-size="13">river back to sea</text>`;
+if(i>=7)s+=`<path d="M470 125 v40" stroke="#185fa5" stroke-dasharray="3 3"/><text x="480" y="175" font-size="12">soaks into ground</text>`;return s;}
+function show(){document.getElementById('s').innerHTML=draw(k);cap.textContent=(k+1)+'/'+ST.length+' · '+ST[k]}
+function tick(){if(run){k=(k+1)%ST.length;show()}tm=setTimeout(tick,3200)}
+pb.onclick=()=>{run=!run;pb.textContent=run?'Pause':'Play'};nx.onclick=()=>{run=false;pb.textContent='Play';k=Math.min(ST.length-1,k+1);show()};pv.onclick=()=>{run=false;pb.textContent='Play';k=Math.max(0,k-1);show()};
+show();tm=setTimeout(tick,3200);
+</script>
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

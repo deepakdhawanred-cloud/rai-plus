@@ -15,10 +15,10 @@ import {
 import { mapStaffRoleCategoryToPayrollType } from '../src/utils/campusAdminEngine.ts';
 
 export const VIS_SALARY_SHEET_RELATIVE_PATH =
-  'public/assets/aistudio/SALARY_SHEET_2026-2027_7f354103';
+  'server/private_seeds/vis_salary_2026_27.csv';
 
 export const VIS_EXPENSE_SHEET_RELATIVE_PATH =
-  'public/assets/aistudio/EXPENSE_2026-27_034069f4';
+  'server/private_seeds/vis_expense_2026_27.csv';
 
 export const VIS_SALARY_EXPENSE_VERSION = 'VIS_SALARY_7F354103_EXPENSE_034069F4_V1';
 

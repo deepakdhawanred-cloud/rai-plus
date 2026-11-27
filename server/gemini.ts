@@ -7,6 +7,8 @@ import type {
   OlqKey,
 } from '../src/types';
 
+export const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-4-hydrogen';
+
 export class GeminiApiError extends Error {
   statusCode: number;
   constructor(message: string, statusCode = 500) {
@@ -48,7 +50,7 @@ export async function generateAcademicResourceDraft(params: {
   }
 
   const response = await ai.models.generateContent({
-    model: 'gemini-4-hydrogen',
+    model: DEFAULT_GEMINI_MODEL,
     contents: `Create a concise, classroom-ready academic ${params.category} outline for an Indian school (${params.board} curriculum), Class ${params.classSection}, Subject: ${params.subject}, Chapter: ${params.chapter}. Return plain prose in 3-4 crisp sentences suitable for a teacher resource repository, mentioning specific learning objectives and notebook/reasoning checks. Do not use markdown asterisks or bullet lists.`,
   });
 
@@ -84,7 +86,7 @@ export async function generateCareerAdvisoryDraft(params: {
   try {
     const response = await Promise.race([
       ai.models.generateContent({
-        model: 'gemini-4-hydrogen',
+        model: DEFAULT_GEMINI_MODEL,
         contents: `You are an experienced Indian educational and career counsellor. Prepare a balanced, realistic 4-sentence advisory career guidance note for ${params.applicantName} (${params.category}, stage: ${params.currentStage}). Interests: ${params.interests.join(', ')}. Strengths: ${params.strengths}. Goals: ${params.goalSummary}. Mention relevant Indian academic streams, competitive exams (such as CUET, JEE, NEET, CLAT, NDA, GATE, or skill diplomas only if relevant), and state clearly that final stream/career choices should be reviewed with a human counsellor. Plain text only.`,
       }),
       new Promise<never>((_, reject) =>
@@ -126,7 +128,7 @@ export async function generateStudentInsightDraft(params: {
   }
 
   const response = await ai.models.generateContent({
-    model: 'gemini-4-hydrogen',
+    model: DEFAULT_GEMINI_MODEL,
     contents: `Write a supportive, non-labelling 3-sentence teacher & parent learning summary for student ${params.studentName} (${params.classSection}). Learners Score: ${params.overallScore ?? 'Pending'}/100. Missing evidence areas (not zero): ${params.missingComponents.join(', ') || 'None'}. Observed strengths: ${params.strengths.join('; ')}. Areas for gentle scaffolding: ${params.supportAreas.join('; ')}. Never use permanent labels like "Active" or "Passive". Plain text only.`,
   });
 
@@ -205,7 +207,7 @@ export async function generateEriksonRemedialPlan(params: {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       contents: prompt,
       config: {
         systemInstruction:
@@ -340,7 +342,7 @@ export async function generateEriksonRemedialPlan(params: {
       presentStageHeadline: assessment.presentStageHeadline,
       stageContextSummary: String(parsed.stageContextSummary || assessment.transitionGoalStatement).trim(),
       generatedAt: new Date().toISOString(),
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       interventions,
     };
   } catch (err) {
@@ -397,7 +399,7 @@ export async function generateThinkingDraftObservation(params: {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       contents: `You are an educational counsellor supporting an Indian school student. Write a balanced, supportive, evidence-based 4-sentence DRAFT observation for counsellor review (NOT a clinical diagnosis). Student: ${params.studentName} (${params.classSection}), Assessment: ${params.testType}. Separate dimension scores (0-100): Fast Thinking=${params.dimensions.fastThinking}, Better Thinking=${params.dimensions.betterThinking}, Positive Thinking=${params.dimensions.positiveThinking}, Self-Centred pattern=${params.dimensions.selfCentredThinking}. Sample responses: ${params.responseSnippets.slice(0, 4).join(' | ')}. Rules: never diagnose a disorder, never equate fast thinking automatically with better thinking, frame all development areas as practical classroom/life-skill exercises. Plain prose only.`,
     });
     const text = (response.text ?? '').trim();
@@ -558,7 +560,7 @@ export async function generateChapterKnowledgeVisual(params: {
     try {
       const response = await Promise.race([
         ai.models.generateContent({
-          model: 'gemini-4-hydrogen',
+          model: DEFAULT_GEMINI_MODEL,
           contents: prompt,
           config: requestConfig,
         }),
@@ -608,7 +610,7 @@ export async function generateChapterKnowledgeVisual(params: {
         quickSummaryTakeaways: Array.isArray(parsed.quickSummaryTakeaways)
           ? parsed.quickSummaryTakeaways
           : [],
-        model: 'gemini-4-hydrogen',
+        model: DEFAULT_GEMINI_MODEL,
         generatedAt: new Date().toISOString(),
       };
     } catch (err) {
@@ -739,7 +741,7 @@ Rules:
       : promptText;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       contents,
       config: {
         systemInstruction:
@@ -906,7 +908,7 @@ export async function generateInteractiveGameWithGemini(params: {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       contents: `Generate a playable educational game asset for an Indian school student.
 Board: ${params.board} · Class ${params.classLevel} · Subject: ${params.subject}
 Chapter: ${params.chapterTitle}
@@ -1016,7 +1018,7 @@ export async function generateCoachNarrativeWithGemini(params: {
   }
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       contents: `Write an encouraging, specific 3-sentence study coach note and a 2-sentence concept re-teaching tip for student ${params.studentName} (Class ${params.classSection}).
 Weak concepts: ${params.weakConcepts.join(', ') || 'None yet'}
 Strong concepts: ${params.strongConcepts.join(', ') || 'Steady baseline'}
@@ -1101,7 +1103,7 @@ Return a JSON object with a "classifications" array containing one entry per inp
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-4-hydrogen',
+        model: DEFAULT_GEMINI_MODEL,
         contents: prompt,
         config: {
           thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -1225,7 +1227,7 @@ export async function categorizeExpensesWithGemini(
   if (!Array.isArray(rows) || rows.length === 0) {
     return {
       results: [],
-      model: 'gemini-4-hydrogen',
+      model: DEFAULT_GEMINI_MODEL,
       categorizedAt: new Date().toISOString(),
     };
   }
@@ -1240,7 +1242,7 @@ export async function categorizeExpensesWithGemini(
 
   return {
     results: allResults,
-    model: 'gemini-4-hydrogen',
+    model: DEFAULT_GEMINI_MODEL,
     categorizedAt: new Date().toISOString(),
   };
 }

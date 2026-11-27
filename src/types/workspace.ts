@@ -195,11 +195,17 @@ export interface WorkspaceData {
   // Digital Gate Pass & Digital Visitors Register
   gatePasses?: GatePassRecord[];
   visitorLogs?: VisitorLogRecord[];
+  // School Control Room & Smart Academic Calendar
+  controlRoom?: import('./controlRoomCalendar').ControlRoomWorkspaceBundle;
+  academicCalendar?: import('./controlRoomCalendar').AcademicCalendarState;
 }
 
 export type WorkspaceTab =
   | 'feature_allotment'
   | 'overview'
+  | 'control_room'
+  | 'academic_calendar'
+  | 'learning_portal'
   | 'alerts'
   | 'today_workspace'
   | 'interactive_learning'

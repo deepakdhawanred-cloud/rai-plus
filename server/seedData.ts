@@ -238,6 +238,14 @@ export interface DatabaseState {
   eventTeacherIssues?: EventTeacherIssue[];
   studentYearlyPlans?: StudentYearlyPlan[];
   absenceTargetRiskAlerts?: AbsenceTargetRiskAlert[];
+  // School Control Room & Smart Academic Calendar
+  schoolClassrooms?: import('../src/types/controlRoomCalendar').SchoolClassroom[];
+  schoolBellSchedules?: Record<string, import('../src/types/controlRoomCalendar').BellPeriodSlot[]>;
+  periodCheckIns?: import('../src/types/controlRoomCalendar').PeriodCheckInRecord[];
+  teacherDuties?: import('../src/types/controlRoomCalendar').TeacherDutyRecord[];
+  academicCalendars?: Record<string, import('../src/types/controlRoomCalendar').AcademicCalendarState>;
+  // Rai Plus Learning Portal (Classes 6–12) multi-tenant document store
+  learningPortalDocs?: Record<string, Record<string, unknown>>;
   // Additive Virat 360° Intelligence Collections
   thinkingQuestionBank: ThinkingQuestionItem[];
   thinkingScoringConfigs: Record<string, ThinkingScoringConfig>;

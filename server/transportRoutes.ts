@@ -140,15 +140,22 @@ export function registerTransportRoutes(app: Express, deps: TransportRouteDeps):
   });
 
   // Server-side Geocoding Proxy (Google Maps Platform Geocoding REST API — avoids browser CORS)
+  // Protected by authentication + tenant scoping to prevent anonymous Maps billing abuse.
   // Falls back cleanly to matching the school's own operational route stops if no key or offline.
-  app.post('/api/transport/geocode-address', async (req: Request, res: Response) => {
+  app.post(
+    '/api/transport/geocode-address',
+    requireAuth,
+    async (req: AuthedRequest, res: Response) => {
     const { address, locality, schoolId } = (req.body || {}) as {
       address?: string;
       locality?: string;
       schoolId?: string;
     };
     const db = getDb();
-    const targetSchoolId = schoolId || db.schools[0]?.id || 'school-vis-jjr';
+    const targetSchoolId =
+      req.user?.role === 'super_admin' || req.user?.role === 'counsellor'
+        ? schoolId || req.activeSchoolId || db.schools[0]?.id || 'school-vis-jjr'
+        : req.activeSchoolId || db.schools[0]?.id || 'school-vis-jjr';
     const school = db.schools.find((s) => s.id === targetSchoolId) || db.schools[0];
     const query = [address, locality, school?.city, school?.state, 'India']
       .map((s) => (s || '').trim())

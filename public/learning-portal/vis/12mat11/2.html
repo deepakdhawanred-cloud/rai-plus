@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skew lines from every side: the shortest segment</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 320" role="img"><title>Two skew lines rotating, with their common perpendicular</title></svg>
+<div style="display:flex;gap:10px;margin-top:6px"><button id="pb">Pause</button><span id="cap" style="font-size:14px;align-self:center">Line 1 (blue) lies at height 0, line 2 (orange) at height 2, at right angles: shortest distance 2 (green).</span></div>
+<script>
+let t=0,run=true;
+function pr(p,yaw){const c=Math.cos(yaw),s=Math.sin(yaw);const x=p[0]*c-p[1]*s,y=p[0]*s+p[1]*c;return [280+x*48,170-(p[2]*0.95-y*0.3)*48]}
+function frame(){const yaw=t*0.01;let s='<title>Skew</title>';
+ [[[-3,0,0],[3,0,0],'x'],[[0,-3,0],[0,3,0],'y'],[[0,0,-1],[0,0,3],'z']].forEach(([p,q,n])=>{const P=pr(p,yaw),Q=pr(q,yaw);s+='<line x1="'+P[0]+'" y1="'+P[1]+'" x2="'+Q[0]+'" y2="'+Q[1]+'" stroke="var(--text-secondary)" stroke-width="1"/><text class="ts" x="'+(Q[0]+4)+'" y="'+Q[1]+'">'+n+'</text>'});
+ const L1=[pr([-3,-3,0],yaw),pr([3,3,0],yaw)],L2=[pr([-3,3,2],yaw),pr([3,-3,2],yaw)],P=pr([0,0,0],yaw),Q=pr([0,0,2],yaw);
+ s+='<line x1="'+L1[0][0]+'" y1="'+L1[0][1]+'" x2="'+L1[1][0]+'" y2="'+L1[1][1]+'" stroke="#2d4f8a" stroke-width="4"/><line x1="'+L2[0][0]+'" y1="'+L2[0][1]+'" x2="'+L2[1][0]+'" y2="'+L2[1][1]+'" stroke="#b3541e" stroke-width="4"/>';
+ s+='<line x1="'+P[0]+'" y1="'+P[1]+'" x2="'+Q[0]+'" y2="'+Q[1]+'" stroke="#3b6d11" stroke-width="3" stroke-dasharray="6 4"/><circle cx="'+P[0]+'" cy="'+P[1]+'" r="5" fill="#3b6d11"/><circle cx="'+Q[0]+'" cy="'+Q[1]+'" r="5" fill="#3b6d11"/>';
+ document.getElementById('s').innerHTML=s;if(run)t++;requestAnimationFrame(frame)}
+pb.onclick=()=>{run=!run;pb.textContent=run?'Pause':'Play'};frame();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

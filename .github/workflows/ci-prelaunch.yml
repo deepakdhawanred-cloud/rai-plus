@@ -1,0 +1,48 @@
+name: Rai Plus Pre-Launch CI & Stress Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: TypeScript typecheck
+        run: npm run lint
+
+      - name: Unit & Security Tests
+        run: npm test
+
+      - name: Production Vite Build
+        run: npm run build
+
+      - name: Live Production Audit & Max Stress Test
+        env:
+          NODE_ENV: production
+          ENABLE_DEMO_LOGIN: 'true'
+          PORT: '3000'
+        run: |
+          node server.ts &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/api/health > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          npm run test:audit
+          npm run test:stress
+          kill $SERVER_PID

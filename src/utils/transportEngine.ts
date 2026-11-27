@@ -12,8 +12,7 @@ import type {
   UserRole,
 } from '../types';
 
-export const RAI_PLUS_LOGO_URL =
-  '/assets/aistudio/Beige_and_Orange_Minimal_Design_Studio_Logo_846b232a.png';
+export const RAI_PLUS_LOGO_URL = '/assets/brand/rai-plus-logo.png';
 
 export const SCHOOL_GEO_ANCHORS: Record<string, { lat: number; lng: number; label: string }> = {
   'school-vis-jjr': {

@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Field of a circular loop, cut through the middle</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 320" role="img"><title>Field of a circular loop, cross-section</title></svg>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><button id="flip">Reverse current</button><label for="tn">Turns of wire</label><input type="range" id="tn" min="1" max="5" step="1" value="1" style="width:140px"><span id="tv">1</span></div>
+<p style="font-size:13px;color:var(--text-secondary);margin:6px 0 0">The loop is cut through its middle. Near the wire the lines are circles; at the centre they become almost straight. With n turns the field is n times as strong.</p>
+<script>
+let d=1,n=1;const a=100,M=340,Y=160;
+function draw(){let s='<title>Loop field</title><clipPath id="cl"><rect x="0" y="0" width="680" height="280"/></clipPath><g clip-path="url(#cl)">';const sw=1+n*.35;
+ [18,42,75,120,190].forEach(r=>{const c=Math.sqrt(a*a+r*r);[[M-c,1],[M+c,-1]].forEach(([cx,side])=>{s+=`<circle cx="${cx}" cy="${Y}" r="${r}" fill="none" stroke="#378ADD" stroke-width="${sw}"/>`;
+  const ty=Y-r,dx=(side>0?-1:1)*(d>0?1:-1);if(ty>8)s+=`<path d="M${cx-dx*4} ${ty-6} l${dx*9} 6 l${-dx*9} 6" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;})});
+ s+=`<line x1="${M}" y1="10" x2="${M}" y2="270" stroke="#378ADD" stroke-width="${sw+.6}"/><path d="${d>0?`M${M-8} ${Y-40} l8 -12 l8 12`:`M${M-8} ${Y+40} l8 12 l8 -12`}" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/></g>`;
+ const dot=(x,out)=>`<circle cx="${x}" cy="${Y}" r="12" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/>`+(out?`<circle cx="${x}" cy="${Y}" r="3.5" fill="#854F0B"/>`:`<path d="M${x-6} ${Y-6} L${x+6} ${Y+6} M${x+6} ${Y-6} L${x-6} ${Y+6}" stroke="#854F0B" stroke-width="2"/>`);
+ s+=dot(M-a,d>0)+dot(M+a,d<0)+`<text class="ts" x="${M-a}" y="300" text-anchor="middle">${d>0?'current out of page':'current into page'}</text><text class="ts" x="${M+a}" y="300" text-anchor="middle">${d<0?'current out of page':'current into page'}</text>`;
+ document.getElementById('s').innerHTML=s}
+flip.onclick=()=>{d=-d;draw()};tn.oninput=()=>{n=+tn.value;tv.textContent=n;draw()};draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

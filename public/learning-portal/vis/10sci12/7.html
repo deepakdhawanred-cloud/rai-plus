@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How the wiring in a house works</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 360" role="img"><title>Domestic electric circuit</title></svg>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)">
+<label><input type="checkbox" class="ap" value="2"> 2 kW geyser (15 A line)</label><label><input type="checkbox" class="ap" value="1" checked> Bulbs and fan (5 A circuit)</label><button id="sc">Cause a short circuit</button><button id="rs">Replace fuse</button></div>
+<p id="note" style="font-size:13px;color:var(--text-secondary);margin:6px 0 0"></p>
+<style>@keyframes flow{to{stroke-dashoffset:-24}}@media (prefers-reduced-motion:no-preference){.fl{stroke-dasharray:6 6;animation:flow .8s linear infinite}}</style>
+<script>
+let blown=false,short=false;
+function box(x,y,w,h,t,sub,cl){return `<g class="${cl}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" stroke-width="0.5"/><text class="th" x="${x+w/2}" y="${y+h/2-(sub?8:0)}" text-anchor="middle" dominant-baseline="central">${t}</text>${sub?`<text class="ts" x="${x+w/2}" y="${y+h/2+10}" text-anchor="middle" dominant-baseline="central">${sub}</text>`:''}</g>`}
+function draw(){const on=[...document.querySelectorAll('.ap')].filter(c=>c.checked).map(c=>+c.value),live=!blown;
+ const w=(d,c,act)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="3" ${act&&live?'class="fl"':''}/>`;
+ let s='<title>Domestic circuit</title>';
+ s+=w('M20 70 H120','#E24B4A',1)+w('M20 100 H120','#2C2C2A',1)+w('M20 130 H660','#3B6D11',0);
+ s+=`<text class="ts" x="20" y="60">Live (red)</text><text class="ts" x="20" y="92" style="display:none"></text>`;
+ s+=box(120,52,90,66,'Main fuse',blown?'blown':'220 V, 50 Hz',blown?'c-red':'c-gray')+box(240,52,90,66,'Meter','kWh used','c-gray');
+ s+=w('M210 70 H240','#E24B4A',1)+w('M210 100 H240','#2C2C2A',1)+w('M330 70 H370','#E24B4A',1)+w('M330 100 H370','#2C2C2A',1);
+ s+=box(370,40,120,90,'Distribution','box with switches','c-gray');
+ const c1=on.includes(2),c2=on.includes(1);
+ s+=w('M490 70 H560 V190','#E24B4A',c1)+w('M490 100 H530 V190','#2C2C2A',c1)+w('M430 130 V150','#3B6D11',0);
+ s+=w('M490 82 H620 V190','#E24B4A',c2)+w('M490 92 H600 V190','#2C2C2A',c2);
+ s+=box(500,190,90,56,'15 A line','geyser, AC',c1?'c-amber':'c-gray')+box(600,190,70,56,'5 A line','bulbs, fan',c2?'c-amber':'c-gray');
+ s+=`<text class="ts" x="20" y="150">Earth (green)</text><text class="ts" x="20" y="120">Neutral (black)</text>`;
+ s+=`<path d="M545 246 V280 M575 246 V270 h40 V246" fill="none" stroke="#3B6D11" stroke-width="2" stroke-dasharray="4 3"/><text class="ts" x="500" y="300">Earth wire to metal body</text>`;
+ if(short)s+=`<path d="M530 165 l8 -6 l6 10 l8 -8 l8 4" fill="none" stroke="#E24B4A" stroke-width="3" stroke-linejoin="round"/><text class="ts" x="420" y="178" style="fill:#A32D2D">spark: short circuit</text>`;
+ s+=`<g transform="translate(40 200)"><rect width="400" height="110" rx="8" fill="var(--bg-neutral)"/><text class="th" x="16" y="28">Current drawn now</text><text class="th" x="16" y="62" style="font-size:22px">${blown?'0 A':short?'very large':(c1?9:0)+(c2?1:0)+' A'}</text><text class="ts" x="16" y="92">${blown?'The fuse wire melted and broke the circuit.':'Fuse melts if too much current flows.'}</text></g>`;
+ document.getElementById('s').innerHTML=s;
+ note.textContent=blown?'Short circuit: live and neutral touched, resistance became almost zero and current rose sharply. The fuse melted and cut the supply, protecting the wiring and appliances.':'Appliances are connected in parallel, so each gets 220 V and can be switched on or off on its own. The earth wire keeps a leaking metal body at zero potential so you do not get a severe shock.'}
+document.querySelectorAll('.ap').forEach(c=>c.onchange=draw);sc.onclick=()=>{short=true;draw();setTimeout(()=>{blown=true;draw()},700)};rs.onclick=()=>{short=false;blown=false;draw()};draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

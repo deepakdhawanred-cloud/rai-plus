@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Four kinds of reaction</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<style>@keyframes f{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.12)}}@media (prefers-reduced-motion:no-preference){.fl{animation:f .5s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}}.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);display:inline-block}.dot.on{background:var(--text-primary)}</style>
+<svg id="s" width="100%" viewBox="0 0 680 280" role="img"><title>Reactions of carbon compounds</title></svg>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px"><button data-r="0">Combustion</button><button data-r="1">Oxidation</button><button data-r="2">Addition</button><button data-r="3">Substitution</button><button id="pl">Play reaction</button></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+const pill=(x,y,t,c,ink,w)=>`<rect x="${x-w/2}" y="${y-22}" width="${w}" height="44" rx="10" fill="${c}"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" style="font-size:16px;font-weight:600;fill:${ink}">${t}</text>`;
+const B=['#E6F1FB','#0C447C'],R=['#FCEBEB','#791F1F'],G=['#EAF3DE','#27500A'],A=['#FAEEDA','#633806'];
+const RX=[{l:[['CH₄',B,90],['2O₂',R,80]],r:[['CO₂',B,80],['2H₂O',B,90]],c:'heat and light',t:'Combustion: carbon compounds burn in oxygen to give CO₂, water, heat and light. Saturated hydrocarbons give a clean blue flame; unsaturated ones a yellow, sooty flame.',flame:1},
+{l:[['CH₃CH₂OH',B,150]],r:[['CH₃COOH',R,140]],c:'alkaline KMnO₄ + heat (or acidified K₂Cr₂O₇)',t:'Oxidation: oxidising agents add oxygen to ethanol and turn it into ethanoic acid.'},
+{l:[['CH₂=CH₂',B,130],['H₂',A,70]],r:[['CH₃–CH₃',B,140]],c:'nickel catalyst',t:'Addition: hydrogen adds across the double bond. Hydrogenation turns vegetable oils into vegetable ghee.'},
+{l:[['CH₄',B,90],['Cl₂',G,80]],r:[['CH₃Cl',G,110],['HCl',G,90]],c:'sunlight',t:'Substitution: a chlorine atom takes the place of a hydrogen atom, one at a time, in sunlight.'}];
+let r=0,p=0;
+function draw(){const x=RX[r];let s='<title>Reaction</title>';const k=Math.min(1,p);
+ const L=x.l.length,Rn=x.r.length;x.l.forEach(([t,c,w],i)=>{const cx=L===1?180:110+i*120;s+=pill(cx,120,t,c[0],c[1],w)});
+ if(L>1)s+=`<text class="th" x="170" y="126" text-anchor="middle">+</text>`;
+ s+=`<line x1="290" y1="120" x2="390" y2="120" class="arr" stroke-width="2"/><path d="M382 114 l8 6 l-8 6" fill="none" stroke="var(--text-secondary)" stroke-width="2"/><text class="ts" x="340" y="${x.c.length>20?160:105}" text-anchor="middle">${x.c}</text>`;
+ x.r.forEach(([t,c,w],i)=>{const cx=Rn===1?520:460+i*120;s+=`<g opacity="${k}">${pill(cx,120,t,c[0],c[1],w)}</g>`});
+ if(x.flame&&k>0)s+=`<g class="fl" opacity="${k}"><path d="M330 240 C315 215 330 195 340 180 C350 195 365 215 350 240 Z" fill="#378ADD" opacity=".85"/><path d="M335 240 C328 225 336 212 340 204 C344 212 352 225 345 240 Z" fill="#B5D4F4"/></g><text class="ts" x="380" y="230">blue flame: complete burning</text>`;
+ document.getElementById('s').innerHTML=s;cap.textContent=x.t}
+function play(){if(matchMedia('(prefers-reduced-motion: reduce)').matches){p=1;draw();return}const t0=performance.now();(function f(t){p=(t-t0)/1400;draw();if(p<1)requestAnimationFrame(f)})(t0)}
+document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{r=+b.dataset.r;p=0;draw()});pl.onclick=play;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gold-foil experiment: Thomson's prediction vs Rutherford's result</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<canvas id="cv" width="680" height="300" style="width:100%;height:auto;display:block" aria-label="Alpha particles fired at gold foil"></canvas>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><button id="th">If Thomson were right</button><button id="ru">What Rutherford saw</button><span id="tal"></span></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+const ctx=cv.getContext('2d');let mode='ru',P=[],st={s:0,d:0,b:0};const NUC=[[360,60],[360,150],[360,240]];
+function spawn(){P.push({x:20,y:30+Math.random()*240,vx:4,vy:0,done:false,k:''})}
+function step(){const dark=matchMedia('(prefers-color-scheme: dark)').matches;ctx.clearRect(0,0,680,300);
+ ctx.fillStyle='#e2b93b';ctx.globalAlpha=.35;ctx.fillRect(350,10,20,280);ctx.globalAlpha=1;
+ if(mode==='ru')NUC.forEach(([x,y])=>{ctx.fillStyle='#D85A30';ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill()});else{for(let i=0;i<3;i++){ctx.fillStyle='rgba(216,90,48,.18)';ctx.beginPath();ctx.arc(360,60+i*90,40,0,7);ctx.fill()}}
+ if(Math.random()<.35)spawn();
+ P.forEach(p=>{if(mode==='ru'){NUC.forEach(([x,y])=>{const dx=p.x-x,dy=p.y-y,r2=dx*dx+dy*dy;if(r2<2500){const f=260/Math.max(r2,30);p.vx+=f*dx/Math.sqrt(r2);p.vy+=f*dy/Math.sqrt(r2)}})}
+  p.x+=p.vx;p.y+=p.vy;const sp=Math.hypot(p.vx,p.vy);p.vx*=4/sp;p.vy*=4/sp;
+  if(!p.done&&(p.x>660||p.x<10||p.y<5||p.y>295)){p.done=true;const a=Math.abs(Math.atan2(p.vy,p.vx))*180/Math.PI;if(a>90)st.b++;else if(a>3)st.d++;else st.s++}
+  ctx.fillStyle='#378ADD';ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()});
+ P=P.filter(p=>!p.done);ctx.fillStyle=dark?'#ecebe6':'#1d1d1b';ctx.font='13px "Source Sans 3",sans-serif';ctx.fillText('alpha particles →',20,20);ctx.fillText('gold foil',336,298);
+ tal.textContent=`Straight through: ${st.s} · deflected: ${st.d} · bounced back: ${st.b}`;requestAnimationFrame(step)}
+function set(m){mode=m;P=[];st={s:0,d:0,b:0};cap.textContent=m==='ru'?'Most particles pass straight through: the atom is mostly empty. A few are deflected and a very few bounce back: a tiny, heavy, positive nucleus. (Nuclei are drawn far larger than real scale here; in reality about 1 in 12000 bounced back.)':'In Thomson\'s model the positive charge is spread thinly, so nothing could stop a fast alpha particle: every one would go straight through. That is not what Rutherford saw.'}
+th.onclick=()=>set('th');ru.onclick=()=>set('ru');set('ru');step();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

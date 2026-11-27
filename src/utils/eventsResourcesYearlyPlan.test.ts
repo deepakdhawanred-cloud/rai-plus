@@ -72,7 +72,7 @@ test('Class 6 Science Ch 1 Components of Food launches illustrated 4-nutrient dr
   );
   // Every round has generated image URL and exact matching target count
   for (const round of lab.rounds) {
-    assert.ok(round.imageUrl && round.imageUrl.startsWith('/src/assets/images/'));
+    assert.ok(round.imageUrl && round.imageUrl.startsWith('/assets/images/'));
     const matching = round.items.filter((i) => i.categoryKey === round.targetCategoryKey);
     assert.equal(matching.length, round.targetCount);
   }

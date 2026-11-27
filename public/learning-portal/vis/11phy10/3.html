@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Convection: sea breeze by day, land breeze by night</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 300" role="img"><title>Sea breeze and land breeze</title></svg>
+<div style="display:flex;gap:8px;margin-top:6px"><button id="dy">Daytime</button><button id="nt">Night</button></div>
+<p id="cap" style="font-size:14px;margin:8px 0 0"></p>
+<style>@keyframes mv{to{stroke-dashoffset:-30}}@media (prefers-reduced-motion:no-preference){.fl{stroke-dasharray:10 5;animation:mv .9s linear infinite}}</style>
+<script>
+let day=true;
+function draw(){let s='<title>Breeze</title>';s+=`<rect x="0" y="0" width="680" height="300" fill="${day?'#E6F1FB':'#0C447C'}" opacity=".45"/>`;
+ s+=`<rect x="0" y="220" width="340" height="80" fill="#378ADD" opacity=".7"/><rect x="340" y="200" width="340" height="100" fill="#97C459"/>`;
+ s+=day?`<circle cx="600" cy="50" r="26" fill="#FAC775"/>`:`<circle cx="600" cy="50" r="20" fill="#F1EFE8"/>`;
+ const loop=day?'M560 190 C560 120 540 90 470 90 L200 90 C130 90 120 130 120 190 L300 205 L540 205':'M120 190 C120 120 140 90 210 90 L480 90 C550 90 560 130 560 180 L380 195 L140 205';
+ s+=`<path class="fl" d="${loop}" fill="none" stroke="${day?'#D85A30':'#85B7EB'}" stroke-width="3"/>`;
+ s+=`<text class="th" x="170" y="270" style="fill:#042C53">sea</text><text class="th" x="510" y="260" style="fill:#173404">land</text>`;
+ s+=`<text class="th" x="340" y="${day?225:225}" text-anchor="middle" style="fill:${day?'#042C53':'#E6F1FB'}">${day?'← breeze from sea to land':'breeze from land to sea →'}</text>`;
+ document.getElementById('s').innerHTML=s;cap.textContent=day?'Daytime: land heats faster than water (water has a higher specific heat). Warm air over land rises; cooler air from the sea moves in: a sea breeze. This is natural convection.':'Night: land cools faster than water. Air over the warmer sea rises, and cooler air from the land flows out to sea: a land breeze.'}
+dy.onclick=()=>{day=true;draw()};nt.onclick=()=>{day=false;draw()};draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

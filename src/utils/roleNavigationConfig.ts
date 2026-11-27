@@ -126,6 +126,9 @@ export function buildRoleQuickDockItems(params: {
   if (role === 'school_admin' || role === 'principal') {
     raw = [
       { id: 'dock-overview', tab: 'overview', label: 'Overview', count: pendingReports > 0 ? pendingReports : undefined },
+      { id: 'dock-control-room', tab: 'control_room', label: 'Control Room (LIVE)' },
+      { id: 'dock-smart-calendar', tab: 'academic_calendar', label: 'Smart Calendar' },
+      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
       { id: 'dock-attendance', tab: 'attendance_heatmap', label: 'Attendance' },
       { id: 'dock-staff-salary', tab: 'staff_payroll', label: 'Staff & Salary', count: pendingPayrollSync > 0 ? pendingPayrollSync : undefined },
       { id: 'dock-finance', tab: 'finance', label: 'Finance & Fees' },
@@ -135,6 +138,9 @@ export function buildRoleQuickDockItems(params: {
   } else if (role === 'coordinator') {
     raw = [
       { id: 'dock-overview', tab: 'overview', label: 'Overview' },
+      { id: 'dock-control-room', tab: 'control_room', label: 'Control Room (LIVE)' },
+      { id: 'dock-smart-calendar', tab: 'academic_calendar', label: 'Smart Calendar' },
+      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
       { id: 'dock-attendance', tab: 'attendance_heatmap', label: 'Attendance' },
       { id: 'dock-timetable', tab: 'timetable_leave', label: 'Timetable & Leave' },
       { id: 'dock-marks', tab: 'marks_report_card', label: 'Marks & Reports' },
@@ -148,6 +154,7 @@ export function buildRoleQuickDockItems(params: {
       { id: 'dock-marks', tab: 'marks_report_card', label: 'Enter Marks' },
       { id: 'dock-notebook', tab: 'notebook', label: 'Notebooks & Homework' },
       { id: 'dock-hub', tab: 'academics', label: 'Class Learning Hub' },
+      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
       { id: 'dock-payslip', tab: 'staff_payroll', label: 'My Payslip' },
     ];
   } else if (role === 'accountant') {
@@ -171,6 +178,7 @@ export function buildRoleQuickDockItems(params: {
     raw = [
       { id: 'dock-home', tab: 'overview', label: 'Home', count: unreadParentCount > 0 ? unreadParentCount : undefined },
       { id: 'dock-games', tab: 'academics', label: 'Study Games & Hub', actionMode: 'study_games' },
+      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
       { id: 'dock-marks', tab: 'marks_report_card', label: 'My Marks' },
       { id: 'dock-brain', tab: 'cognitive_profile', label: 'Daily Brain Gym' },
       { id: 'dock-events', tab: 'events', label: 'Events' },

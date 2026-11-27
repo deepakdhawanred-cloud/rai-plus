@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>What changes a wire's resistance</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px;font-size:14px;color:var(--text-secondary)">
+<label>Length: <b id="lv" style="color:var(--text-primary)"></b><input type="range" id="l" min="0.5" max="4" step="0.5" value="1" style="width:100%"></label>
+<label>Area of cross-section: <b id="av" style="color:var(--text-primary)"></b><input type="range" id="a" min="0.5" max="3" step="0.5" value="1" style="width:100%"></label>
+<label>Material <select id="m" style="width:100%"><option value="1.62e-8">Copper</option><option value="2.63e-8">Aluminium</option><option value="5.2e-8">Tungsten</option><option value="10e-8">Iron</option></select></label></div>
+<svg id="s" width="100%" viewBox="0 0 680 220" role="img"><title>Resistance of a wire</title></svg>
+<p id="out" style="font-size:15px;margin:0"></p>
+<p style="font-size:13px;color:var(--text-secondary);margin:6px 0 0">Resistivity values from the NCERT table (at 20 °C). Alloys such as nichrome have much higher resistivity, which is why they are used in heaters.</p>
+<script>
+const cols={'1.62e-8':'#D85A30','2.63e-8':'#B4B2A9','5.2e-8':'#888780','10e-8':'#5F5E5A'};
+function draw(){const L=+l.value,A=+a.value,rho=+m.value,R=rho*L/(A*1e-6);lv.textContent=L+' m';av.textContent=A+' mm²';
+ const w=Math.min(600,120*L+20),h=8+A*12,c=cols[m.value];let s='<title>Wire</title>';
+ s+=`<ellipse cx="${40+w}" cy="100" rx="${h/5}" ry="${h/2}" fill="${c}" stroke="#2c2c2a" stroke-width=".5"/><rect x="40" y="${100-h/2}" width="${w}" height="${h}" fill="${c}"/><ellipse cx="40" cy="100" rx="${h/5}" ry="${h/2}" fill="${c}" stroke="#2c2c2a"/><line x1="40" y1="${100-h/2}" x2="${40+w}" y2="${100-h/2}" stroke="#2c2c2a" stroke-width=".5"/><line x1="40" y1="${100+h/2}" x2="${40+w}" y2="${100+h/2}" stroke="#2c2c2a" stroke-width=".5"/>`;
+ const Rmax=10e-8*4/(0.5e-6),bw=560*Math.log10(1+R*1000)/Math.log10(1+Rmax*1000);
+ s+=`<rect x="40" y="170" width="560" height="18" rx="9" fill="var(--bg-neutral)"/><rect x="40" y="170" width="${Math.max(8,bw)}" height="18" rx="9" fill="#BA7517"/><text class="ts" x="40" y="210">resistance</text>`;
+ document.getElementById('s').innerHTML=s;out.innerHTML=`R = ρ l / A = ${(()=>{const[mn,ex]=rho.toExponential(2).split('e');return mn+' × 10'+ex.replace('-','⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d])})()} Ω m × ${L} / (${A} × 10⁻⁶) = <b>${(R*1000).toFixed(1)} mΩ</b>`}
+l.oninput=a.oninput=m.onchange=draw;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

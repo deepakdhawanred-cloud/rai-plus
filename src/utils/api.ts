@@ -93,6 +93,7 @@ export async function apiRequest<T>(
         ...options,
         method,
         cache: 'no-store',
+        credentials: 'same-origin',
         headers,
       });
 

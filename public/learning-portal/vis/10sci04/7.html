@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactions of ethanol and ethanoic acid</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 290" role="img"><title>Esterification and saponification</title></svg>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button id="es">Play esterification</button><button id="sp">Play saponification</button><button id="na">Ethanol + sodium</button><button id="co">Ethanoic acid + sodium carbonate</button></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+const box=(x,y,w,t,sub,c,ink,o=1)=>`<g opacity="${o}"><rect x="${x-w/2}" y="${y-28}" width="${w}" height="56" rx="10" fill="${c}"/><text x="${x}" y="${y-6}" text-anchor="middle" dominant-baseline="central" style="font-size:15px;font-weight:600;fill:${ink}">${t}</text><text x="${x}" y="${y+13}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:${ink}">${sub}</text></g>`;
+const SC={es:{l:[['CH₃COOH','ethanoic acid','#FCEBEB','#791F1F',140],['C₂H₅OH','ethanol','#E6F1FB','#0C447C',120]],r:[['CH₃COOC₂H₅','ethyl ethanoate (ester)','#FAEEDA','#633806',190],['H₂O','water','#E6F1FB','#0C447C',90]],c:'acid catalyst, warm',t:'Esterification: a carboxylic acid and an alcohol join, giving off water. The ester has a sweet, fruity smell and is used in perfumes and flavours.',bub:0},
+ sp:{l:[['CH₃COOC₂H₅','ester','#FAEEDA','#633806',150],['NaOH','sodium hydroxide','#EEEDFE','#3C3489',130]],r:[['CH₃COONa','sodium ethanoate','#EAF3DE','#27500A',160],['C₂H₅OH','ethanol','#E6F1FB','#0C447C',110]],c:'heat',t:'Saponification: an ester and an alkali give back the alcohol and the sodium salt of the acid. With long-chain esters from fats and oils, this salt is soap.',bub:0},
+ na:{l:[['2C₂H₅OH','ethanol','#E6F1FB','#0C447C',130],['2Na','sodium','#F1EFE8','#444441',90]],r:[['2C₂H₅ONa','sodium ethoxide','#EAF3DE','#27500A',160],['H₂','hydrogen gas','#FAEEDA','#633806',110]],c:'',t:'Ethanol reacts with sodium to give sodium ethoxide and bubbles of hydrogen gas. This is a test for alcohols.',bub:1},
+ co:{l:[['2CH₃COOH','ethanoic acid','#FCEBEB','#791F1F',140],['Na₂CO₃','sodium carbonate','#F1EFE8','#444441',140]],r:[['2CH₃COONa + H₂O','salt and water','#EAF3DE','#27500A',190],['CO₂','carbon dioxide','#FAEEDA','#633806',110]],c:'',t:'Ethanoic acid reacts with carbonates and hydrogencarbonates to give a salt, water and carbon dioxide, which turns lime water milky.',bub:1}};
+let cur='es',p=0;
+function draw(){const x=SC[cur],k=Math.min(1,p);let s='<title>Reaction</title>';
+ x.l.forEach((a,i)=>{const cx=i?250:90;s+=box(cx,90,a[4],a[0],a[1],a[2],a[3],1)});s+=`<text class="th" x="172" y="96" text-anchor="middle">+</text>`;
+ s+=`<line x1="330" y1="90" x2="400" y2="90" class="arr" stroke-width="2"/><path d="M392 84 l8 6 l-8 6" fill="none" stroke="var(--text-secondary)" stroke-width="2"/>${x.c?`<text class="ts" x="365" y="128" text-anchor="middle">${x.c}</text>`:''}`;
+ s+=box(x.r[0][4]/2+410,90,x.r[0][4],x.r[0][0],x.r[0][1],x.r[0][2],x.r[0][3],k);
+ s+=box(530,210,x.r[1][4],x.r[1][0],x.r[1][1],x.r[1][2],x.r[1][3],k)+`<text class="th" x="530" y="165" text-anchor="middle" opacity="${k}">+</text>`;
+ if(x.bub&&k>0)for(let i=0;i<9;i++){const y=270-((k*200+i*37)%160);s+=`<circle cx="${420+i*7}" cy="${y}" r="${3+i%3}" fill="none" stroke="#BA7517" stroke-width="1.5" opacity="${k}"/>`}
+ document.getElementById('s').innerHTML=s;cap.textContent=x.t}
+function play(c){cur=c;if(matchMedia('(prefers-reduced-motion: reduce)').matches){p=1;draw();return}const t0=performance.now();(function f(t){p=(t-t0)/1500;draw();if(p<1.6)requestAnimationFrame(f)})(t0)}
+es.onclick=()=>play('es');sp.onclick=()=>play('sp');na.onclick=()=>play('na');co.onclick=()=>play('co');p=0;draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

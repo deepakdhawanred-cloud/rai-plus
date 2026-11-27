@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Extraction: from ore to metal</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<div id="b" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+<svg id="s" width="100%" viewBox="0 0 680 300" role="img"><title>Steps to extract a metal</title></svg>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:4px 0 0"></p>
+<script>
+const P={Hg:['Mercury','Low reactivity',[['Ore','cinnabar, HgS'],['Roast in air','2HgS + 3O₂ → 2HgO + 2SO₂'],['Heat again','2HgO → 2Hg + O₂'],['Metal','mercury']],'Metals low in the series: heating the ore alone is enough.'],
+Zn:['Zinc','Middle reactivity',[['Ore','zinc blende ZnS or calamine ZnCO₃'],['Roast or calcine','2ZnS + 3O₂ → 2ZnO + 2SO₂; ZnCO₃ → ZnO + CO₂'],['Reduce with carbon','ZnO + C → Zn + CO'],['Metal','zinc']],'Sulphide ores are roasted (excess air); carbonate ores are calcinated (limited air). The oxide is then reduced with carbon.'],
+Fe:['Iron (thermit welding)','Middle, using aluminium',[['Oxide','iron(III) oxide'],['Mix with aluminium','Al is more reactive than Fe'],['Ignite','Fe₂O₃ + 2Al → 2Fe + Al₂O₃ + heat'],['Molten iron','joins railway tracks']],'In the thermit reaction a more reactive metal reduces the oxide. So much heat is released that the iron comes out molten.'],
+Na:['Sodium','High reactivity',[['Ore','rock salt, NaCl'],['Melt it','molten sodium chloride'],['Electrolysis','Na⁺ + e⁻ → Na at the cathode'],['Metal','sodium; chlorine at the anode']],'Carbon cannot reduce oxides of very reactive metals. They are obtained by electrolysis of their molten chlorides; aluminium from molten aluminium oxide.']};
+b.innerHTML=Object.keys(P).map(k=>`<button data-k="${k}">${P[k][0]}</button>`).join('');let cur='Zn';
+function draw(){const p=P[cur];let s=`<title>${p[0]}</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs><text class="th" x="20" y="30">${p[0]}: ${p[1]}</text>`;
+ p[2].forEach(([t,sub],i)=>{const y=50+i*62,cl=i===3?'c-green':i===0?'c-gray':'c-amber';s+=`<g class="${cl}"><rect x="20" y="${y}" width="640" height="48" rx="8" stroke-width="0.5"/><text class="th" x="40" y="${y+24}" dominant-baseline="central">${t}</text><text class="ts" x="230" y="${y+24}" dominant-baseline="central">${sub}</text></g>`;if(i<3)s+=`<line x1="120" y1="${y+49}" x2="120" y2="${y+60}" class="arr" marker-end="url(#arrow)"/>`});
+ document.getElementById('s').innerHTML=s;cap.textContent=p[3];b.querySelectorAll('button').forEach(x=>x.style.borderColor=x.dataset.k===cur?'#378ADD':'')}
+b.querySelectorAll('button').forEach(x=>x.onclick=()=>{cur=x.dataset.k;draw()});draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

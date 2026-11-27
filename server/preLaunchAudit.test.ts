@@ -5,7 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 
 const BASE_URL = process.env.RAI_AUDIT_URL || 'http://127.0.0.1:3000';
-const NEW_LOGO_PATH = '/assets/aistudio/Beige_and_Orange_Minimal_Design_Studio_Logo_846b232a.png';
+const NEW_LOGO_PATH = '/assets/brand/rai-plus-logo.png';
 const OLD_LOGO_TOKEN = 'Beige_and_Orange_Minimal_Design_Studio_Logo__5__01d71997.png';
 
 interface DemoAccount {

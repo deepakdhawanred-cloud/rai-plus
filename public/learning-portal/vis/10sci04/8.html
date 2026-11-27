@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How soap makes a micelle (and why hard water spoils it)</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<canvas id="cv" width="680" height="320" style="width:100%;height:auto;display:block" aria-label="Soap molecules forming a micelle around an oil drop"></canvas>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><button id="go">Add soap and stir</button><label><input type="checkbox" id="hard"> Hard water (Ca²⁺, Mg²⁺)</label><label><input type="checkbox" id="det"> Use a detergent instead</label><button id="rs">Start again</button></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+const ctx=cv.getContext('2d'),N=26,O={x:340,y:160,r:44};let mol=[],on=false,t=0;
+function reset(){on=false;t=0;mol=Array.from({length:N},(_,i)=>({x:60+Math.random()*560,y:30+Math.random()*260,a:Math.random()*6.28,tg:i/N*Math.PI*2,scum:false}));upd()}
+function upd(){cap.textContent=hard.checked&&!det.checked?'In hard water, calcium and magnesium ions react with soap to form insoluble scum (grey lumps). Less soap is left to form micelles, so it lathers poorly.':det.checked?'Detergent molecules also have a water-loving head and an oil-loving tail, but they do not form scum with calcium and magnesium ions, so they work even in hard water.':'Soap molecules point their oil-loving tails into the oil drop and keep their water-loving heads in the water. The cluster, a micelle, is rinsed away with the oil inside it.'}
+function frame(){ctx.clearRect(0,0,680,320);const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+ ctx.fillStyle=dark?'rgba(55,138,221,.12)':'rgba(55,138,221,.08)';ctx.fillRect(0,0,680,320);
+ ctx.fillStyle='#EF9F27';ctx.beginPath();ctx.arc(O.x,O.y,O.r,0,7);ctx.fill();ctx.fillStyle='#633806';ctx.font='600 14px "Source Sans 3",sans-serif';ctx.textAlign='center';ctx.fillText('oil',O.x,O.y+5);
+ const hardSoap=hard.checked&&!det.checked;
+ mol.forEach((m,i)=>{if(on){if(hardSoap&&i%3!==0){m.scum=true}
+   if(m.scum){m.x+=(80+(i%6)*95-m.x)*.03;m.y+=(285-m.y)*.03}else{const ta=m.tg+t*.002,tx=O.x+Math.cos(ta)*(O.r+26),ty=O.y+Math.sin(ta)*(O.r+26);m.x+=(tx-m.x)*.04;m.y+=(ty-m.y)*.04;m.a+=((Math.atan2(O.y-m.y,O.x-m.x))-m.a)*.1}}
+  else{m.x+=Math.cos(m.a)*.4;m.y+=Math.sin(m.a)*.4;if(m.x<20||m.x>660)m.a=Math.PI-m.a;if(m.y<20||m.y>300)m.a=-m.a}
+  if(m.scum){ctx.fillStyle='#888780';ctx.beginPath();ctx.arc(m.x,m.y,7,0,7);ctx.fill();return}
+  const L=26,hx=m.x-Math.cos(m.a)*L/2,hy=m.y-Math.sin(m.a)*L/2,tx2=m.x+Math.cos(m.a)*L/2,ty2=m.y+Math.sin(m.a)*L/2;
+  ctx.strokeStyle=dark?'#D3D1C7':'#444441';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(tx2,ty2);ctx.stroke();
+  ctx.fillStyle=det.checked?'#7F77DD':'#E24B4A';ctx.beginPath();ctx.arc(hx,hy,6,0,7);ctx.fill()});
+ if(hardSoap&&on){ctx.fillStyle=dark?'#B4B2A9':'#5F5E5A';ctx.font='13px "Source Sans 3",sans-serif';ctx.textAlign='left';ctx.fillText('scum',20,310)}
+ ctx.textAlign='left';ctx.font='13px "Source Sans 3",sans-serif';ctx.fillStyle=dark?'#D3D1C7':'#444441';ctx.fillText('● head: water-loving   — tail: oil-loving',20,22);
+ if(on)t++;requestAnimationFrame(frame)}
+go.onclick=()=>{on=true;upd()};rs.onclick=reset;hard.onchange=det.onchange=()=>{reset()};reset();frame();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

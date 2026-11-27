@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sharing electrons: H₂, O₂, N₂ and CH₄</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 680 300" role="img"><title>Electron sharing in covalent bonds</title></svg>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button data-m="h2">H₂</button><button data-m="o2">O₂</button><button data-m="n2">N₂</button><button data-m="ch4">CH₄</button><button id="go">Share electrons</button></div>
+<p id="cap" style="font-size:14px;color:var(--text-secondary);margin:8px 0 0"></p>
+<script>
+const M={h2:{a:[['H',1],['H',1]],pairs:1,t:'Each hydrogen has 1 electron. They share one pair: H–H, a single bond. Each H now has 2 electrons, like helium.'},
+o2:{a:[['O',6],['O',6]],pairs:2,t:'Each oxygen has 6 outer electrons and needs 2 more. They share two pairs: O=O, a double bond. Each O now has 8.'},
+n2:{a:[['N',5],['N',5]],pairs:3,t:'Each nitrogen has 5 outer electrons and needs 3 more. They share three pairs: N≡N, a triple bond.'},
+ch4:{t:'Carbon has 4 outer electrons; each hydrogen has 1. Carbon shares one pair with each H: four single covalent bonds in CH₄.'}};
+let cur='o2',shared=false,t0=0;
+function dot(x,y,c){return `<circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`}
+function atomC(x,y,el,r){return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="4 3"/><text class="th" x="${x}" y="${y+5}" text-anchor="middle" style="font-size:20px">${el}</text>`}
+function draw(k){const p=Math.min(1,k);let s='<title>Covalent bond</title>';
+ if(cur==='ch4'){const cx=340,cy=150;s+=atomC(cx,cy,'C',46);[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([dx,dy],i)=>{const far=150,near=88,d=far-(far-near)*p,hx=cx+dx*d*.75,hy=cy+dy*d*.62;s+=atomC(hx,hy,'H',30);
+  const mx=cx+dx*44*.75*1.15,my=cy+dy*44*.62*1.15;const e1=[cx+dx*30+(-dy)*7,cy+dy*24+dx*7],e2=[hx-dx*20*(1-p)+(mx-hx+dx*20)*p*0+(-dy)*-7*p,hy-dy*16];
+  const ex=hx+(mx-hx)*p,ey=hy+(my-hy)*p;s+=dot(cx+dx*34,cy+dy*28,'#E24B4A')+dot(ex+(p>.9?dy*7:0),ey+(p>.9?-dx*7:0),'#378ADD');if(p>.95)s+=`<ellipse cx="${mx+dx*2}" cy="${my}" rx="16" ry="11" fill="none" stroke="#EF9F27" stroke-width="2"/>`});}
+ else{const m=M[cur],sep=200-60*p,x1=340-sep/2,x2=340+sep/2,r=m.a[0][0]==='H'?40:58,n=m.a[0][1];s+=atomC(x1,150,m.a[0][0],r)+atomC(x2,150,m.a[1][0],r);
+  for(let side=0;side<2;side++){const cx=side?x2:x1,dir=side?-1:1;for(let i=0;i<n;i++){const isShared=i<m.pairs;let x,y;
+   if(isShared){const gy=150+(i-(m.pairs-1)/2)*18;const homeX=cx+dir*(r-6),tx=340+(side?6:-6);x=homeX+(tx-homeX)*p;y=gy}
+   else{const j=i-m.pairs,tot=n-m.pairs,a=(side?0:Math.PI)+(j-(tot-1)/2)*0.55;x=cx+Math.cos(a)*(r-8);y=150+Math.sin(a)*(r-8)}
+   s+=dot(x,y,side?'#378ADD':'#E24B4A')}}
+  if(p>.95)for(let i=0;i<m.pairs;i++)s+=`<ellipse cx="340" cy="${150+(i-(m.pairs-1)/2)*18}" rx="18" ry="8" fill="none" stroke="#EF9F27" stroke-width="2"/>`}
+ s+=`<text class="ts" x="20" y="285">Red and blue dots: electrons from each atom. Orange rings: shared pairs (covalent bonds).</text>`;document.getElementById('s').innerHTML=s}
+function anim(){const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce){draw(1);return}t0=performance.now();(function f(t){const k=(t-t0)/1200;draw(k);if(k<1)requestAnimationFrame(f)})(t0)}
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{cur=b.dataset.m;cap.textContent=M[cur].t;draw(0)});go.onclick=anim;cap.textContent=M[cur].t;draw(0);
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

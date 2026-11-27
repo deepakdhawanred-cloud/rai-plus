@@ -724,7 +724,7 @@ export function buildPrintableFeeStructureHtml(
   <div class="sheet">
     <div class="banner">
       <div style="display:flex;align-items:center;gap:14px;">
-        <img src="/assets/aistudio/Beige_and_Orange_Minimal_Design_Studio_Logo_846b232a.png" alt="Rai Plus Logo" style="width:46px;height:46px;border-radius:8px;border:1.5px solid #D6B66D;object-fit:cover;background:#F3E6D8;" />
+        <img src="/assets/brand/rai-plus-logo.png" alt="Rai Plus Logo" style="width:46px;height:46px;border-radius:8px;border:1.5px solid #D6B66D;object-fit:cover;background:#F3E6D8;" />
         <div>
           <h1>${escapeHtml(school.name)}</h1>
           <p>${escapeHtml(school.city)} &middot; ${escapeHtml(school.board)} &middot; Official Fee Structure (Session ${escapeHtml(school.session)})</p>

@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>3D model: solenoid and electromagnet</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<canvas id="cv" width="680" height="320" style="width:100%;height:auto;display:block;cursor:grab;touch-action:none" aria-label="3D solenoid with field lines, drag to rotate"></canvas>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:14px;color:var(--text-secondary)"><button id="flip">Reverse current</button><label><input type="checkbox" id="core"> Put a soft iron core inside</label><span>Drag to rotate</span></div>
+<p id="note" style="font-size:13px;color:var(--text-secondary);margin:6px 0 0"></p>
+<script>
+const ctx=cv.getContext('2d');let ang=-.5,tilt=.35,drag=null,d=1,ph=0;
+function P(x,y,z){const ca=Math.cos(ang),sa=Math.sin(ang);let X=x*ca+z*sa,Z=-x*sa+z*ca;const ct=Math.cos(tilt),st=Math.sin(tilt);let Y=y*ct-Z*st;Z=y*st+Z*ct;const p=650/(650+Z);return[340+X*p,160+Y*p,Z]}
+function poly(pts,c,w,a=1){ctx.globalAlpha=a;ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.globalAlpha=1}
+function frame(){ctx.clearRect(0,0,680,320);ctx.lineCap='round';const ink=getComputedStyle(document.body).color,strong=core.checked;
+ if(strong){const c=[];for(let i=0;i<=40;i++){const a=i/40*Math.PI*2;c.push(P(-150,22*Math.sin(a),22*Math.cos(a)))}poly(c,'#888780',2);const c2=c.map((_,i)=>{const a=i/40*Math.PI*2;return P(150,22*Math.sin(a),22*Math.cos(a))});poly(c2,'#888780',2);poly([P(-150,-22,0),P(150,-22,0)],'#888780',2);poly([P(-150,22,0),P(150,22,0)],'#888780',2)}
+ const nl=strong?7:4;for(let k=0;k<nl;k++){const yy=(k-(nl-1)/2)*(strong?9:14);const pts=[];for(let i=0;i<=80;i++){const x=-170+i*340/80;pts.push(P(x,yy,0))}poly(pts,'#378ADD',1.6);
+  const out=[];const R=60+Math.abs(yy)*3;for(let i=0;i<=60;i++){const a=i/60*Math.PI;out.push(P(170*Math.cos(a)+0,(yy<0?-1:1)*(Math.abs(yy)+R*Math.sin(a)),0))}poly(out,'#85B7EB',1.2,.8);
+  const t=((ph*d)%1+1)%1,x=-160+t*320,a=P(d>0?x:-x,yy,0),b=P(d>0?x+8:-x-8,yy,0);ctx.fillStyle='#185FA5';ctx.beginPath();ctx.arc(b[0],b[1],3.5,0,7);ctx.fill()}
+ const turns=10,coil=[];for(let i=0;i<=turns*40;i++){const a=i/40*Math.PI*2,x=-150+i/(turns*40)*300;coil.push(P(x,40*Math.sin(a),40*Math.cos(a)))}
+ for(let i=1;i<coil.length;i++){ctx.strokeStyle=coil[i][2]>0?'rgba(186,117,23,.45)':'#BA7517';ctx.lineWidth=coil[i][2]>0?2:3.2;ctx.beginPath();ctx.moveTo(coil[i-1][0],coil[i-1][1]);ctx.lineTo(coil[i][0],coil[i][1]);ctx.stroke()}
+ for(let m=0;m<12;m++){const f=(((m/12-ph*2*d)%1)+1)%1,c=coil[Math.floor(f*(coil.length-1))];ctx.fillStyle='#E24B4A';ctx.globalAlpha=c[2]>0?.45:1;ctx.beginPath();ctx.arc(c[0],c[1],4,0,7);ctx.fill();ctx.globalAlpha=1}
+ const L=P(-205,0,0),Rr=P(205,0,0),north=d>0?Rr:L,south=d>0?L:Rr;ctx.font='600 18px "Source Sans 3",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#E24B4A';ctx.fillText('N',north[0],north[1]);ctx.fillStyle='#378ADD';ctx.fillText('S',south[0],south[1]);
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches)ph+=.004;requestAnimationFrame(frame)}
+cv.onpointerdown=e=>{drag=[e.clientX,e.clientY,ang,tilt];cv.setPointerCapture(e.pointerId)};cv.onpointermove=e=>{if(!drag)return;ang=drag[2]+(e.clientX-drag[0])*.01;tilt=Math.max(-1.2,Math.min(1.2,drag[3]+(e.clientY-drag[1])*.01))};cv.onpointerup=()=>drag=null;
+function upd(){note.textContent=(core.checked?'With a soft iron core the solenoid becomes an electromagnet: the field is much stronger. ':'Inside the solenoid the field lines are parallel straight lines, so the field is uniform. ')+'Red dots show the current going round the coil. The ends act like the N and S poles of a bar magnet; reversing the current swaps them.'}
+flip.onclick=()=>d=-d;core.onchange=upd;upd();frame();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

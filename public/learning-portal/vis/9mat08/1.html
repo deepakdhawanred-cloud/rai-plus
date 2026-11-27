@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mid-point theorem: drag the triangle</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 520 320" role="img" style="touch-action:none"><title>Triangle ABC with mid-points E and F</title></svg>
+<p id="cap" style="font-size:14px;margin:6px 0 0">Drag A, B or C.</p>
+<script>
+let P=[[260,40],[80,280],[440,280]],dr=-1;const sv=document.getElementById('s');
+const d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function draw(){const [A,B,C]=P,E=[(A[0]+B[0])/2,(A[1]+B[1])/2],F=[(A[0]+C[0])/2,(A[1]+C[1])/2];
+ let s='<title>Mid-point theorem</title><path d="M'+A+' L'+B+' L'+C+'Z" fill="#f3dfe7" stroke="var(--text-primary)" stroke-width="2"/>';
+ s+='<line x1="'+E[0]+'" y1="'+E[1]+'" x2="'+F[0]+'" y2="'+F[1]+'" stroke="#1f6f8b" stroke-width="3.5"/>';
+ s+='<circle cx="'+E[0]+'" cy="'+E[1]+'" r="5" fill="#7a3b52"/><circle cx="'+F[0]+'" cy="'+F[1]+'" r="5" fill="#7a3b52"/>';
+ ['A','B','C'].forEach((n,i)=>{s+='<circle cx="'+P[i][0]+'" cy="'+P[i][1]+'" r="13" fill="#7a3b52" opacity=".25" data-v="'+i+'" style="cursor:grab"/><text class="th" x="'+(P[i][0]+(i===1?-18:i===2?18:0))+'" y="'+(P[i][1]+(i===0?-14:20))+'" text-anchor="middle" pointer-events="none">'+n+'</text>'});
+ s+='<text class="th" x="'+(E[0]-16)+'" y="'+E[1]+'" text-anchor="end" pointer-events="none">E</text><text class="th" x="'+(F[0]+16)+'" y="'+F[1]+'" pointer-events="none">F</text>';
+ sv.innerHTML=s;const ef=d(E,F),bc=d(B,C);const crossE=(F[0]-E[0])*(C[1]-B[1])-(F[1]-E[1])*(C[0]-B[0]);
+ cap.innerHTML='EF = <b>'+(ef/20).toFixed(2)+'</b> cm, BC = <b>'+(bc/20).toFixed(2)+'</b> cm, EF/BC = <b>'+(ef/bc).toFixed(2)+'</b>. EF ∥ BC: <b>yes</b> — always, for every triangle.'}
+function pt(e){const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(sv.getScreenCTM().inverse());return [Math.max(15,Math.min(505,q.x)),Math.max(25,Math.min(300,q.y))]}
+sv.addEventListener('pointerdown',e=>{if(e.target.dataset.v!==undefined){dr=+e.target.dataset.v;e.preventDefault()}});
+addEventListener('pointermove',e=>{if(dr>=0){P[dr]=pt(e);draw()}});addEventListener('pointerup',()=>dr=-1);draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

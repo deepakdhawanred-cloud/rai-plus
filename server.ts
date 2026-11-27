@@ -7,7 +7,29 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
-import { getDb, getDbRevision, hydrateDbFromSupabase, saveDb } from './server/store.ts';
+import {
+  flushDbSync,
+  getDb,
+  getDbRevision,
+  getSchoolRevision,
+  hydrateDbFromSupabase,
+  saveDb,
+} from './server/store.ts';
+import {
+  SESSION_IDLE_TTL_MS,
+  SESSION_MAX_TTL_MS,
+  clearSessionCookie,
+  corsMiddleware,
+  createSlidingWindowRateLimiter,
+  extractSessionToken,
+  extractTextFromPdfBufferFallback,
+  hashPassword,
+  isDemoLoginEnabled,
+  sanitizeUserForClient,
+  securityHeadersMiddleware,
+  setSessionCookie,
+  verifyPassword,
+} from './server/security.ts';
 import type { DatabaseState } from './server/seedData.ts';
 import productionRegisterRaw from './src/data/productionRegister.json' with { type: 'json' };
 import viratAcademicResourcesRaw from './src/data/viratAcademicResources.json' with { type: 'json' };
@@ -49,6 +71,11 @@ import {
   getOrCreateDefaulterAlertConfig,
   registerDefaulterNotificationRoutes,
 } from './server/defaulterNotificationRoutes.ts';
+import {
+  ensureControlRoomAndCalendarInitialized,
+  registerControlRoomAndCalendarRoutes,
+} from './server/controlRoomAndCalendarRoutes.ts';
+import { registerLearningPortalRoutes } from './server/learningPortalRoutes.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
 import {
@@ -78,6 +105,8 @@ import {
 } from './src/utils/subscriptionEntitlements.ts';
 
 const execFileAsync = promisify(execFile);
+const gzipAsync = promisify(zlib.gzip);
+const brotliAsync = promisify(zlib.brotliCompress);
 const PRODUCTION_REGISTER = productionRegisterRaw as import('./src/types').ProductionRegisterRow[];
 const VIRAT_RESOURCE_PACKS = viratAcademicResourcesRaw as import('./src/types').ViratResourcePack[];
 const VIS_REPORTS_CATALOG = visReportsCatalogRaw as import('./src/types').VisReportCatalogItem[];
@@ -244,8 +273,6 @@ import {
   sortAttendanceNotifications,
 } from './src/utils/attendanceNotificationEngine.ts';
 
-const SESSION_IDLE_TTL_MS = 8 * 60 * 60 * 1000; // 8-hour sliding idle expiry
-const SESSION_MAX_TTL_MS = 24 * 60 * 60 * 1000; // 24-hour absolute session ceiling
 const MAX_DRIVE_PDF_BYTES = 20 * 1024 * 1024; // 20 MB cap for Drive PDF extraction
 
 interface SessionInfo {
@@ -259,45 +286,16 @@ interface SessionInfo {
 
 const sessions = new Map<string, SessionInfo>();
 
-function createSlidingWindowRateLimiter(options: {
-  maxRequests: number;
-  windowMs: number;
-  message: string;
-}) {
-  const buckets = new Map<string, number[]>();
-  return (req: Request, res: Response, next: NextFunction) => {
-    const now = Date.now();
-    const ip =
-      (typeof req.headers['x-forwarded-for'] === 'string'
-        ? req.headers['x-forwarded-for'].split(',')[0]?.trim()
-        : undefined) ||
-      req.ip ||
-      req.socket.remoteAddress ||
-      'unknown';
-    const recent = (buckets.get(ip) || []).filter((ts) => now - ts < options.windowMs);
-    if (recent.length >= options.maxRequests) {
-      const oldest = recent[0] ?? now;
-      const retryAfterSec = Math.max(1, Math.ceil((oldest + options.windowMs - now) / 1000));
-      res.setHeader('Retry-After', String(retryAfterSec));
-      res.status(429).json({
-        error: options.message,
-        retryAfterSeconds: retryAfterSec,
-      });
-      return;
+// Periodically reap expired sessions so long-running processes never accumulate stale entries
+const sessionReaper = setInterval(() => {
+  const now = Date.now();
+  for (const [tok, sess] of sessions) {
+    if (now > sess.expiresAt || now - sess.createdAt > SESSION_MAX_TTL_MS) {
+      sessions.delete(tok);
     }
-    recent.push(now);
-    buckets.set(ip, recent);
-    // Keep in-memory buckets bounded
-    if (buckets.size > 5000) {
-      for (const [key, timestamps] of buckets) {
-        if (timestamps.every((ts) => now - ts >= options.windowMs)) {
-          buckets.delete(key);
-        }
-      }
-    }
-    next();
-  };
-}
+  }
+}, 10 * 60 * 1000);
+sessionReaper.unref?.();
 
 interface AuthedRequest extends Request {
   user?: UserAccount;
@@ -326,7 +324,7 @@ function appendAuditLog(params: {
     detail: params.detail,
   };
   db.auditLogs.unshift(entry);
-  saveDb();
+  saveDb(undefined, { schoolId: params.schoolId });
 }
 
 function syncSchoolFamilyAccounts(db: DatabaseState, schoolId: string) {
@@ -347,10 +345,7 @@ function syncSchoolFamilyAccounts(db: DatabaseState, schoolId: string) {
 }
 
 function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : (req.headers['x-session-token'] as string | undefined);
+  const token = extractSessionToken(req);
 
   if (!token || !sessions.has(token)) {
     res.status(401).json({ error: 'Authentication required. Please sign in.' });
@@ -399,16 +394,8 @@ async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
-  app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), payment=(), usb=()');
-    res.setHeader('X-DNS-Prefetch-Control', 'off');
-    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    }
-    next();
-  });
+  app.use(securityHeadersMiddleware);
+  app.use(corsMiddleware);
   app.use(express.json({ limit: '4mb' }));
 
   const loginRateLimiter = createSlidingWindowRateLimiter({
@@ -421,6 +408,15 @@ async function startServer() {
     windowMs: 5 * 60 * 1000,
     message: 'Too many public form submissions in a short window. Please try again shortly.',
   });
+  const aiAndQuotaRateLimiter = createSlidingWindowRateLimiter({
+    maxRequests: 25,
+    windowMs: 5 * 60 * 1000,
+    message: 'AI/Maps quota rate limit reached for this session. Please retry in a few moments.',
+    keyGenerator: (req) => {
+      const authed = req as AuthedRequest;
+      return authed.user?.id ? `user:${authed.user.id}` : `ip:${req.ip || 'unknown'}`;
+    },
+  });
 
   // Never allow browsers or upstream proxies to cache /api JSON responses (or cold-start HTML)
   app.use('/api', (_req, res, next) => {
@@ -430,20 +426,56 @@ async function startServer() {
     next();
   });
 
+  // Honeypot bot guard + burst rate limiting on public lead forms
   app.post(
     ['/api/public/enquiry', '/api/public/admission-enquiry', '/api/public/career-counselling'],
     publicFormRateLimiter,
+    (req, res, next) => {
+      const body = req.body as { website?: unknown; _hp?: unknown } | undefined;
+      if (
+        (typeof body?.website === 'string' && body.website.trim().length > 0) ||
+        (typeof body?._hp === 'string' && body._hp.trim().length > 0)
+      ) {
+        res.status(202).json({ ok: true, accepted: true });
+        return;
+      }
+      next();
+    },
   );
 
+  // Protect expensive Gemini AI & Google Maps geocoding routes against billing drain
+  app.use('/api', (req, res, next) => {
+    if (
+      req.method === 'POST' &&
+      (req.path.includes('ai-') ||
+        req.path.includes('/ai/') ||
+        req.path.includes('categorize-expenses') ||
+        req.path.includes('extract-document') ||
+        req.path.includes('geocode-address') ||
+        req.path.includes('chapter-visual'))
+    ) {
+      aiAndQuotaRateLimiter(req, res, next);
+      return;
+    }
+    next();
+  });
+
   app.get('/api/health', (_req, res) => {
-    res.json({ ok: true, service: 'rai-plus' });
+    res.json({
+      ok: true,
+      service: 'rai-plus',
+      uptimeSec: Math.round(process.uptime()),
+      demoLoginEnabled: isDemoLoginEnabled(),
+    });
   });
 
   // ---------------- PUBLIC ENDPOINTS ----------------
   app.get('/api/public/overview', (_req, res) => {
     const db = getDb();
+    const demoEnabled = isDemoLoginEnabled();
     res.json({
       schoolsCount: db.schools.length,
+      demoLoginEnabled: demoEnabled,
       schools: db.schools.map((s) => ({
         id: s.id,
         name: s.name,
@@ -452,16 +484,18 @@ async function startServer() {
         state: s.state,
         board: s.board,
       })),
-      demoAccounts: db.users.map((u) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        schoolId: u.schoolId,
-        designation: u.designation,
-        subjectSpecialty: u.subjectSpecialty,
-        classTeacherOf: u.classTeacherOf,
-      })),
+      demoAccounts: demoEnabled
+        ? db.users.map((u) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            schoolId: u.schoolId,
+            designation: u.designation,
+            subjectSpecialty: u.subjectSpecialty,
+            classTeacherOf: u.classTeacherOf,
+          }))
+        : [],
       publishedBlogs: db.blogArticles.filter((b) => b.status === 'Published'),
     });
   });
@@ -734,15 +768,23 @@ async function startServer() {
 
   // ---------------- AUTHENTICATION ----------------
   app.post('/api/auth/login', loginRateLimiter, (req, res) => {
-    const { userId, email, schoolId } = req.body as {
+    const { userId, email, password, schoolId } = req.body as {
       userId?: string;
       email?: string;
+      password?: string;
       schoolId?: string;
     };
     const db = getDb();
+    const demoEnabled = isDemoLoginEnabled();
     let user: UserAccount | undefined;
 
     if (userId) {
+      if (!demoEnabled && !password) {
+        res.status(401).json({
+          error: 'Demo quick-login is disabled in production. Sign in with your institutional email and password.',
+        });
+        return;
+      }
       user = db.users.find((u) => u.id === userId);
     } else if (email) {
       user = db.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
@@ -751,6 +793,22 @@ async function startServer() {
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials or pathway selected.' });
       return;
+    }
+
+    // Enforce password verification whenever a user has set a password OR when demo login is disabled
+    if (user.passwordHash) {
+      if (!password || !verifyPassword(password, user.passwordHash)) {
+        res.status(401).json({ error: 'Invalid email or password.' });
+        return;
+      }
+    } else if (!demoEnabled) {
+      const bootstrapPass = process.env.PROD_BOOTSTRAP_PASSWORD?.trim();
+      if (!bootstrapPass || !password || password !== bootstrapPass) {
+        res.status(401).json({
+          error: 'Password required in production mode. Contact your school administrator to activate your credentials.',
+        });
+        return;
+      }
     }
 
     const token = crypto.randomBytes(24).toString('hex');
@@ -769,6 +827,8 @@ async function startServer() {
       expiresAt: now + SESSION_IDLE_TTL_MS,
     });
 
+    setSessionCookie(res, token, req);
+
     appendAuditLog({
       schoolId: resolvedSchoolId,
       actor: user,
@@ -780,15 +840,71 @@ async function startServer() {
 
     res.json({
       token,
-      user,
+      user: sanitizeUserForClient(user),
       activeSchoolId: resolvedSchoolId,
     });
+  });
+
+  app.get('/api/auth/me', requireAuth, (req: AuthedRequest, res) => {
+    res.json({
+      user: sanitizeUserForClient(req.user!),
+      activeSchoolId: req.activeSchoolId ?? null,
+    });
+  });
+
+  app.post('/api/auth/change-password', requireAuth, (req: AuthedRequest, res) => {
+    const { currentPassword, newPassword } = (req.body || {}) as {
+      currentPassword?: string;
+      newPassword?: string;
+    };
+    if (!newPassword || newPassword.length < 8 || newPassword.length > 128) {
+      res.status(400).json({ error: 'New password must be between 8 and 128 characters.' });
+      return;
+    }
+    const db = getDb();
+    const targetUser = db.users.find((u) => u.id === req.user!.id);
+    if (!targetUser) {
+      res.status(404).json({ error: 'User account not found.' });
+      return;
+    }
+    if (targetUser.passwordHash && (!currentPassword || !verifyPassword(currentPassword, targetUser.passwordHash))) {
+      res.status(401).json({ error: 'Current password is incorrect.' });
+      return;
+    }
+    targetUser.passwordHash = hashPassword(newPassword);
+    appendAuditLog({
+      schoolId: req.activeSchoolId ?? targetUser.schoolId,
+      actor: targetUser,
+      action: 'PASSWORD_UPDATED',
+      entityType: 'UserAccount',
+      entityId: targetUser.id,
+      detail: `${targetUser.name} updated their account password.`,
+    });
+    saveDb(undefined, { schoolId: req.activeSchoolId ?? targetUser.schoolId });
+    res.json({ ok: true });
+  });
+
+  // Protected private campus documents (never exposed under public/)
+  app.get('/api/files/vis-timetable-nov2026', requireAuth, (req: AuthedRequest, res) => {
+    if (req.activeSchoolId !== 'school-vis-jjr' && req.user?.role !== 'super_admin') {
+      res.status(403).json({ error: 'Access restricted to authorized school members.' });
+      return;
+    }
+    const pdfPath = path.resolve(process.cwd(), 'server/private_seeds/vis_timetable_nov2026.pdf');
+    if (!fs.existsSync(pdfPath)) {
+      res.status(404).json({ error: 'Timetable document not found.' });
+      return;
+    }
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="VIS-Timetable-Nov2026.pdf"');
+    res.sendFile(pdfPath);
   });
 
   app.post('/api/auth/logout', requireAuth, (req: AuthedRequest, res) => {
     if (req.sessionToken) {
       sessions.delete(req.sessionToken);
     }
+    clearSessionCookie(res, req);
     if (req.user) {
       appendAuditLog({
         schoolId: req.activeSchoolId ?? req.user.schoolId,
@@ -824,35 +940,67 @@ async function startServer() {
     res.json({ activeSchoolId: schoolId });
   });
 
-  // Revision-stamped, strictly tenant+user scoped workspace response cache (raw + gzip)
-  // Automatically invalidated whenever saveDb() increments dbRevision.
-  const workspaceResponseCache = new Map<
-    string,
-    { revision: number; rawBuffer: Buffer; gzipBuffer: Buffer }
-  >();
+  // Revision-stamped, strictly tenant+user scoped workspace response cache (raw + gzip + brotli)
+  // Automatically invalidated per-school whenever saveDb() increments schoolRevision.
+  // Single-flight deduplication prevents thundering-herd CPU spikes after a mutation.
+  type CachedWorkspaceEntry = {
+    revision: number;
+    rawBuffer: Buffer;
+    gzipBuffer: Buffer;
+    brBuffer: Buffer;
+  };
+  const workspaceResponseCache = new Map<string, CachedWorkspaceEntry>();
+  const workspaceInFlightBuilds = new Map<string, Promise<CachedWorkspaceEntry>>();
+
+  const sendCachedWorkspaceBuffer = (
+    req: Request,
+    res: Response,
+    entry: { rawBuffer: Buffer; gzipBuffer: Buffer; brBuffer: Buffer },
+  ) => {
+    const acceptEncoding = String(req.headers['accept-encoding'] || '');
+    const acceptsBr = /\bbr\b/i.test(acceptEncoding);
+    const acceptsGzip = /\bgzip\b/i.test(acceptEncoding);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Vary', 'Accept-Encoding');
+    // Use res.end() directly on pre-compressed no-store buffers to bypass Express's per-request ETag hashing
+    if (acceptsBr) {
+      res.setHeader('Content-Encoding', 'br');
+      res.setHeader('Content-Length', String(entry.brBuffer.byteLength));
+      res.end(entry.brBuffer);
+    } else if (acceptsGzip) {
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Content-Length', String(entry.gzipBuffer.byteLength));
+      res.end(entry.gzipBuffer);
+    } else {
+      res.setHeader('Content-Length', String(entry.rawBuffer.byteLength));
+      res.end(entry.rawBuffer);
+    }
+  };
 
   // ---------------- WORKSPACE BOOTSTRAP (TENANT ISOLATED) ----------------
-  app.get('/api/workspace', requireAuth, (req: AuthedRequest, res) => {
+  app.get('/api/workspace', requireAuth, async (req: AuthedRequest, res) => {
     const db = getDb();
     const user = req.user!;
     const schoolId = req.activeSchoolId ?? db.schools[0].id;
     const activeSchool = db.schools.find((s) => s.id === schoolId) ?? db.schools[0];
 
-    const acceptsGzip = /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
     const cacheKey = `${schoolId}::${user.id}::${user.role}`;
-    const currentRev = getDbRevision();
+    const currentRev = getSchoolRevision(schoolId);
     const cachedWorkspace = workspaceResponseCache.get(cacheKey);
     if (cachedWorkspace && cachedWorkspace.revision === currentRev) {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.setHeader('Vary', 'Accept-Encoding');
-      if (acceptsGzip) {
-        res.setHeader('Content-Encoding', 'gzip');
-        res.send(cachedWorkspace.gzipBuffer);
-      } else {
-        res.send(cachedWorkspace.rawBuffer);
-      }
+      sendCachedWorkspaceBuffer(req, res, cachedWorkspace);
       return;
     }
+
+    const flightKey = `${cacheKey}::${currentRev}`;
+    const existingFlight = workspaceInFlightBuilds.get(flightKey);
+    if (existingFlight) {
+      const entry = await existingFlight;
+      sendCachedWorkspaceBuffer(req, res, entry);
+      return;
+    }
+
+    const buildPromise = (async (): Promise<CachedWorkspaceEntry> => {
 
     const isParentOrStudent = user.role === 'parent' || user.role === 'student';
     const isCounsellor = user.role === 'counsellor';
@@ -1108,7 +1256,7 @@ async function startServer() {
         : [normalizedActiveSchool];
 
     const workspacePayload = {
-      user,
+      user: sanitizeUserForClient(user),
       activeSchool: normalizedActiveSchool,
       availableSchools: normalizedAvailableSchools,
       planPricingCatalog: db.planPricingCatalog || {},
@@ -1605,23 +1753,55 @@ async function startServer() {
           monthKey: new Date().toISOString().slice(0, 7),
         });
       })(),
+      ...(() => {
+        const crMutated = ensureControlRoomAndCalendarInitialized(db, schoolId);
+        if (crMutated) saveDb(undefined, { schoolId });
+        const cal = db.academicCalendars?.[schoolId];
+        return {
+          controlRoom:
+            isLeadership || user.role === 'teacher'
+              ? {
+                  classrooms: (db.schoolClassrooms || []).filter((r) => r.schoolId === schoolId),
+                  bellSchedule: db.schoolBellSchedules?.[schoolId] || [],
+                  periodCheckIns: (db.periodCheckIns || []).filter((c) => c.schoolId === schoolId),
+                  teacherDuties: (db.teacherDuties || []).filter((d) => d.schoolId === schoolId),
+                }
+              : undefined,
+          academicCalendar: cal
+            ? isLeadership
+              ? cal
+              : { ...cal, pendingDrafts: [] }
+            : undefined,
+        };
+      })(),
     };
 
     const rawBuffer = Buffer.from(JSON.stringify(workspacePayload), 'utf-8');
-    const gzipBuffer = zlib.gzipSync(rawBuffer, { level: 1 });
-    const postRev = getDbRevision();
-    if (workspaceResponseCache.size >= 40) {
+    const [gzipBuffer, brBuffer] = await Promise.all([
+      gzipAsync(rawBuffer, { level: 6 }),
+      brotliAsync(rawBuffer, {
+        params: {
+          [zlib.constants.BROTLI_PARAM_QUALITY]: 5,
+          [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+        },
+      }),
+    ]);
+    const postRev = getSchoolRevision(schoolId);
+    if (workspaceResponseCache.size >= 80) {
       const oldestKey = workspaceResponseCache.keys().next().value;
       if (oldestKey) workspaceResponseCache.delete(oldestKey);
     }
-    workspaceResponseCache.set(cacheKey, { revision: postRev, rawBuffer, gzipBuffer });
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Vary', 'Accept-Encoding');
-    if (acceptsGzip) {
-      res.setHeader('Content-Encoding', 'gzip');
-      res.send(gzipBuffer);
-    } else {
-      res.send(rawBuffer);
+    const cacheEntry: CachedWorkspaceEntry = { revision: postRev, rawBuffer, gzipBuffer, brBuffer };
+    workspaceResponseCache.set(cacheKey, cacheEntry);
+    return cacheEntry;
+    })();
+
+    workspaceInFlightBuilds.set(flightKey, buildPromise);
+    try {
+      const cacheEntry = await buildPromise;
+      sendCachedWorkspaceBuffer(req, res, cacheEntry);
+    } finally {
+      workspaceInFlightBuilds.delete(flightKey);
     }
   });
 
@@ -6151,22 +6331,27 @@ async function startServer() {
           return;
         }
 
-        fs.writeFileSync(pdfPath, pdfBuffer);
-        await execFileAsync(
-          '/usr/bin/gs',
-          [
-            '-q',
-            '-dSAFER',
-            '-dNOPAUSE',
-            '-dBATCH',
-            '-sDEVICE=txtwrite',
-            `-sOutputFile=${txtPath}`,
-            pdfPath,
-          ],
-          { timeout: 20_000, maxBuffer: 4 * 1024 * 1024 },
-        );
-
-        const rawText = fs.readFileSync(txtPath, 'utf8');
+        let rawText = '';
+        if (fs.existsSync('/usr/bin/gs')) {
+          fs.writeFileSync(pdfPath, pdfBuffer);
+          await execFileAsync(
+            '/usr/bin/gs',
+            [
+              '-q',
+              '-dSAFER',
+              '-dNOPAUSE',
+              '-dBATCH',
+              '-sDEVICE=txtwrite',
+              `-sOutputFile=${txtPath}`,
+              pdfPath,
+            ],
+            { timeout: 20_000, maxBuffer: 4 * 1024 * 1024 },
+          );
+          rawText = fs.readFileSync(txtPath, 'utf8');
+        } else {
+          // Cross-platform fallback for Windows or shared hosts without Ghostscript
+          rawText = extractTextFromPdfBufferFallback(pdfBuffer);
+        }
         const profile = parseVisReportText(rawText, {
           fileId,
           extractedAt: new Date().toISOString(),
@@ -8094,6 +8279,8 @@ async function startServer() {
   registerInteractiveLearningRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerCampusAdminRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerDefaulterNotificationRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerControlRoomAndCalendarRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerLearningPortalRoutes(app, { requireAuth, requireRoles, appendAuditLog });
 
   // Ensure unmatched API routes always return JSON instead of falling through to SPA HTML
   app.use('/api', (_req, res) => {
@@ -8127,8 +8314,24 @@ async function startServer() {
         .catch(next);
     });
   } else {
-    app.use(express.static(distDir));
+    app.use(
+      express.static(distDir, {
+        etag: true,
+        maxAge: '1y',
+        immutable: true,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else {
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+          }
+        },
+      }),
+    );
     app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       res.sendFile(path.join(distDir, 'index.html'));
     });
   }
@@ -8157,7 +8360,7 @@ async function startServer() {
     Number(process.env.PORT) ||
     3000;
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Rai Plus server listening on http://0.0.0.0:${PORT}`);
     // Warm persisted database right after port binding so startup probes succeed immediately.
     setImmediate(() => {
@@ -8171,6 +8374,19 @@ async function startServer() {
       }
     });
   });
+
+  const handleShutdown = (signal: string) => {
+    console.log(`Received ${signal}; flushing pending database writes and closing server...`);
+    try {
+      flushDbSync();
+    } catch (err) {
+      console.error('Shutdown DB flush error:', err);
+    }
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref?.();
+  };
+  process.once('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.once('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 startServer().catch((err) => {

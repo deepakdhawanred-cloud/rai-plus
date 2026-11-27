@@ -20,7 +20,7 @@ import { reconcileStudentFamilyAccounts } from '../src/utils/familyAccountEngine
 import { CURATED_ADM_TO_STUDENT_ID } from './visRosterBuilder.ts';
 
 export const VIS_FEE_CSV_RELATIVE_PATH =
-  'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1__efc80f07';
+  'server/private_seeds/vis_fees_2026_27.csv';
 
 export const VIS_FEE_LEDGER_VERSION = 'VIS_FEES_2026_2027_FINAL_EFC80F07';
 

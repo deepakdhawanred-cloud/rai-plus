@@ -31,9 +31,36 @@ type PersistedDatabaseState = DatabaseState & {
 
 let cachedDb: PersistedDatabaseState | null = null;
 let dbRevision = 1;
+const schoolRevisions = new Map<string, number>();
+const MAX_AUDIT_LOGS = 5000;
+
+let pendingDiskWriteTimer: ReturnType<typeof setTimeout> | null = null;
+let diskWriteInFlight = false;
+let diskWriteQueued = false;
 
 export function getDbRevision(): number {
   return dbRevision;
+}
+
+export function getSchoolRevision(schoolId: string | null | undefined): number {
+  if (!schoolId) return dbRevision;
+  return schoolRevisions.get(schoolId) ?? dbRevision;
+}
+
+function bumpRevision(schoolId?: string | null): void {
+  dbRevision += 1;
+  if (schoolId) {
+    schoolRevisions.set(schoolId, dbRevision);
+  } else {
+    for (const key of schoolRevisions.keys()) {
+      schoolRevisions.set(key, dbRevision);
+    }
+    if (cachedDb?.schools) {
+      for (const s of cachedDb.schools) {
+        schoolRevisions.set(s.id, dbRevision);
+      }
+    }
+  }
 }
 
 function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
@@ -754,7 +781,93 @@ export function getDb(): DatabaseState {
   return cachedDb;
 }
 
-export function saveDb(nextDb?: DatabaseState): void {
+async function writeDbAtomicallyAsync(serialized: string, rev: number): Promise<void> {
+  for (const dir of [activeDataDir, FALLBACK_DATA_DIR]) {
+    const targetPath = getDbFilePath(dir);
+    const tmpPath = `${targetPath}.tmp.${process.pid}.${rev}`;
+    try {
+      await fs.promises.mkdir(dir, { recursive: true });
+      await fs.promises.writeFile(tmpPath, serialized, 'utf-8');
+      await fs.promises.rename(tmpPath, targetPath);
+      activeDataDir = dir;
+      return;
+    } catch (err) {
+      try {
+        await fs.promises.rm(tmpPath, { force: true });
+      } catch {
+        // ignore temp cleanup failure
+      }
+      if (dir === FALLBACK_DATA_DIR) {
+        console.warn('Could not persist database to disk; keeping in-memory state:', err);
+      }
+    }
+  }
+}
+
+function writeDbAtomicallySync(serialized: string): void {
+  for (const dir of [activeDataDir, FALLBACK_DATA_DIR]) {
+    const targetPath = getDbFilePath(dir);
+    const tmpPath = `${targetPath}.tmp.${process.pid}.${dbRevision}`;
+    try {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(tmpPath, serialized, 'utf-8');
+      fs.renameSync(tmpPath, targetPath);
+      activeDataDir = dir;
+      return;
+    } catch (err) {
+      try {
+        if (fs.existsSync(tmpPath)) fs.rmSync(tmpPath, { force: true });
+      } catch {
+        // ignore temp cleanup failure
+      }
+      if (dir === FALLBACK_DATA_DIR) {
+        console.warn('Could not persist database to disk; keeping in-memory state:', err);
+      }
+    }
+  }
+}
+
+async function drainAsyncDiskWrite(): Promise<void> {
+  if (diskWriteInFlight || !cachedDb) return;
+  diskWriteInFlight = true;
+  diskWriteQueued = false;
+  try {
+    const rev = dbRevision;
+    const serialized = JSON.stringify(cachedDb);
+    await writeDbAtomicallyAsync(serialized, rev);
+  } finally {
+    diskWriteInFlight = false;
+    if (diskWriteQueued) {
+      void drainAsyncDiskWrite();
+    }
+  }
+}
+
+function scheduleAsyncDiskWrite(): void {
+  diskWriteQueued = true;
+  if (pendingDiskWriteTimer) return;
+  pendingDiskWriteTimer = setTimeout(() => {
+    pendingDiskWriteTimer = null;
+    void drainAsyncDiskWrite();
+  }, 250);
+  pendingDiskWriteTimer.unref?.();
+}
+
+export function flushDbSync(): void {
+  if (pendingDiskWriteTimer) {
+    clearTimeout(pendingDiskWriteTimer);
+    pendingDiskWriteTimer = null;
+  }
+  if (!cachedDb) return;
+  writeDbAtomicallySync(JSON.stringify(cachedDb));
+}
+
+export function saveDb(
+  nextDb?: DatabaseState,
+  options?: { schoolId?: string | null; immediate?: boolean },
+): void {
   if (nextDb) {
     cachedDb = {
       ...nextDb,
@@ -764,26 +877,21 @@ export function saveDb(nextDb?: DatabaseState): void {
     };
   }
   if (!cachedDb) return;
-  dbRevision += 1;
+  if (Array.isArray(cachedDb.auditLogs) && cachedDb.auditLogs.length > MAX_AUDIT_LOGS) {
+    cachedDb.auditLogs.length = MAX_AUDIT_LOGS;
+  }
+  bumpRevision(options?.schoolId ?? null);
   cachedDb._schemaVersion = CURRENT_DB_SCHEMA_VERSION;
   cachedDb._visFeeLedgerVersion = VIS_FEE_LEDGER_VERSION;
   cachedDb._visSalaryExpenseVersion = VIS_SALARY_EXPENSE_VERSION;
-  const serialized = JSON.stringify(cachedDb);
-  for (const dir of [activeDataDir, FALLBACK_DATA_DIR]) {
-    try {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(getDbFilePath(dir), serialized, 'utf-8');
-      activeDataDir = dir;
-      break;
-    } catch (err) {
-      if (dir === FALLBACK_DATA_DIR) {
-        console.warn('Could not persist database to disk; keeping in-memory state:', err);
-      }
-    }
+
+  const dbExistsOnDisk = fs.existsSync(getDbFilePath(activeDataDir));
+  if (options?.immediate || !dbExistsOnDisk) {
+    flushDbSync();
+  } else {
+    scheduleAsyncDiskWrite();
   }
-  // Automatically sync every mutation to Supabase when configured
+  // Automatically sync every mutation to Supabase when configured (coalesced)
   scheduleSupabaseSync(cachedDb, CURRENT_DB_SCHEMA_VERSION, dbRevision);
 }
 

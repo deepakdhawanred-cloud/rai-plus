@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Direction cosines: angles with the three axes</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+:root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button,select{font:inherit;font-size:14px;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;cursor:pointer}
+button:hover{background:var(--bg-neutral)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #378add;outline-offset:2px}
+input[type=range]{accent-color:#3b6d11}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif}
+.t{font-size:14px;fill:var(--text-primary)}.ts{font-size:12px;fill:var(--text-secondary)}.th{font-size:14px;font-weight:600;fill:var(--text-primary)}
+.arr{stroke:var(--text-secondary);stroke-width:1.5;fill:none}.leader{stroke:var(--text-muted);stroke-width:.5;stroke-dasharray:3 3;fill:none}
+.c-amber>rect{fill:light-dark(#FAEEDA,#633806);stroke:light-dark(#854F0B,#FAC775)}.c-amber>text{fill:light-dark(#633806,#FAEEDA)}.c-amber>.ts{fill:light-dark(#854F0B,#FAC775)}
+.c-purple>rect{fill:light-dark(#EEEDFE,#3C3489);stroke:light-dark(#534AB7,#AFA9EC)}.c-purple>text{fill:light-dark(#3C3489,#EEEDFE)}.c-purple>.ts{fill:light-dark(#534AB7,#AFA9EC)}
+.c-teal>rect{fill:light-dark(#E1F5EE,#085041);stroke:light-dark(#0F6E56,#5DCAA5)}.c-teal>text{fill:light-dark(#085041,#E1F5EE)}.c-teal>.ts{fill:light-dark(#0F6E56,#5DCAA5)}
+.c-green>rect{fill:light-dark(#EAF3DE,#27500A);stroke:light-dark(#3B6D11,#97C459)}.c-green>text{fill:light-dark(#27500A,#EAF3DE)}.c-green>.ts{fill:light-dark(#3B6D11,#97C459)}
+.c-coral>rect{fill:light-dark(#FAECE7,#712B13);stroke:light-dark(#993C1D,#F0997B)}.c-coral>text{fill:light-dark(#712B13,#FAECE7)}.c-coral>.ts{fill:light-dark(#993C1D,#F0997B)}
+.c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
+.c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
+.c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+</style>
+<script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
+<svg id="s" width="100%" viewBox="0 0 560 300" role="img"><title>A vector and its angles with the axes</title></svg>
+<div style="display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:14px;color:var(--text-secondary)">
+<label for="a">a</label><input type="range" id="a" min="-6" max="6" value="2"><span id="av"></span>
+<label for="b">b</label><input type="range" id="b" min="-6" max="6" value="3"><span id="bv"></span>
+<label for="c">c</label><input type="range" id="c" min="-6" max="6" value="6"><span id="cv"></span></div>
+<p id="cap" style="font-size:14px;margin:6px 0 0"></p>
+<script>
+const P=(p)=>[200+38*(p[1]-0.55*p[0]),170-38*(p[2]-0.35*p[0])*0.55];
+function draw(){let A=+a.value,B=+b.value,C=+c.value;av.textContent=A;bv.textContent=B;cv.textContent=C;const r=Math.hypot(A,B,C);
+ let s='<title>DC</title>';[[4,0,0,'x'],[0,4,0,'y'],[0,0,4,'z']].forEach(([x,y,z,n])=>{const o=P([0,0,0]),q=P([x,y,z]);s+='<line x1="'+o[0]+'" y1="'+o[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="var(--text-secondary)"/><text class="ts" x="'+(q[0]+6)+'" y="'+q[1]+'">'+n+'</text>'});
+ if(r){const k=3.6/r,e=P([A*k,B*k,C*k]),o=P([0,0,0]);s+='<line x1="'+o[0]+'" y1="'+o[1]+'" x2="'+e[0]+'" y2="'+e[1]+'" stroke="#b3541e" stroke-width="3"/><circle cx="'+e[0]+'" cy="'+e[1]+'" r="5" fill="#b3541e"/>';
+  const l=A/r,m=B/r,n=C/r,ang=x=>(Math.acos(x)*180/Math.PI).toFixed(1);
+  s+='<text class="th" x="400" y="60">DRs: '+A+', '+B+', '+C+'</text><text class="ts" x="400" y="86">|r| = √'+(A*A+B*B+C*C)+' = '+r.toFixed(3)+'</text>';
+  s+='<text class="ts" x="400" y="120">l = '+l.toFixed(3)+'  (α = '+ang(l)+'°)</text><text class="ts" x="400" y="144">m = '+m.toFixed(3)+'  (β = '+ang(m)+'°)</text><text class="ts" x="400" y="168">n = '+n.toFixed(3)+'  (γ = '+ang(n)+'°)</text>';
+  s+='<text class="th" x="400" y="206">l² + m² + n² = '+(l*l+m*m+n*n).toFixed(3)+'</text>';cap.textContent=(A===2&&B===3&&C===6)?'DRs 2, 3, 6: |r| = 7, so DCs are 2/7, 3/7, 6/7.':'Change the direction ratios: the cosines change, but their squares always add to 1.'}
+ else{cap.textContent='a, b, c cannot all be zero.'}
+ document.getElementById('s').innerHTML=s}
+[a,b,c].forEach(e=>e.oninput=draw);draw();
+</script>
+
+<script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
+</body></html>

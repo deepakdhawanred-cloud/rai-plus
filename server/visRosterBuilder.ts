@@ -25,7 +25,7 @@ import {
 
 const VIS_FEE_CSV_PATH = path.resolve(
   process.cwd(),
-  'public/assets/aistudio/VIS_FEES_RECORD_2026-2027_-_Final__1__efc80f07',
+  'server/private_seeds/vis_fees_2026_27.csv',
 );
 
 const VIS_REPORTS_CATALOG = visReportsCatalogRaw as VisReportCatalogItem[];

@@ -1,7 +1,6 @@
 import type { TimetableSlot, UserAccount } from '../types';
 
-export const VIS_TIMETABLE_PDF_PATH =
-  '/assets/aistudio/november-2026-class-individual-2026-11-15-16-51-10_3d425742.pdf';
+export const VIS_TIMETABLE_PDF_PATH = '/api/files/vis-timetable-nov2026';
 
 export const VIS_PERIOD_TIMINGS: Array<{
   period: number;

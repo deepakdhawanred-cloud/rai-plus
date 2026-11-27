@@ -206,6 +206,7 @@ export type WorkspaceTab =
   | 'control_room'
   | 'academic_calendar'
   | 'learning_portal'
+  | 'inventory_assets'
   | 'alerts'
   | 'today_workspace'
   | 'interactive_learning'

@@ -146,6 +146,9 @@ const SmartAcademicCalendarModule = lazy(() =>
 const LearningPortalModule = lazy(() =>
   import('./modules/LearningPortalModule').then((m) => ({ default: m.LearningPortalModule })),
 );
+const InventoryAssetModule = lazy(() =>
+  import('./modules/InventoryAssetModule').then((m) => ({ default: m.InventoryAssetModule })),
+);
 import {
   buildUnifiedWorkspaceAlerts,
   computeAlertCenterCounts,
@@ -250,6 +253,13 @@ const NAV_ITEMS: Array<{
     section: 'Daily Desk',
     icon: BookOpenCheck,
     roles: ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student'],
+  },
+  {
+    id: 'inventory_assets',
+    label: 'Inventory & Assets AI',
+    section: 'School Operations',
+    icon: Briefcase,
+    roles: ['super_admin', 'school_admin', 'principal', 'coordinator', 'accountant', 'teacher', 'transport_incharge'],
   },
   {
     id: 'alerts',
@@ -2083,6 +2093,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               )}
               {activeTab === 'learning_portal' && (
                 <LearningPortalModule data={data} token={token} />
+              )}
+              {activeTab === 'inventory_assets' && (
+                <InventoryAssetModule data={data} token={token} onRefresh={onRefresh} />
               )}
               {activeTab === 'clinical_care' && (
                 <ClinicalCareCenterModule data={data} token={token} onRefresh={onRefresh} />

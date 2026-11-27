@@ -78,6 +78,7 @@ import {
 } from './server/controlRoomAndCalendarRoutes.ts';
 import { evaluatePeriodDrop } from './src/utils/timetableDragDropEngine.ts';
 import { registerLearningPortalRoutes } from './server/learningPortalRoutes.ts';
+import { registerInventoryRoutes } from './server/inventoryRoutes.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
 import {
@@ -8350,6 +8351,7 @@ async function startServer() {
   registerDefaulterNotificationRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerControlRoomAndCalendarRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerLearningPortalRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerInventoryRoutes(app, { requireAuth, requireRoles, appendAuditLog });
 
   // Ensure unmatched API routes always return JSON instead of falling through to SPA HTML
   app.use('/api', (_req, res) => {

@@ -155,6 +155,17 @@ export function buildRoleOptimizedTodos(data: WorkspaceData): RoleTodoItem[] {
       targetTab: 'timetable_leave',
       actionLabel: 'Optimize Timetable',
     });
+
+    items.push({
+      id: 'lead-inventory-ai',
+      title: 'Review AI Inventory, Procurement & Asset Alerts',
+      detail: 'Check low-stock reorders, idle asset transfers, pending PRs & classroom readiness.',
+      priority: 'high',
+      estimatedMinutes: 4,
+      category: 'Inventory & Assets',
+      targetTab: 'inventory_assets',
+      actionLabel: 'Inventory AI',
+    });
   } else if (role === 'coordinator') {
     items.push({
       id: 'coord-control-room',

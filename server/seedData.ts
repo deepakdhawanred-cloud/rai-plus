@@ -246,6 +246,8 @@ export interface DatabaseState {
   academicCalendars?: Record<string, import('../src/types/controlRoomCalendar').AcademicCalendarState>;
   // Rai Plus Learning Portal (Classes 6–12) multi-tenant document store
   learningPortalDocs?: Record<string, Record<string, unknown>>;
+  // Rai Plus AI Inventory, Asset, Procurement & Resource Optimization System
+  inventoryBySchool?: Record<string, import('../src/types/inventory').SchoolInventoryState>;
   // Additive Virat 360° Intelligence Collections
   thinkingQuestionBank: ThinkingQuestionItem[];
   thinkingScoringConfigs: Record<string, ThinkingScoringConfig>;

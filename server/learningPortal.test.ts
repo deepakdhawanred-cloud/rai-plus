@@ -12,13 +12,15 @@ import {
 } from './learningPortalRoutes.ts';
 import type { StudentRecord } from '../src/types';
 
-test('Learning Portal static asset bundle integrity: 99 chapters, 3D viewer, 310 visuals, and RaiPlusBridge', () => {
+test('Learning Portal static asset bundle integrity: 127 chapters, 3D viewer, 394 visuals, ui/fun theme, and RaiPlusBridge', () => {
   const portalDir = path.resolve(process.cwd(), 'public', 'learning-portal');
   assert.ok(fs.existsSync(path.join(portalDir, 'index.html')), 'index.html must exist');
   assert.ok(fs.existsSync(path.join(portalDir, 'engine.js')), 'engine.js must exist');
   assert.ok(fs.existsSync(path.join(portalDir, 'plan.js')), 'plan.js must exist');
   assert.ok(fs.existsSync(path.join(portalDir, 'raiplus-bridge.js')), 'raiplus-bridge.js must exist');
   assert.ok(fs.existsSync(path.join(portalDir, 'lib', 'mol3d.js')), 'lib/mol3d.js must exist');
+  assert.ok(fs.existsSync(path.join(portalDir, 'ui', 'fun.css')), 'ui/fun.css must exist');
+  assert.ok(fs.existsSync(path.join(portalDir, 'ui', 'fun.js')), 'ui/fun.js must exist');
   assert.ok(fs.existsSync(path.join(portalDir, 'vis', 'index.js')), 'vis/index.js must exist');
 
   const html = fs.readFileSync(path.join(portalDir, 'index.html'), 'utf-8');
@@ -26,11 +28,13 @@ test('Learning Portal static asset bundle integrity: 99 chapters, 3D viewer, 310
   const engineIdx = html.indexOf('src="engine.js"');
   assert.ok(bridgeIdx > 0, 'index.html must load raiplus-bridge.js');
   assert.ok(engineIdx > bridgeIdx, 'raiplus-bridge.js must load before engine.js');
+  assert.ok(html.includes('ui/fun.css'), 'index.html must load ui/fun.css');
+  assert.ok(html.includes('ui/fun.js'), 'index.html must load ui/fun.js');
 
   const contentFiles = fs
     .readdirSync(path.join(portalDir, 'content'))
     .filter((f) => f.endsWith('.js'));
-  assert.equal(contentFiles.length, 99, 'All 99 interactive chapter packs must be present');
+  assert.equal(contentFiles.length, 127, 'All 127 interactive chapter packs must be present');
 
   const visDir = path.join(portalDir, 'vis');
   let visualHtmlCount = 0;
@@ -42,7 +46,7 @@ test('Learning Portal static asset bundle integrity: 99 chapters, 3D viewer, 310
       visualHtmlCount += subFiles.length;
     }
   }
-  assert.equal(visualHtmlCount, 310, 'All 310 interactive visual HTML files must be present');
+  assert.equal(visualHtmlCount, 394, 'All 394 interactive visual HTML files must be present');
 });
 
 test('Learning Portal role mapping and path validation enforce strict boundaries', () => {

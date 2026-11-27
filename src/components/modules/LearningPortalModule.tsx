@@ -15,9 +15,14 @@ import type { WorkspaceData } from '../../types/workspace';
 interface LearningPortalModuleProps {
   data: WorkspaceData;
   token: string;
+  embedded?: boolean;
 }
 
-export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({ data, token }) => {
+export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({
+  data,
+  token,
+  embedded = false,
+}) => {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [activeHash, setActiveHash] = useState<string>('#home');
   const [portalReady, setPortalReady] = useState<boolean>(false);
@@ -82,7 +87,7 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({ data
                 Rai Plus Learning Portal · Classes 6–12
               </h2>
               <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-400/15 border border-emerald-300/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
-                99 Chapters · 310 Visuals &amp; 3D Models
+                127 Chapters · 394 Visuals &amp; 3D Models
               </span>
             </div>
             <p className="text-[11px] text-slate-300 truncate">
@@ -197,7 +202,9 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({ data
         className={
           isFullscreen
             ? 'flex-1 w-full bg-[#fbfaf7]'
-            : 'w-full bg-[#fbfaf7] h-[calc(100vh-195px)] min-h-[680px]'
+            : embedded
+              ? 'w-full bg-[#fbfaf7] h-[calc(100vh-260px)] min-h-[700px]'
+              : 'w-full bg-[#fbfaf7] h-[calc(100vh-195px)] min-h-[680px]'
         }
       >
         <iframe

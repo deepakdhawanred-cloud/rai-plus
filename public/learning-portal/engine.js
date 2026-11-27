@@ -213,9 +213,11 @@ function scoreLevel(){const Q=CH.Q,qs=Q.map((q,i)=>({...q,i})).filter(q=>q.lv===
   qs.forEach(q=>{if(q.open){const v=$(`[data-self="${q.i}"]`);tot+=q.m;if(v&&v.value!==''){ans++;got+=Math.min(q.m,Math.max(0,+v.value))}}else{tot++;const g=$(`[data-q="${q.i}"]`);if(g.dataset.done){ans++;if(g.dataset.done==='1')got++}}});
   if(ans===qs.length){const p=Math.round(got/tot*100);prog.quiz[lv]=p;saveProg();$('#score').textContent=`Level ${lv} score: ${got} of ${tot} (${p}%). `+(p<60?'Go back to the concepts you missed and try the Watch or Do version.':'Well done.');$$('#lvBtns button')[lv-1].textContent=`Level ${lv}: ${LVN[lv-1]} (${p}%)`}}
 /* revise */
-function mind(){const br=CH.MIND,ACC=CH.ACC;
-  let s=`<ellipse cx="260" cy="140" rx="86" ry="34" fill="${ACC}"/>`+T(260,146,CH.MIND_CENTER,'fill="#fff" font-weight="700" font-size="17"');
-  br.forEach(([n,x,y])=>{s+=`<line x1="260" y1="140" x2="${x}" y2="${y}" stroke="${ACC}" stroke-width="2"/><rect x="${x-80}" y="${y-18}" width="160" height="36" rx="18" fill="var(--g2)" stroke="${ACC}"/>`+T(x,y+5,n,'font-size="14"')});
+function mind(){const br=CH.MIND,PAL=['#FF6B35','#6366F1','#10B981','#EC4899','#F59E0B','#0EA5E9','#8B5CF6','#14B8A6'];
+  let s=`<defs><radialGradient id="mmC" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`;
+  br.forEach(([n,x,y],k)=>{const c=PAL[k%PAL.length],mx=(260+x)/2,my=(140+y)/2+(y<140?-18:18);s+=`<path d="M260 140 Q${mx} ${my} ${x} ${y}" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" opacity=".55" class="mm-ln" style="--k:${k}"/>`});
+  br.forEach(([n,x,y],k)=>{const c=PAL[k%PAL.length];s+=`<g class="mm-nd" style="--k:${k}"><rect x="${x-88}" y="${y-20}" width="176" height="40" rx="20" style="fill:var(--card)"/><rect x="${x-88}" y="${y-20}" width="176" height="40" rx="20" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="2.5"/>`+T(x,y+5,n,`font-size="13" font-weight="700"`)+`</g>`});
+  s+=`<g class="mm-ct"><ellipse cx="260" cy="146" rx="92" ry="38" fill="#000" opacity=".12"/><ellipse cx="260" cy="140" rx="92" ry="38" style="fill:var(--c)"/><ellipse cx="260" cy="140" rx="92" ry="38" fill="url(#mmC)"/>`+T(260,147,CH.MIND_CENTER,'fill="#fff" font-weight="800" font-size="18"')+`</g>`;
   $('#mind').innerHTML=svg(520,300,s)}
 function dates(){const v=$('#studyDate').value;if(prog.study!==v){prog.study=v;saveProg()}if(!v){$('#dates').innerHTML='<li>Pick the date you first studied this chapter.</li>';return}
   const d0=new Date(v+'T00:00');$('#dates').innerHTML=[1,4,7,15,30].map(n=>{const d=new Date(d0.getTime()+n*DAY);return `<li>Day ${n}: ${d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</li>`}).join('')}

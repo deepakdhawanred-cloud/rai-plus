@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Equal or adding to 180°?</title>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>:root{color-scheme:light dark;--text-primary:light-dark(#1d1d1b,#ecebe6);--text-secondary:light-dark(#5f5e5a,#b4b2a9);--text-muted:light-dark(#888780,#888780);--bg-neutral:light-dark(#f1efe8,#2c2c2a);--border:light-dark(rgba(0,0,0,.1),rgba(255,255,255,.1));--border-strong:light-dark(rgba(0,0,0,.22),rgba(255,255,255,.22));--radius:8px;--t:var(--text-secondary);--text-danger:light-dark(#a32d2d,#f09595)}
 :root[data-mode=light]{color-scheme:light}:root[data-mode=dark]{color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;padding:4px 2px 8px;background:transparent;color:var(--text-primary);font:15px/1.6 "Source Sans 3",system-ui,sans-serif}
@@ -18,6 +18,30 @@ svg text{font-family:"Source Sans 3",system-ui,sans-serif}
 .c-blue>rect{fill:light-dark(#E6F1FB,#0C447C);stroke:light-dark(#185FA5,#85B7EB)}.c-blue>text{fill:light-dark(#0C447C,#E6F1FB)}.c-blue>.ts{fill:light-dark(#185FA5,#85B7EB)}
 .c-gray>rect{fill:light-dark(#F1EFE8,#444441);stroke:light-dark(#5F5E5A,#B4B2A9)}.c-gray>text{fill:light-dark(#444441,#F1EFE8)}.c-gray>.ts{fill:light-dark(#5F5E5A,#B4B2A9)}
 .c-red>rect{fill:light-dark(#FCEBEB,#791F1F);stroke:light-dark(#A32D2D,#F09595)}.c-red>text{fill:light-dark(#791F1F,#FCEBEB)}.c-red>.ts{fill:light-dark(#A32D2D,#F09595)}
+/* ---- Quick Revise look ---- */
+:root{--c:#FF6B35;--card:light-dark(#fff,#1E293B);--sh:0 3px 0 light-dark(#E2E8F0,#0B1220),0 10px 20px -14px rgba(30,41,59,.35)}
+body{font-family:Nunito,system-ui,sans-serif;font-weight:600}
+body>p:first-child,p{line-height:1.5}
+button,select{font-family:"Baloo 2",Nunito,system-ui,sans-serif;font-weight:700;font-size:15px;border:0;border-radius:14px;padding:8px 14px;background:var(--card);box-shadow:var(--sh);transition:transform .1s,box-shadow .1s,background .15s}
+button:hover{background:color-mix(in srgb,var(--c) 10%,var(--card));transform:translateY(-1px)}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 light-dark(#E2E8F0,#0B1220)}
+select{border:2px solid light-dark(#F3E3CF,#334155);box-shadow:none}
+input[type=range]{accent-color:var(--c)}
+#items button{border:2px solid color-mix(in srgb,var(--c) 30%,transparent)}
+#bins>button{border:3px dashed color-mix(in srgb,var(--c) 35%,transparent);border-radius:20px;box-shadow:none;background:color-mix(in srgb,var(--c) 5%,var(--card))}
+#bins>button b{font-family:"Baloo 2",Nunito,sans-serif;font-size:17px;color:color-mix(in srgb,var(--c) 75%,var(--text-primary))}
+#cap{font-family:"Baloo 2",Nunito,sans-serif;font-size:16px!important;border-radius:14px;padding:6px 12px;background:color-mix(in srgb,var(--c) 10%,transparent)}
+#cap:empty{padding:0;background:none}
+#cap.yes{background:light-dark(#DCFCE7,#12301E);color:light-dark(#166534,#86EFAC);animation:qrPop .35s}
+#cap.no{background:light-dark(#FEE2E2,#3A1515);color:light-dark(#991B1B,#FCA5A5);animation:qrShake .4s}
+svg#s{display:block;max-width:680px;margin:0 auto;background:var(--card);border-radius:18px;box-shadow:0 0 0 2px light-dark(#F3E3CF,#334155);background-image:radial-gradient(circle,light-dark(rgba(100,116,139,.12),rgba(148,163,184,.12)) 1px,transparent 1.4px);background-size:18px 18px}
+#pv,#nx{width:40px;padding:8px 0}#pb{background:var(--c);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 62%,#000)}
+svg line,svg path,svg polyline,svg polygon{stroke-linecap:round;stroke-linejoin:round}
+.qr-cf{position:fixed;width:9px;height:12px;border-radius:2px;pointer-events:none;z-index:9}
+@keyframes qrPop{from{transform:scale(.9)}60%{transform:scale(1.04)}}
+@keyframes qrShake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+svg#s+div{justify-content:center;flex-wrap:wrap}
 </style>
 <script>try{const m=new URLSearchParams(location.search).get('t');if(m)document.documentElement.dataset.mode=m}catch(e){}</script></head><body>
 <p style="font-size:14px;margin:0 0 8px">Lines are parallel. Tap a pair, then decide.</p>
@@ -33,5 +57,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
  if(b.dataset.b&&sel!==null){const x=IT[sel];if(x[1]===b.dataset.b){done[sel]=x[1];score++;cap.textContent='Yes! '+x[0]+': '+x[2]+(score===IT.length?' All sorted — well done!':'')}else{cap.textContent='Not quite. Think again about '+x[0]+'.'}sel=null;render()}});
 render();
 </script>
+<script>(function(){try{const c=parent.getComputedStyle(parent.document.documentElement).getPropertyValue('--c').trim();if(c)document.documentElement.style.setProperty('--c',c)}catch(e){}
+const cap=document.getElementById('cap');if(cap){const cols=['#FF6B35','#FACC15','#16A34A','#6366F1','#EC4899'];let last='';new MutationObserver(()=>{const t=cap.textContent;if(t===last)return;last=t;cap.classList.toggle('yes',/^(Yes|Correct|Right)/i.test(t));cap.classList.toggle('no',/^(Not quite|Try again|No)/i.test(t));
+if(/well done|all sorted|all matched|all correct/i.test(t)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){for(let i=0;i<36;i++){const d=document.createElement('i');d.className='qr-cf';d.style.background=cols[i%5];d.style.left=innerWidth/2+'px';d.style.top='40%';document.body.appendChild(d);const a=Math.random()*6.28,v=80+Math.random()*180;d.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*v}px,${Math.sin(a)*v+260}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1200+Math.random()*600}).onfinish=()=>d.remove()}}}).observe(cap,{childList:true,characterData:true,subtree:true})}})();</script>
 <script>(function(){function h(){try{parent.postMessage({rpVis:location.pathname,h:document.documentElement.scrollHeight},'*')}catch(e){}}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h()})();</script>
 </body></html>

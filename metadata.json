@@ -1,6 +1,6 @@
 {
   "name": "Rai Plus — Education Intelligence Platform",
-  "description": "AI-enabled multi-tenant School ERP with School Control Room live operations timeline, Smart Academic Calendar, Classes 6–12 Interactive Learning Portal (99 chapters & 310 visuals/3D models), 15 OLQ Assessment, Learners Score, Finance, Transport & Career Intelligence.",
+  "description": "AI-enabled multi-tenant School ERP with School Control Room live operations timeline, Smart Academic Calendar, Classes 6–12 Interactive Learning Portal (127 chapters & 394 visuals/3D models), 15 OLQ Assessment, Learners Score, Finance, Transport & Career Intelligence.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Gamepad2, Plus, Sparkles } from 'lucide-react';
+import { BookOpenCheck, CheckCircle2, Gamepad2, Plus, Sparkles } from 'lucide-react';
 import type { ResourceCategory } from '../../types';
 import type { WorkspaceData } from '../../types/workspace';
 import { apiRequest } from '../../utils/api';
@@ -13,12 +13,13 @@ import {
   ViratDriveRepositoryView,
 } from '../ViratDriveCurriculumViews';
 import { InteractiveLearningModule } from '../interactiveLearning/InteractiveLearningModule';
+import { LearningPortalModule } from './LearningPortalModule';
 
 interface AcademicsModuleProps {
   data: WorkspaceData;
   token: string;
   onRefresh: () => Promise<void>;
-  initialSubTab?: 'study_game' | 'interactive_lab' | 'hub' | 'presentations';
+  initialSubTab?: 'learning_portal' | 'study_game' | 'interactive_lab' | 'hub' | 'presentations';
   initialSubTabNonce?: number;
   interactiveLabEnabled?: boolean;
   onOpenOneGoAttendance?: () => void;
@@ -33,6 +34,7 @@ const RESOURCE_CATEGORIES: ResourceCategory[] = [
 ];
 
 type AcademicsTab =
+  | 'learning_portal'
   | 'study_game'
   | 'interactive_lab'
   | 'hub'
@@ -59,7 +61,7 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
   const redesignedDeckCount = (data.redesignedDecks || []).length;
 
   const [viewTab, setViewTab] = useState<AcademicsTab>(
-    initialSubTabNonce > 0 && initialSubTab ? initialSubTab : 'study_game',
+    initialSubTabNonce > 0 && initialSubTab ? initialSubTab : 'learning_portal',
   );
 
   useEffect(() => {
@@ -238,10 +240,10 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
           <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm text-slate-600">
               {isParentOrStudent
-                ? `All class work in one place — Nursery–Class 12 Quick Revise games, Interactive Learning Lab, ${data.activeSchool.board} notes, timetable, and progress.`
+                ? `All class work in one place — Classes 6–12 Interactive Learning Portal (127 chapters & 394 visuals/3D models), Quick Revise games, Interactive Learning Lab, ${data.activeSchool.board} notes, timetable, and progress.`
                 : data.user.role === 'teacher'
-                  ? `All class teaching & revision tools in one place — Quick Revise games, Interactive Learning Lab, class resources, presentations, and lesson plans (${data.user.subjectSpecialty || data.user.designation}).`
-                  : `${data.activeSchool.board} unified Class Learning Hub — Nursery–Class 12 Quick Revise games, Interactive Learning Lab, class resources, and curriculum governance.`}
+                  ? `All class teaching & revision tools in one place — 127-Chapter Learning Portal & Syllabus Monitor, Quick Revise games, Interactive Learning Lab, class resources, presentations, and lesson plans (${data.user.subjectSpecialty || data.user.designation}).`
+                  : `${data.activeSchool.board} unified Class Learning Hub — 127-Chapter Interactive Learning Portal (394 visuals & 3D models), Syllabus Monitor, Quick Revise games, Interactive Learning Lab, class resources, and curriculum governance.`}
             </p>
             {data.user.role === 'teacher' && onOpenOneGoAttendance && (
               <button
@@ -256,6 +258,19 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[#E5D7C3] bg-[#F3E6D8]/75 p-1">
+          <button
+            type="button"
+            onClick={() => setViewTab('learning_portal')}
+            data-testid="academics-tab-learning-portal"
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
+              effectiveTab === 'learning_portal'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'text-[#142B46] hover:bg-white/80'
+            }`}
+          >
+            <BookOpenCheck className="h-3.5 w-3.5 text-amber-300" />
+            Learning Portal (127 Chapters)
+          </button>
           <button
             type="button"
             onClick={() => setViewTab('study_game')}
@@ -373,7 +388,9 @@ export const AcademicsModule: React.FC<AcademicsModuleProps> = ({
         </div>
       </div>
 
-      {effectiveTab === 'study_game' ? (
+      {effectiveTab === 'learning_portal' ? (
+        <LearningPortalModule data={data} token={token} embedded />
+      ) : effectiveTab === 'study_game' ? (
         <ChapterStudyGameWorkspace
           board={data.activeSchool.board}
           userId={data.user.id}

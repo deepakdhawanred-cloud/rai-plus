@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronRight,
   GraduationCap,
+  GripVertical,
   Lock,
   MinusCircle,
   MousePointer2,
@@ -29,6 +30,7 @@ import {
   type TimetableStaffMember,
   type UnscheduledLessonItem,
 } from '../../utils/smartTimetableMasterEngine';
+import { evaluatePeriodDrop } from '../../utils/timetableDragDropEngine';
 
 interface TimetableGridEditorViewProps {
   planName: string;
@@ -83,6 +85,8 @@ export const TimetableGridEditorView: React.FC<TimetableGridEditorViewProps> = (
   const [activeTool, setActiveTool] = useState<TimetableGridTool>('select');
   const [entitySearch, setEntitySearch] = useState('');
   const [selectedUnscheduledId, setSelectedUnscheduledId] = useState<string | null>(null);
+  const [draggingSlotId, setDraggingSlotId] = useState<string | null>(null);
+  const [hoverDropKey, setHoverDropKey] = useState<string | null>(null);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
   const [clashWarning, setClashWarning] = useState<string | null>(null);
   const [lastDiagnostics, setLastDiagnostics] = useState<string[]>([]);
@@ -159,6 +163,33 @@ export const TimetableGridEditorView: React.FC<TimetableGridEditorViewProps> = (
       if (perspective === 'teacher') return s.teacherName === effectiveEntity;
       return (s.room || `Room ${s.classSection}`) === effectiveEntity;
     });
+  }
+
+  function handlePeriodDrop(
+    sourceId: string,
+    targetDay: string,
+    targetPeriod: number,
+    targetSlotId?: string | null,
+  ) {
+    setClashWarning(null);
+    const res = evaluatePeriodDrop({
+      slots,
+      sourceSlotId: sourceId,
+      targetDay,
+      targetPeriod,
+      targetSlotId: targetSlotId || null,
+      lockedSlotIds,
+    });
+    setDraggingSlotId(null);
+    setHoverDropKey(null);
+    if (!res.allowed) {
+      setClashWarning(res.conflicts[0] || res.summary);
+      return;
+    }
+    onUpdateSlots(res.nextSlots);
+    setStatusNotice(
+      res.warnings.length > 0 ? `${res.summary} (${res.warnings[0]})` : res.summary,
+    );
   }
 
   function handleSlotClick(slot: TimetableSlot) {
@@ -684,23 +715,84 @@ export const TimetableGridEditorView: React.FC<TimetableGridEditorViewProps> = (
                         const slot = findSlotForCell(day, periodNum);
                         const isPinned = slot ? pinnedSlotIds.includes(slot.id) : false;
                         const isLocked = slot ? lockedSlotIds.includes(slot.id) : false;
+                        const cellDropKey = `${day}-${periodNum}`;
+                        const isSourceCell = Boolean(draggingSlotId && slot?.id === draggingSlotId);
+                        const dropEval =
+                          draggingSlotId && !isSourceCell
+                            ? evaluatePeriodDrop({
+                                slots,
+                                sourceSlotId: draggingSlotId,
+                                targetDay: day,
+                                targetPeriod: periodNum,
+                                targetSlotId: slot?.id || null,
+                                lockedSlotIds,
+                              })
+                            : null;
+                        const isHovering = hoverDropKey === cellDropKey;
+                        const tdHighlight = dropEval
+                          ? dropEval.allowed
+                            ? isHovering
+                              ? 'bg-emerald-100/90 ring-2 ring-inset ring-emerald-500'
+                              : 'bg-emerald-50/50'
+                            : isHovering
+                              ? 'bg-rose-100/90 ring-2 ring-inset ring-rose-500'
+                              : 'bg-rose-50/40'
+                          : '';
 
                         return (
                           <td
                             key={`${day}-${col.id}`}
-                            className="border-l border-slate-200 p-1 align-top h-16"
+                            onDragOver={(e) => {
+                              if (!draggingSlotId || isSourceCell) return;
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = dropEval?.allowed ? 'move' : 'none';
+                              if (hoverDropKey !== cellDropKey) setHoverDropKey(cellDropKey);
+                            }}
+                            onDragLeave={() => {
+                              if (hoverDropKey === cellDropKey) setHoverDropKey(null);
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const srcId = e.dataTransfer.getData('text/plain') || draggingSlotId;
+                              if (!srcId || isSourceCell) return;
+                              handlePeriodDrop(srcId, day, periodNum, slot?.id || null);
+                            }}
+                            title={
+                              dropEval
+                                ? dropEval.allowed
+                                  ? slot
+                                    ? `Drop to swap with ${slot.subject}`
+                                    : `Drop to move to ${day} P${periodNum}`
+                                  : dropEval.conflicts[0]
+                                : undefined
+                            }
+                            className={`border-l border-slate-200 p-1 align-top h-16 transition-colors ${tdHighlight}`}
                           >
                             {slot ? (
                               <button
                                 type="button"
+                                draggable={!isLocked}
+                                onDragStart={(e) => {
+                                  if (isLocked) return;
+                                  e.dataTransfer.setData('text/plain', slot.id);
+                                  e.dataTransfer.effectAllowed = 'move';
+                                  setDraggingSlotId(slot.id);
+                                }}
+                                onDragEnd={() => {
+                                  setDraggingSlotId(null);
+                                  setHoverDropKey(null);
+                                }}
                                 onClick={() => handleSlotClick(slot)}
-                                className={`w-full h-full rounded-md px-2 py-1.5 text-left transition-opacity hover:opacity-90 flex flex-col justify-between ${subjectColorClass(slot.subject)}`}
+                                className={`w-full h-full rounded-md px-2 py-1.5 text-left transition-opacity hover:opacity-90 flex flex-col justify-between ${subjectColorClass(slot.subject)} ${
+                                  !isLocked ? 'cursor-grab active:cursor-grabbing' : ''
+                                } ${isSourceCell ? 'opacity-50 ring-2 ring-indigo-300' : ''}`}
                               >
                                 <div className="flex items-start justify-between gap-1">
                                   <span className="font-bold text-[11px] leading-tight line-clamp-1">
                                     {slot.subject}
                                   </span>
                                   <span className="flex items-center gap-0.5 shrink-0">
+                                    {!isLocked && <GripVertical className="h-2.5 w-2.5 opacity-75" />}
                                     {isPinned && <Pin className="h-2.5 w-2.5" />}
                                     {isLocked && <Lock className="h-2.5 w-2.5" />}
                                   </span>
@@ -716,12 +808,18 @@ export const TimetableGridEditorView: React.FC<TimetableGridEditorViewProps> = (
                                 type="button"
                                 onClick={() => handleEmptyCellClick(day, periodNum)}
                                 className={`w-full h-full rounded-md border border-dashed text-[10px] flex items-center justify-center transition-colors ${
-                                  selectedUnscheduledId
-                                    ? 'border-indigo-400 bg-indigo-50/60 text-indigo-700 font-semibold hover:bg-indigo-100'
-                                    : 'border-slate-200 bg-slate-50/40 text-slate-400 hover:bg-slate-100'
+                                  dropEval?.allowed
+                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold'
+                                    : selectedUnscheduledId
+                                      ? 'border-indigo-400 bg-indigo-50/60 text-indigo-700 font-semibold hover:bg-indigo-100'
+                                      : 'border-slate-200 bg-slate-50/40 text-slate-400 hover:bg-slate-100'
                                 }`}
                               >
-                                {selectedUnscheduledId ? 'Place Here' : `P${periodNum}`}
+                                {dropEval?.allowed
+                                  ? 'Drop Here'
+                                  : selectedUnscheduledId
+                                    ? 'Place Here'
+                                    : `P${periodNum}`}
                               </button>
                             )}
                           </td>

@@ -72,9 +72,11 @@ import {
   registerDefaulterNotificationRoutes,
 } from './server/defaulterNotificationRoutes.ts';
 import {
+  broadcastControlRoomEvent,
   ensureControlRoomAndCalendarInitialized,
   registerControlRoomAndCalendarRoutes,
 } from './server/controlRoomAndCalendarRoutes.ts';
+import { evaluatePeriodDrop } from './src/utils/timetableDragDropEngine.ts';
 import { registerLearningPortalRoutes } from './server/learningPortalRoutes.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
@@ -4672,6 +4674,73 @@ async function startServer() {
 
       saveDb();
       res.json({ slot });
+    },
+  );
+
+  // ---------------- TIMETABLE DRAG & DROP MOVE / SWAP ----------------
+  app.post(
+    '/api/timetable/move-or-swap',
+    requireAuth,
+    requireRoles(['super_admin', 'school_admin', 'principal', 'coordinator']),
+    (req: AuthedRequest, res) => {
+      const { sourceSlotId, targetDay, targetPeriod, targetSlotId } = (req.body || {}) as {
+        sourceSlotId?: string;
+        targetDay?: string;
+        targetPeriod?: number;
+        targetSlotId?: string | null;
+      };
+      if (!sourceSlotId?.trim() || !targetDay?.trim() || typeof targetPeriod !== 'number') {
+        res.status(400).json({ error: 'sourceSlotId, targetDay, and numeric targetPeriod are required.' });
+        return;
+      }
+
+      const db = getDb();
+      const schoolId = req.activeSchoolId!;
+      const schoolSlots = db.timetable.filter((t) => t.schoolId === schoolId);
+      const otherSlots = db.timetable.filter((t) => t.schoolId !== schoolId);
+
+      const evaluation = evaluatePeriodDrop({
+        slots: schoolSlots,
+        sourceSlotId: sourceSlotId.trim(),
+        targetDay: targetDay.trim(),
+        targetPeriod: Math.round(targetPeriod),
+        targetSlotId: targetSlotId ? targetSlotId.trim() : null,
+      });
+
+      if (!evaluation.allowed) {
+        res.status(409).json({
+          error: evaluation.conflicts[0] || evaluation.summary || 'Unable to move period due to a conflict.',
+          conflicts: evaluation.conflicts,
+          warnings: evaluation.warnings,
+        });
+        return;
+      }
+
+      db.timetable = [...otherSlots, ...evaluation.nextSlots];
+
+      appendAuditLog({
+        schoolId,
+        actor: req.user!,
+        action: evaluation.action === 'swap' ? 'SWAPPED_TIMETABLE_PERIODS' : 'MOVED_TIMETABLE_PERIOD',
+        entityType: 'TimetableSlot',
+        entityId: sourceSlotId.trim(),
+        detail: evaluation.summary,
+      });
+
+      saveDb(undefined, { schoolId });
+      broadcastControlRoomEvent(schoolId, 'timetable_updated', {
+        action: evaluation.action,
+        summary: evaluation.summary,
+      });
+
+      res.json({
+        ok: true,
+        action: evaluation.action,
+        summary: evaluation.summary,
+        warnings: evaluation.warnings,
+        sourceBefore: evaluation.sourceBefore,
+        targetBefore: evaluation.targetBefore,
+      });
     },
   );
 

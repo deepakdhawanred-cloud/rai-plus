@@ -36,6 +36,15 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({
     role === 'principal' ||
     role === 'coordinator';
   const isStaff = isAdmin || role === 'teacher';
+  const isParent = role === 'parent';
+  const linkedStudent = !isStaff ? (data.students || [])[0] : null;
+  const restrictionBadge = isAdmin
+    ? 'Admin · Full Classes 6–12'
+    : role === 'teacher'
+      ? `Teacher · Restricted (No School Setup)${data.user.subjectSpecialty ? ` · ${data.user.subjectSpecialty}` : ''}`
+      : isParent
+        ? `Parent · Read-Only${linkedStudent ? ` (${linkedStudent.name.split(' ')[0]} · Class ${linkedStudent.classSection})` : ''}`
+        : `Student · Locked${linkedStudent ? ` to Class ${linkedStudent.classSection}` : ''}`;
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -89,6 +98,12 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({
               <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-400/15 border border-emerald-300/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
                 127 Chapters · 394 Visuals &amp; 3D Models
               </span>
+              <span
+                data-testid="learning-portal-restriction-badge"
+                className="inline-flex items-center rounded-full bg-amber-400/20 border border-amber-300/35 px-2 py-0.5 text-[10px] font-bold text-amber-100"
+              >
+                {restrictionBadge}
+              </span>
             </div>
             <p className="text-[11px] text-slate-300 truncate">
               {data.activeSchool.name} · {data.activeSchool.board} {data.activeSchool.session} ·{' '}
@@ -137,7 +152,7 @@ export const LearningPortalModule: React.FC<LearningPortalModuleProps> = ({
               }`}
             >
               <UserCheck className="h-3.5 w-3.5" />
-              My Progress
+              {isParent ? 'Child’s Progress' : 'My Progress'}
             </button>
           )}
 

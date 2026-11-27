@@ -59,6 +59,7 @@ import { AccountsDailyClosingStrip } from '../AccountsDailyClosingStrip';
 import { LeadershipDecisionInbox } from '../LeadershipDecisionInbox';
 import { AdminAnalyticsVisualizer } from '../AdminAnalyticsVisualizer';
 import { TeacherProductivityHeatmapWidget } from '../TeacherProductivityHeatmapWidget';
+import { RoleTodoOptimizerPanel } from '../RoleTodoOptimizerPanel';
 import {
   rankSchoolFeeDefaulters,
   resolveCurrentAcademicFeeMonth,
@@ -290,15 +291,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   // Easy-to-understand plain-language Family Portal for Parents (supports 1 child or multiple children)
   if (isParent) {
     return (
-      <ParentEasyPortalOverview
-        data={data}
-        parentLang={parentLang}
-        onChangeLang={handleParentLangChange}
-        onNavigateModule={(mod) => onNavigate(mod as WorkspaceTab)}
-        onAcknowledgeNotification={handleAcknowledgeAttendanceNotification}
-        acknowledgingId={ackBusyId}
-        onOpenStudent={onOpenStudent}
-      />
+      <div className="space-y-6">
+        <RoleTodoOptimizerPanel data={data} onNavigate={onNavigate} compact />
+        <ParentEasyPortalOverview
+          data={data}
+          parentLang={parentLang}
+          onChangeLang={handleParentLangChange}
+          onNavigateModule={(mod) => onNavigate(mod as WorkspaceTab)}
+          onAcknowledgeNotification={handleAcknowledgeAttendanceNotification}
+          acknowledgingId={ackBusyId}
+          onOpenStudent={onOpenStudent}
+        />
+      </div>
     );
   }
 
@@ -460,6 +464,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           )}
         </div>
       </div>
+
+      {/* Role-Optimized Daily To-Do List */}
+      <RoleTodoOptimizerPanel data={data} onNavigate={onNavigate} />
 
       {publishedHomeworkBanner && (
         <div

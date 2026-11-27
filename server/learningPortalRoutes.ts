@@ -1,7 +1,8 @@
 import type { Express, NextFunction, Request, Response } from 'express';
-import type { StudentRecord, UserAccount, UserRole } from '../src/types';
+import type { StudentRecord, TimetableSlot, UserAccount, UserRole } from '../src/types';
 import type { DatabaseState } from './seedData.ts';
 import { getDb, saveDb } from './store.ts';
+import { teacherMatchesSlot } from '../src/utils/academicOperationsEngine.ts';
 
 interface AuthedRequest extends Request {
   user?: UserAccount;
@@ -24,6 +25,26 @@ interface RouteDeps {
 }
 
 export type LearningPortalRole = 'admin' | 'teacher' | 'student';
+
+export interface LearningPortalRestrictions {
+  raiRole: UserRole;
+  portalRole: LearningPortalRole;
+  displayRoleLabel: string;
+  allowedClasses: string[];
+  lockedClass: string | null;
+  lockedSection: string | null;
+  allowedSubjects: string[] | null;
+  readOnly: boolean;
+  canSwitchViewAs: boolean;
+  allowedPreviewRoles: LearningPortalRole[];
+  canAccessMonitor: boolean;
+  canAccessSetup: boolean;
+  canEditCoverage: boolean;
+  canEditLessonFormats: boolean;
+  profileLockedByErp: boolean;
+  defaultHash: string;
+  childName?: string;
+}
 
 const PORTAL_CLASSES = ['6', '7', '8', '9', '10', '11', '12'] as const;
 const MAX_DOC_BYTES = 256 * 1024;
@@ -87,6 +108,140 @@ export function deriveDefaultSectionsForSchool(
   return out;
 }
 
+/**
+ * Computes strict automatic role-based viewing & restriction policies for the Learning Portal.
+ */
+export function computeLearningPortalRestrictions(params: {
+  user: UserAccount;
+  linkedStudent?: StudentRecord;
+  schoolTimetable?: TimetableSlot[];
+}): LearningPortalRestrictions {
+  const { user, linkedStudent, schoolTimetable = [] } = params;
+  const portalRole = mapRaiRoleToPortalRole(user.role);
+
+  if (portalRole === 'admin') {
+    const label =
+      user.role === 'principal'
+        ? 'Principal (Admin)'
+        : user.role === 'coordinator'
+          ? 'Coordinator (Admin)'
+          : 'School Admin';
+    return {
+      raiRole: user.role,
+      portalRole: 'admin',
+      displayRoleLabel: label,
+      allowedClasses: [...PORTAL_CLASSES],
+      lockedClass: null,
+      lockedSection: null,
+      allowedSubjects: null,
+      readOnly: false,
+      canSwitchViewAs: true,
+      allowedPreviewRoles: ['admin', 'teacher', 'student'],
+      canAccessMonitor: true,
+      canAccessSetup: true,
+      canEditCoverage: true,
+      canEditLessonFormats: true,
+      profileLockedByErp: false,
+      defaultHash: '#home',
+    };
+  }
+
+  if (portalRole === 'teacher') {
+    const assignedSlots = schoolTimetable.filter((s) =>
+      teacherMatchesSlot(s.teacherName, user.name),
+    );
+    const assignedClsSet = new Set<string>();
+    const assignedSubSet = new Set<string>();
+
+    if (user.classTeacherOf) {
+      const parsed = parseClassSection(user.classTeacherOf);
+      if ((PORTAL_CLASSES as readonly string[]).includes(parsed.cls)) {
+        assignedClsSet.add(parsed.cls);
+      }
+    }
+    for (const s of assignedSlots) {
+      const parsed = parseClassSection(s.classSection);
+      if ((PORTAL_CLASSES as readonly string[]).includes(parsed.cls)) {
+        assignedClsSet.add(parsed.cls);
+      }
+      if (s.subject?.trim()) assignedSubSet.add(s.subject.trim());
+    }
+
+    const allowedClasses =
+      assignedClsSet.size > 0
+        ? PORTAL_CLASSES.filter((c) => assignedClsSet.has(c))
+        : [...PORTAL_CLASSES];
+    const allowedSubjects = assignedSubSet.size > 0 ? Array.from(assignedSubSet).sort() : null;
+
+    return {
+      raiRole: user.role,
+      portalRole: 'teacher',
+      displayRoleLabel: user.subjectSpecialty
+        ? `Teacher · ${user.subjectSpecialty}`
+        : 'Teacher',
+      allowedClasses,
+      lockedClass: null,
+      lockedSection: null,
+      allowedSubjects,
+      readOnly: false,
+      canSwitchViewAs: true,
+      allowedPreviewRoles: ['teacher', 'student'],
+      canAccessMonitor: true,
+      canAccessSetup: false,
+      canEditCoverage: true,
+      canEditLessonFormats: true,
+      profileLockedByErp: false,
+      defaultHash: '#home',
+    };
+  }
+
+  // Student or Parent (strictly locked to enrolled/child class & section)
+  const parsed = parseClassSection(linkedStudent?.classSection || user.classTeacherOf);
+  const isParent = user.role === 'parent';
+
+  if (isParent) {
+    const childFirst = linkedStudent?.name ? linkedStudent.name.split(' ')[0] : 'Child';
+    return {
+      raiRole: user.role,
+      portalRole: 'student',
+      displayRoleLabel: `Parent (Read-Only) · ${childFirst} · Class ${parsed.cls}-${parsed.section}`,
+      allowedClasses: [parsed.cls],
+      lockedClass: parsed.cls,
+      lockedSection: parsed.section,
+      allowedSubjects: null,
+      readOnly: true,
+      canSwitchViewAs: false,
+      allowedPreviewRoles: [],
+      canAccessMonitor: false,
+      canAccessSetup: false,
+      canEditCoverage: false,
+      canEditLessonFormats: false,
+      profileLockedByErp: true,
+      defaultHash: '#me',
+      childName: linkedStudent?.name,
+    };
+  }
+
+  return {
+    raiRole: user.role,
+    portalRole: 'student',
+    displayRoleLabel: `Student · Class ${parsed.cls}-${parsed.section}`,
+    allowedClasses: [parsed.cls],
+    lockedClass: parsed.cls,
+    lockedSection: parsed.section,
+    allowedSubjects: null,
+    readOnly: false,
+    canSwitchViewAs: false,
+    allowedPreviewRoles: [],
+    canAccessMonitor: false,
+    canAccessSetup: false,
+    canEditCoverage: false,
+    canEditLessonFormats: false,
+    profileLockedByErp: true,
+    defaultHash: '#home',
+  };
+}
+
 export function canReadLearningPortalDoc(
   user: Pick<UserAccount, 'id' | 'role'>,
   docPath: string,
@@ -109,6 +264,8 @@ export function canWriteLearningPortalDoc(
   docPath: string,
 ): boolean {
   if (!isValidLearningPortalDocPath(docPath)) return false;
+  // Parents have strict read-only visibility into their child's portal
+  if (user.role === 'parent') return false;
   const portalRole = mapRaiRoleToPortalRole(user.role);
   if (docPath === 'config/school') {
     return portalRole === 'admin';
@@ -154,30 +311,53 @@ function findLinkedStudentForUser(
   return undefined;
 }
 
+function findLinkedStudentUserIdForParent(
+  db: DatabaseState,
+  schoolId: string,
+  linkedStudent?: StudentRecord,
+): string | null {
+  if (!linkedStudent) return null;
+  const stuUser = db.users.find(
+    (u) =>
+      u.schoolId === schoolId &&
+      u.role === 'student' &&
+      (u.linkedStudentIds?.includes(linkedStudent.id) ||
+        u.name.trim().toLowerCase() === linkedStudent.name.trim().toLowerCase()),
+  );
+  return stuUser?.id || null;
+}
+
 export function registerLearningPortalRoutes(app: Express, deps: RouteDeps): void {
   const { requireAuth, appendAuditLog } = deps;
 
-  // Authenticated portal identity + active school metadata
+  // Authenticated portal identity + active school metadata + automatic role restrictions
   app.get('/api/learning-portal/me', requireAuth, (req: AuthedRequest, res: Response) => {
     const db = getDb();
     const user = req.user!;
     const schoolId = req.activeSchoolId || user.schoolId || db.schools[0]?.id || 'school-vis-jjr';
     const school = db.schools.find((s) => s.id === schoolId) || db.schools[0];
     const linkedStudent = findLinkedStudentForUser(db, schoolId, user);
+    const schoolTimetable = db.timetable.filter((t) => t.schoolId === schoolId);
+    const restrictions = computeLearningPortalRestrictions({
+      user,
+      linkedStudent,
+      schoolTimetable,
+    });
     const parsed = parseClassSection(linkedStudent?.classSection);
 
     res.json({
       id: user.id,
       name: linkedStudent && user.role === 'student' ? linkedStudent.name : user.name,
-      role: mapRaiRoleToPortalRole(user.role),
+      role: restrictions.portalRole,
       raiRole: user.role,
       schoolId,
       schoolName: school?.name || 'Rai Plus School',
       schoolBoard: school?.board || 'HBSE',
       schoolSession: school?.session || '2026-27',
-      cls: linkedStudent ? parsed.cls : undefined,
+      cls: linkedStudent ? parsed.cls : restrictions.allowedClasses[0],
       section: linkedStudent ? parsed.section : undefined,
       roll: linkedStudent?.rollNo || undefined,
+      restrictions,
     });
   });
 
@@ -198,9 +378,18 @@ export function registerLearningPortalRoutes(app: Express, deps: RouteDeps): voi
     const schoolId = req.activeSchoolId || user.schoolId || db.schools[0]?.id || 'school-vis-jjr';
     const docs = getSchoolDocsMap(db, schoolId);
 
+    // If a parent reads progress/<parentId>, transparently serve their linked child's live progress
+    if (user.role === 'parent' && docPath === `progress/${user.id}`) {
+      const linkedStudent = findLinkedStudentForUser(db, schoolId, user);
+      const childUserId = findLinkedStudentUserIdForParent(db, schoolId, linkedStudent);
+      if (childUserId && Object.prototype.hasOwnProperty.call(docs, `progress/${childUserId}`)) {
+        res.json({ exists: true, data: docs[`progress/${childUserId}`] });
+        return;
+      }
+    }
+
     if (Object.prototype.hasOwnProperty.call(docs, docPath)) {
       const existing = docs[docPath];
-      // Ensure config/school always includes all Classes 6–12 sections even if older doc only had 9–12
       if (docPath === 'config/school' && existing && typeof existing === 'object') {
         const schoolStudents = db.students.filter((s) => s.schoolId === schoolId);
         const defaults = deriveDefaultSectionsForSchool(schoolStudents);
@@ -218,7 +407,6 @@ export function registerLearningPortalRoutes(app: Express, deps: RouteDeps): voi
       return;
     }
 
-    // Dynamic defaults derived directly from Rai Plus school records
     if (docPath === 'config/school') {
       const schoolStudents = db.students.filter((s) => s.schoolId === schoolId);
       res.json({
@@ -260,7 +448,12 @@ export function registerLearningPortalRoutes(app: Express, deps: RouteDeps): voi
     }
     const user = req.user!;
     if (!canWriteLearningPortalDoc(user, docPath)) {
-      res.status(403).json({ error: 'You do not have permission to modify this Learning Portal document.' });
+      res.status(403).json({
+        error:
+          user.role === 'parent'
+            ? 'Parent view is read-only and cannot modify student or school records.'
+            : 'You do not have permission to modify this Learning Portal document.',
+      });
       return;
     }
     if (body.data === undefined || body.data === null || typeof body.data !== 'object') {
@@ -276,7 +469,19 @@ export function registerLearningPortalRoutes(app: Express, deps: RouteDeps): voi
     const db = getDb();
     const schoolId = req.activeSchoolId || user.schoolId || db.schools[0]?.id || 'school-vis-jjr';
     const docs = getSchoolDocsMap(db, schoolId);
-    docs[docPath] = JSON.parse(serialized);
+    const parsedPayload = JSON.parse(serialized) as Record<string, unknown>;
+
+    // Enforce ERP-locked class & section on student self-writes so students cannot spoof grades
+    if (user.role === 'student' && (docPath === `profiles/${user.id}` || docPath === `progress/${user.id}`)) {
+      const linkedStudent = findLinkedStudentForUser(db, schoolId, user);
+      if (linkedStudent) {
+        const enrolled = parseClassSection(linkedStudent.classSection);
+        parsedPayload.cls = enrolled.cls;
+        parsedPayload.section = enrolled.section;
+      }
+    }
+
+    docs[docPath] = parsedPayload;
 
     if (
       docPath === 'config/school' ||

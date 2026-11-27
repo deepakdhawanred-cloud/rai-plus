@@ -5,12 +5,13 @@ import test from 'node:test';
 import {
   canReadLearningPortalDoc,
   canWriteLearningPortalDoc,
+  computeLearningPortalRestrictions,
   deriveDefaultSectionsForSchool,
   isValidLearningPortalDocPath,
   mapRaiRoleToPortalRole,
   parseClassSection,
 } from './learningPortalRoutes.ts';
-import type { StudentRecord } from '../src/types';
+import type { StudentRecord, TimetableSlot, UserAccount } from '../src/types';
 
 test('Learning Portal static asset bundle integrity: 127 chapters, 3D viewer, 394 visuals, ui/fun theme, and RaiPlusBridge', () => {
   const portalDir = path.resolve(process.cwd(), 'public', 'learning-portal');
@@ -118,4 +119,62 @@ test('deriveDefaultSectionsForSchool populates all Classes 6–12 from school st
   assert.deepEqual(sections['10'], ['C']);
   assert.deepEqual(sections['11'], ['A']);
   assert.deepEqual(sections['12'], ['A']);
+});
+
+test('computeLearningPortalRestrictions enforces automatic role switching with strict class & write boundaries', () => {
+  const linkedStudent = {
+    id: 'stu-6a-1',
+    name: 'Aarav Sharma',
+    classSection: '6-A',
+    rollNo: '14',
+  } as StudentRecord;
+
+  const principalR = computeLearningPortalRestrictions({
+    user: { id: 'u-p', role: 'principal', name: 'Dr. Deepak Dhawan' } as UserAccount,
+  });
+  assert.equal(principalR.portalRole, 'admin');
+  assert.equal(principalR.canAccessSetup, true);
+  assert.equal(principalR.canAccessMonitor, true);
+  assert.equal(principalR.allowedClasses.length, 7);
+  assert.deepEqual(principalR.allowedPreviewRoles, ['admin', 'teacher', 'student']);
+
+  const teacherR = computeLearningPortalRestrictions({
+    user: { id: 'u-t', role: 'teacher', name: 'Neha Verma', subjectSpecialty: 'Science' } as UserAccount,
+    schoolTimetable: [
+      { id: 't1', classSection: '9-A', teacherName: 'Neha Verma', subject: 'Science' } as TimetableSlot,
+      { id: 't2', classSection: '10-A', teacherName: 'Neha Verma', subject: 'Science' } as TimetableSlot,
+    ],
+  });
+  assert.equal(teacherR.portalRole, 'teacher');
+  assert.equal(teacherR.canAccessSetup, false, 'Teachers must never access School Setup');
+  assert.equal(teacherR.canAccessMonitor, true);
+  assert.deepEqual(teacherR.allowedPreviewRoles, ['teacher', 'student']);
+  assert.deepEqual(teacherR.allowedClasses, ['9', '10']);
+
+  const studentR = computeLearningPortalRestrictions({
+    user: { id: 'u-s', role: 'student', name: 'Aarav Sharma' } as UserAccount,
+    linkedStudent,
+  });
+  assert.equal(studentR.portalRole, 'student');
+  assert.equal(studentR.canSwitchViewAs, false, 'Students must not get a Viewing-as switcher');
+  assert.equal(studentR.lockedClass, '6');
+  assert.equal(studentR.lockedSection, 'A');
+  assert.deepEqual(studentR.allowedClasses, ['6']);
+  assert.equal(studentR.profileLockedByErp, true);
+  assert.equal(studentR.readOnly, false);
+
+  const parentR = computeLearningPortalRestrictions({
+    user: { id: 'u-par', role: 'parent', name: 'Rajesh Sharma' } as UserAccount,
+    linkedStudent,
+  });
+  assert.equal(parentR.portalRole, 'student');
+  assert.equal(parentR.readOnly, true, 'Parents must be strictly read-only');
+  assert.equal(parentR.canSwitchViewAs, false);
+  assert.equal(parentR.defaultHash, '#me');
+  assert.deepEqual(parentR.allowedClasses, ['6']);
+  assert.equal(
+    canWriteLearningPortalDoc({ id: 'u-par', role: 'parent' }, 'progress/u-par'),
+    false,
+    'Backend must block parent writes',
+  );
 });

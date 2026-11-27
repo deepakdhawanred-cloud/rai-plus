@@ -51,9 +51,12 @@ function queueWrite(path,getData,delay=1200){const w=writeQ[path]||(writeQ[path]
 function setSync(t){const el=$('#sync');if(el)el.textContent=t}
 
 /* ---------- app state ---------- */
-const APP={role:'student',viewAs:null,profile:null,progress:{ch:{}},config:{sections:{6:['A'],7:['A'],8:['A'],9:['A'],10:['A'],11:['A'],12:['A']}},coverage:{},settings:{},plan:{}};
+const APP={role:'student',viewAs:null,restrictions:null,profile:null,progress:{ch:{}},config:{sections:{6:['A'],7:['A'],8:['A'],9:['A'],10:['A'],11:['A'],12:['A']}},coverage:{},settings:{},plan:{}};
 const role=()=>APP.viewAs||APP.role;
 const isStaff=()=>role()!=='student';
+const allowedClassesList=()=>APP.restrictions&&Array.isArray(APP.restrictions.allowedClasses)&&APP.restrictions.allowedClasses.length?APP.restrictions.allowedClasses:CLASSES;
+const isReadOnlyUser=()=>Boolean(APP.restrictions&&APP.restrictions.readOnly);
+const isClassAllowed=c=>allowedClassesList().includes(String(c));
 function planList(){return Object.entries(window.RP_PLAN||{}).map(([k,v])=>{const [cls,subject]=k.split('|');return {cls,subject,chs:v.map(([ch,title,m])=>({ch,title,m,end:endIdx(m),pack:packFor(cls,subject,ch)}))}})}
 function packFor(cls,subject,ch){return Object.values(RP.packs).find(p=>p.cls===cls&&p.subject===subject&&String(p.ch)===String(ch))||null}
 const covDoc=(cls,sec)=>`${cls}-${sec}`;
@@ -67,32 +70,52 @@ function setCoverage(cls,sec,subject,ch,status){const id=covDoc(cls,sec);const d
 async function boot(){
   setSync('Connecting…');renderShell();
   await Store.init();
+  APP.restrictions=(Store.bridgeUser&&Store.bridgeUser.restrictions)||null;
   APP.role=Store.isOwner?'admin':Store.canEdit?'teacher':'student';
   if(Store.mode==='local'){try{APP.viewAs=localStorage.getItem('rp-viewas')||'admin'}catch(e){APP.viewAs='admin'}}
   const [cfg,prof,prog]=await Promise.all([Store.get('config/school'),Store.get('profiles/'+Store.uid),Store.get('progress/'+Store.uid)]);
   if(cfg&&cfg.sections)APP.config=cfg;APP.profile=prof;if(prog&&prog.ch)APP.progress=prog;
-  setSync(Store.mode==='db'?'Connected · shared data':Store.mode==='bridge'?'Connected to Rai Plus':'Demo mode · saved on this device');
+  if(APP.restrictions&&APP.restrictions.lockedClass){homeCls=APP.restrictions.lockedClass;monCls=APP.restrictions.lockedClass}
+  else if(APP.restrictions&&APP.restrictions.allowedClasses&&APP.restrictions.allowedClasses.length){homeCls=APP.restrictions.allowedClasses[0];monCls=APP.restrictions.allowedClasses[0]}
+  if(APP.restrictions&&APP.restrictions.defaultHash&&(!location.hash||location.hash==='#home')&&APP.restrictions.defaultHash!=='#home'){location.hash=APP.restrictions.defaultHash.replace(/^#/,'')}
+  setSync(Store.mode==='db'?'Connected · shared data':Store.mode==='bridge'?(isReadOnlyUser()?'Connected · Read-only parent view':'Connected to Rai Plus'):'Demo mode · saved on this device');
   renderShell();route();
 }
 function renderShell(){
   const r=role();
-  $('#roleBox').innerHTML=(Store.mode==='local'||APP.role!=='student')?`<label>Viewing as<select id="viewAs">${['admin','teacher','student'].filter(x=>Store.mode==='local'||x==='student'||x===APP.role||APP.role==='admin').map(x=>`<option value="${x}" ${x===r?'selected':''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label>`:`<span class="pill">Student</span>`;
-  $('#pnav').innerHTML=[['home','Chapters'],isStaff()&&['monitor','Syllabus monitor'],!isStaff()&&['me','My progress'],r==='admin'&&['setup','School setup']].filter(Boolean).map(([h,n])=>`<a href="#${h}">${n}</a>`).join('');
+  const R=APP.restrictions;
+  if(R){
+    if(R.canSwitchViewAs&&Array.isArray(R.allowedPreviewRoles)&&R.allowedPreviewRoles.length>1){
+      $('#roleBox').innerHTML=`<span class="pill" title="Signed in via Rai Plus">${esc(R.displayRoleLabel)}</span><label style="margin-left:6px">Preview<select id="viewAs">${R.allowedPreviewRoles.map(x=>`<option value="${x}" ${x===r?'selected':''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label>`;
+    }else{
+      $('#roleBox').innerHTML=`<span class="pill" data-locked-role="true" title="Automatically set by your Rai Plus account">${esc(R.displayRoleLabel)}</span>`;
+    }
+  }else{
+    $('#roleBox').innerHTML=(Store.mode==='local'||APP.role!=='student')?`<label>Viewing as<select id="viewAs">${['admin','teacher','student'].filter(x=>Store.mode==='local'||x==='student'||x===APP.role||APP.role==='admin').map(x=>`<option value="${x}" ${x===r?'selected':''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label>`:`<span class="pill">Student</span>`;
+  }
+  const canMon=isStaff()&&(!R||R.canAccessMonitor);
+  const canSetup=r==='admin'&&(!R||R.canAccessSetup);
+  const meLabel=isReadOnlyUser()?'Child’s progress':'My progress';
+  $('#pnav').innerHTML=[['home','Chapters'],canMon&&['monitor','Syllabus monitor'],!isStaff()&&['me',meLabel],canSetup&&['setup','School setup']].filter(Boolean).map(([h,n])=>`<a href="#${h}">${n}</a>`).join('');
 }
 
 /* ---------- portal views ---------- */
 let homeCls=null;
-function myCls(){return (APP.profile&&APP.profile.cls)||'10'}
-function mySec(){return (APP.profile&&APP.profile.section)||(APP.config.sections[myCls()]||['A'])[0]}
+function myCls(){return (APP.restrictions&&APP.restrictions.lockedClass)||(APP.profile&&APP.profile.cls)||allowedClassesList()[0]||'10'}
+function mySec(){return (APP.restrictions&&APP.restrictions.lockedSection)||(APP.profile&&APP.profile.section)||(APP.config.sections[myCls()]||['A'])[0]}
 async function viewHome(){
-  if(!homeCls)homeCls=myCls();
+  const allowed=allowedClassesList();
+  if(!homeCls||!allowed.includes(homeCls))homeCls=myCls();
+  if(!allowed.includes(homeCls))homeCls=allowed[0]||'10';
   const sec=isStaff()?($('#homeSec')&&$('#homeSec').value)||(APP.config.sections[homeCls]||['A'])[0]:mySec();
   await loadCoverage(homeCls,sec);
   const subs=planList().filter(s=>s.cls===homeCls);const built=Object.values(RP.packs).filter(p=>p.cls===homeCls);
-  let h=`<div class="hrow2"><div><h2>Class ${esc(homeCls)} chapters</h2><p class="note">HBSE 2026-27 syllabus. Chapters with an interactive lesson open in the Rai Plus player.</p></div>
-  <div class="ctrl"><div class="ftabs" role="group" aria-label="Class">${CLASSES.map(c=>`<button data-cls="${c}" aria-pressed="${c===homeCls}">Class ${c}</button>`).join('')}</div>
+  const classLocked=allowed.length===1&&Boolean(APP.restrictions&&APP.restrictions.lockedClass);
+  const lockNotice=classLocked?` · Locked to Class ${esc(homeCls)}-${esc(sec)} by Rai Plus${isReadOnlyUser()?' (Read-Only Parent View)':''}`:(APP.restrictions&&APP.restrictions.allowedSubjects&&APP.restrictions.allowedSubjects.length?` · Your teaching subjects: ${esc(APP.restrictions.allowedSubjects.join(', '))}`:'');
+  let h=`<div class="hrow2"><div><h2>Class ${esc(homeCls)} chapters</h2><p class="note">HBSE 2026-27 syllabus${lockNotice}. Chapters with an interactive lesson open in the Rai Plus player.</p></div>
+  <div class="ctrl">${classLocked?`<span class="pill">Locked: Class ${esc(homeCls)}-${esc(sec)}</span>`:`<div class="ftabs" role="group" aria-label="Class">${allowed.map(c=>`<button data-cls="${c}" aria-pressed="${c===homeCls}">Class ${c}</button>`).join('')}</div>`}
   ${isStaff()?`<label>Section<select id="homeSec">${(APP.config.sections[homeCls]||['A']).map(s=>`<option ${s===sec?'selected':''}>${esc(s)}</option>`).join('')}</select></label>`:''}</div></div>`;
-  if(!isStaff()&&!APP.profile)h+=profileForm();
+  if(!isStaff()&&!APP.profile&&!(APP.restrictions&&APP.restrictions.profileLockedByErp))h+=profileForm();
   if(built.length)h+=`<h3>Interactive lessons ready</h3><div class="cards3">${built.map(p=>`<a class="lcard" href="#ch-${p.key}-learn" style="--c:${esc(p.color||'#2f6a32')}"><small>${esc(p.subject)} · Ch ${esc(p.ch)}</small><b>${esc(p.title)}</b><span>${chapterPct(p.key)}% of concepts checked</span></a>`).join('')}</div>`;
   h+=`<h3>All subjects</h3><div class="subs">${subs.map(s=>{const st=subStats(s,homeCls,sec);return `<details class="sub" data-subj="${esc(s.subject)}"${OPEN.has('h|'+s.subject)?' open':''}><summary><b>${esc(s.subject)}</b><span class="note">${s.chs.length} chapters · ${st.done} completed${st.behind?` · <span class="warn">${st.behind} behind schedule</span>`:''}</span><span class="mbar"><i style="width:${st.pct}%"></i></span></summary>
    <table class="stack"><thead><tr><th>Ch.</th><th>Chapter</th><th>Planned</th><th>Status</th><th></th></tr></thead><tbody>${s.chs.map(c=>{const cv=covGet(homeCls,sec,s.subject,c.ch);return `<tr><td>${esc(c.ch)}</td><td>${esc(c.title)}</td><td>${esc(c.m||'–')}</td><td>${statusChip(cv,c.end)}</td><td>${c.pack?`<a class="btn sm" href="#ch-${c.pack.key}-learn">Open lesson</a>`:''}</td></tr>`}).join('')}</tbody></table></details>`}).join('')}</div>`;
@@ -108,14 +131,16 @@ function profileForm(){return `<div class="box y"><h3>Set up your profile</h3><p
 let monCls='10',monSec=null,monSub='all';const OPEN=new Set();
 document.addEventListener('toggle',e=>{const d=e.target;if(!d.dataset||!d.dataset.subj)return;const k=(location.hash==='#monitor'?'m|':'h|')+d.dataset.subj;if(d.open)OPEN.add(k);else OPEN.delete(k)},true);
 async function viewMonitor(){
-  if(!isStaff()){location.hash='home';return}
+  if(!isStaff()||(APP.restrictions&&!APP.restrictions.canAccessMonitor)){location.hash='home';return}
+  const allowedMonClasses=allowedClassesList();
+  if(!allowedMonClasses.includes(monCls))monCls=allowedMonClasses[0]||'10';
   monSec=monSec&&(APP.config.sections[monCls]||[]).includes(monSec)?monSec:(APP.config.sections[monCls]||['A'])[0];
   await loadCoverage(monCls,monSec);
   const subs=planList().filter(s=>s.cls===monCls&&(monSub==='all'||s.subject===monSub));const n=nowIdx();
   let tot=0,done=0,due=0,behind=0,prog=0;subs.forEach(s=>s.chs.forEach(c=>{tot++;const cv=covGet(monCls,monSec,s.subject,c.ch);if(cv&&cv.s==='done')done++;else if(cv&&cv.s==='prog')prog++;if(c.end!=null&&c.end<=n){due++;if(!(cv&&cv.s==='done')&&c.end<n)behind++}}));
   const onTrack=due?Math.round(Math.min(done,due)/due*100):100;
   let h=`<div class="hrow2"><div><h2>Syllabus monitor</h2><p class="note">Class ${esc(monCls)}-${esc(monSec)} · ${MONTHS[n]} in the 2026-27 session. Teachers update each chapter's status; the plan comes from the BSEH month-wise teaching plan.</p></div>
-  <div class="ctrl"><label>Class<select id="monCls">${CLASSES.map(c=>`<option ${c===monCls?'selected':''}>${c}</option>`).join('')}</select></label><label>Section<select id="monSec">${(APP.config.sections[monCls]||['A']).map(s=>`<option ${s===monSec?'selected':''}>${esc(s)}</option>`).join('')}</select></label>
+  <div class="ctrl"><label>Class<select id="monCls">${allowedMonClasses.map(c=>`<option ${c===monCls?'selected':''}>${c}</option>`).join('')}</select></label><label>Section<select id="monSec">${(APP.config.sections[monCls]||['A']).map(s=>`<option ${s===monSec?'selected':''}>${esc(s)}</option>`).join('')}</select></label>
   <label>Subject<select id="monSub"><option value="all">All subjects</option>${planList().filter(s=>s.cls===monCls).map(s=>`<option ${s.subject===monSub?'selected':''}>${esc(s.subject)}</option>`).join('')}</select></label></div></div>
   <div class="kpis"><div><b>${done} / ${tot}</b><span>chapters completed</span></div><div><b>${due}</b><span>planned by end of ${MONTHS[n]}</span></div><div class="${behind?'bad':''}"><b>${behind}</b><span>behind schedule</span></div><div><b>${onTrack}%</b><span>of planned-to-date covered</span></div></div>`;
   h+=`<h3>Coverage by subject</h3><div class="rows">${subs.map(s=>{const st=subStats(s,monCls,monSec);const dueP=Math.round(st.due/s.chs.length*100);return `<div class="row3"><span>${esc(s.subject)}</span><span class="t2"><i style="width:${st.pct}%"></i><em style="left:${dueP}%" title="Planned by now"></em></span><span>${st.done}/${s.chs.length}${st.behind?` <span class="warn">· ${st.behind} behind</span>`:''}</span></div>`}).join('')}</div><p class="note">Bar = chapters completed. The thin mark shows how far the BSEH plan expects the class to be by now.</p>`;
@@ -138,12 +163,14 @@ async function renderMastery(){
   $('#mastery').innerHTML=h}
 async function viewMe(){
   const packs=Object.values(RP.packs).filter(p=>p.cls===myCls());
-  let h=`<h2>My progress</h2>${APP.profile?`<p class="note">Class ${esc(APP.profile.cls)}-${esc(APP.profile.section)}${APP.profile.roll?' · Roll no. '+esc(APP.profile.roll):''} · <button class="linkbtn" id="pfEdit">Change</button></p>`:profileForm()}`;
+  const locked=Boolean(APP.restrictions&&APP.restrictions.profileLockedByErp);
+  const heading=isReadOnlyUser()?(APP.restrictions&&APP.restrictions.childName?`${esc(APP.restrictions.childName)}’s progress (Read-Only)`:'Child’s progress (Read-Only)'):'My progress';
+  let h=`<h2>${heading}</h2>${APP.profile?`<p class="note">Class ${esc(APP.profile.cls)}-${esc(APP.profile.section)}${APP.profile.roll?' · Roll no. '+esc(APP.profile.roll):''}${locked?' · Managed by Rai Plus ERP':' · <button class="linkbtn" id="pfEdit">Change</button>'}</p>`:(locked?`<p class="note">Class ${esc(myCls())}-${esc(mySec())} · Managed by Rai Plus ERP</p>`:profileForm())}`;
   h+=`<div class="cards3">${packs.map(p=>{const g=APP.progress.ch[p.key]||{};const qz=Object.entries(g.quiz||{});const due=Object.values(g.cards||{}).filter(x=>x.due<=Math.floor(Date.now()/864e5)).length+((p.nCards||0)-Object.keys(g.cards||{}).length);return `<a class="lcard" href="#ch-${p.key}-learn" style="--c:${esc(p.color||'#2f6a32')}"><small>${esc(p.subject)} · Ch ${esc(p.ch)}</small><b>${esc(p.title)}</b><span>${chapterPct(p.key)}% concepts checked · ${qz.length?'tests: '+qz.map(([l,v])=>'L'+l+' '+v+'%').join(', '):'no tests yet'} · ${due} flashcards due</span></a>`}).join('')||'<p class="note">No interactive lessons for your class yet.</p>'}</div>`;
   if(APP.profile){await loadCoverage(APP.profile.cls,APP.profile.section);const subs=planList().filter(s=>s.cls===APP.profile.cls);h+=`<h3>How far your class has reached</h3><div class="rows">${subs.map(s=>{const st=subStats(s,APP.profile.cls,APP.profile.section);return `<div class="row3"><span>${esc(s.subject)}</span><span class="t2"><i style="width:${st.pct}%"></i></span><span>${st.done}/${s.chs.length}</span></div>`}).join('')}</div>`}
   $('#portal').innerHTML=h}
 function viewSetup(){
-  if(role()!=='admin'){location.hash='home';return}
+  if(role()!=='admin'||(APP.restrictions&&!APP.restrictions.canAccessSetup)){location.hash='home';return}
   $('#portal').innerHTML=`<h2>School setup</h2><p>Sections for each class. Separate sections with commas, e.g. A, B, C.</p><div class="rows">${CLASSES.map(c=>`<label style="flex-direction:row;align-items:center;gap:12px;color:var(--ink)">Class ${c}<input data-secs="${c}" value="${esc((APP.config.sections[c]||['A']).join(', '))}" style="flex:1;max-width:280px"></label>`).join('')}</div><div class="ctrl"><button class="btn p" id="secSave">Save sections</button></div>
   <h3>Who can do what</h3><table class="stack"><thead><tr><th>Person</th><th>Sharing level on this page</th><th>Can</th></tr></thead><tbody><tr><td>Principal / admin</td><td>Owner</td><td>Everything, including school setup</td></tr><tr><td>Teachers</td><td>Editor</td><td>Update chapter status, set lesson formats, see all student progress</td></tr><tr><td>Students</td><td>Contributor</td><td>Use lessons; save only their own profile and progress</td></tr></tbody></table>
   <p class="note">Storage: ${Store.mode==='db'?'shared database (live for everyone with access)':Store.mode==='bridge'?'Rai Plus app':'this device only (demo mode)'}.</p>`}
@@ -152,7 +179,7 @@ function viewSetup(){
 let CH=null,curKey=null,tset={},prog={},cur=null,fmt=null;
 function chDefaultT(){return Object.fromEntries(CH.C.map(c=>[c.id,{read:1,watch:1,see:1,do:1,recall:1,check:1,def:'read',led:0}]))}
 async function openChapter(key){
-  const p=RP.packs[key];if(!p){location.hash='home';return false}
+  const p=RP.packs[key];if(!p||!isClassAllowed(p.cls)){location.hash='home';return false}
   if(curKey!==key){
     $('#chTheme').textContent=p.theme||'';
     $('#chCrumb').textContent=p.crumb;$('#chH1').textContent=p.h1;$('#chSub').textContent=p.sub;$('#heroPod').setAttribute('aria-label',p.heroLabel||'');
@@ -164,8 +191,8 @@ async function openChapter(key){
     CH.lab.init();
   }
   return true}
-function saveProg(){APP.progress.ch[curKey]=prog;APP.progress.cls=myCls();APP.progress.section=mySec();if(APP.profile&&APP.profile.roll)APP.progress.roll=APP.profile.roll;APP.progress.t=Date.now();setSync('Saving…');queueWrite('progress/'+Store.uid,()=>APP.progress)}
-function saveSettings(){if(!isStaff())return;setSync('Saving…');queueWrite('settings/'+curKey,()=>({t:tset,by:Store.uid,updatedAt:Date.now()}),500)}
+function saveProg(){if(isReadOnlyUser()){setSync('Read-only parent view');return}APP.progress.ch[curKey]=prog;APP.progress.cls=myCls();APP.progress.section=mySec();if(APP.profile&&APP.profile.roll)APP.progress.roll=APP.profile.roll;APP.progress.t=Date.now();setSync('Saving…');queueWrite('progress/'+Store.uid,()=>APP.progress)}
+function saveSettings(){if(!isStaff()||(APP.restrictions&&!APP.restrictions.canEditLessonFormats))return;setSync('Saving…');queueWrite('settings/'+curKey,()=>({t:tset,by:Store.uid,updatedAt:Date.now()}),500)}
 function updateProgress(){const n=CH.C.filter(c=>prog.done[c.id]).length;$('#ptext').textContent=n+' of '+CH.C.length+' concepts checked';$('#pbar').style.width=(n/CH.C.length*100)+'%'}
 function renderList(){$('#clist').innerHTML=CH.C.map(c=>`<li><button data-c="${c.id}" aria-current="${c.id===cur}"><b>${c.num}</b><span>${esc(c.title)}</span>${prog.done[c.id]?'<span class="tick" aria-label="checked">✓</span>':''}</button></li>`).join('')}
 const enabled=c=>FORMATS.filter(([k])=>tset[c.id][k]).map(([k])=>k);

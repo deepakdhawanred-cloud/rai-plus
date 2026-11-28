@@ -857,30 +857,65 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
 
   return (
     <div className="space-y-8">
-      {/* Header & Class Scope Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-200 pb-6">
-        <div>
-          <p className="text-xs font-semibold text-amber-700">
-            {activeSchool.name} · Session {activeSchool.session} · Financial Oversight
-          </p>
-          <h1 className="font-display text-2xl font-bold text-slate-900 mt-1">
-            Real-Time Fee Collection &amp; Sibling Pairing Dashboard
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Live ledger across{' '}
-            <span className="font-mono font-semibold text-slate-900 tabular-nums">
-              {schoolMetrics.accountsTotal}
-            </span>{' '}
-            student fee accounts · Schedule-driven MTD targets · Per-class defaulters &amp; merged family households.
-          </p>
+      {/* Header & Class Scope Bar — full-width 2-row executive layout with zero wasted blank space */}
+      <div className="space-y-4 border-b border-slate-200 pb-5">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-amber-700">
+              {activeSchool.name} · Session {activeSchool.session} · Financial Oversight
+            </p>
+            <h1 className="font-display text-2xl font-bold text-slate-900 mt-1">
+              Real-Time Fee Collection &amp; Sibling Pairing Dashboard
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              Live ledger across{' '}
+              <span className="font-mono font-semibold text-slate-900 tabular-nums">
+                {schoolMetrics.accountsTotal}
+              </span>{' '}
+              student fee accounts · Schedule-driven MTD targets · Per-class defaulters &amp; merged family households.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {canCollectFees && (
+              <button
+                type="button"
+                data-testid="open-enter-fee-modal-btn"
+                onClick={() => openCollectModal({ mode: 'quick' })}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B46] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1D3A5C] whitespace-nowrap shrink-0 shadow-xs"
+              >
+                <PlusCircle className="h-3.5 w-3.5 text-[#D6B66D]" />
+                Enter Fee Received &amp; Print Receipt
+              </button>
+            )}
+
+            <button
+              type="button"
+              data-testid="export-defaulters-pdf-btn"
+              onClick={handleExportDefaultersPdf}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#142B46] bg-white px-3.5 py-2 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap shrink-0"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              Export Defaulters PDF
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap shrink-0"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export Defaulters CSV
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <div className="inline-flex rounded-xl bg-slate-100 p-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1">
             <button
               type="button"
               onClick={() => setFinanceView('fees')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
                 financeView === 'fees'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -891,7 +926,7 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
             <button
               type="button"
               onClick={() => setFinanceView('accounting')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
                 financeView === 'accounting'
                   ? 'bg-emerald-700 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -903,7 +938,7 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               type="button"
               data-testid="finance-tab-fee-structure"
               onClick={() => setFinanceView('structure')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
                 financeView === 'structure'
                   ? 'bg-[#142B46] text-[#D6B66D] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -934,37 +969,6 @@ export const FinancialDashboardModule: React.FC<FinancialDashboardModuleProps> =
               ))}
             </select>
           </div>
-
-          {canCollectFees && (
-            <button
-              type="button"
-              data-testid="open-enter-fee-modal-btn"
-              onClick={() => openCollectModal({ mode: 'quick' })}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B46] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#1D3A5C] whitespace-nowrap shrink-0"
-            >
-              <PlusCircle className="h-3.5 w-3.5 text-[#D6B66D]" />
-              Enter Fee Received &amp; Print Receipt
-            </button>
-          )}
-
-          <button
-            type="button"
-            data-testid="export-defaulters-pdf-btn"
-            onClick={handleExportDefaultersPdf}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#142B46] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#142B46] hover:bg-slate-50 whitespace-nowrap shrink-0"
-          >
-            <FileDown className="h-3.5 w-3.5" />
-            Export Defaulters PDF
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap shrink-0"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export Defaulters CSV
-          </button>
         </div>
       </div>
 

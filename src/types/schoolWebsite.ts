@@ -26,6 +26,10 @@ export interface SchoolWebsiteFeature {
   badge: string;
   iconKey: SchoolWebsiteIconKey;
   highlightMetric?: string;
+  photoUrl?: string;
+  category?: string;
+  displayOrder?: number;
+  active?: boolean;
 }
 
 export interface SchoolManagementMember {
@@ -38,6 +42,43 @@ export interface SchoolManagementMember {
   initials: string;
   photoUrl?: string;
   email?: string;
+  /** Role-based visibility toggle for public display of contact details */
+  contactVisible?: boolean;
+}
+
+export interface SchoolFacilityCategory {
+  id: string;
+  category: string;
+  summary: string;
+  highlights: string[];
+  photoUrl?: string;
+  active: boolean;
+}
+
+export interface SchoolPhilosophyConfig {
+  pillars: Array<{
+    key: string;
+    title: string;
+    subtitle: string;
+  }>;
+  coreValues: string[];
+  statements: string[];
+}
+
+export interface SchoolParentEngagementItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface SchoolVerificationFlag {
+  id: string;
+  fieldLabel: string;
+  currentValue: string;
+  discrepancyNote: string;
+  status: 'Pending Approval' | 'Approved';
+  approvedBy?: string;
+  approvedAt?: string;
 }
 
 export interface SchoolGalleryItem {
@@ -69,10 +110,15 @@ export interface SchoolWebsiteProfile {
   schoolId: string;
   slug: string;
   shortName: string;
+  logoUrl?: string;
   tagline: string;
   motto: string;
   establishedYear: string;
   gradesOffered: string;
+  hbseSchoolCode?: string;
+  curriculum?: string;
+  streams?: string[];
+  prePrimaryConfigurable?: boolean;
   affiliationNote: string;
   heroImageUrl: string;
   heroHighlightBadge: string;
@@ -80,14 +126,19 @@ export interface SchoolWebsiteProfile {
   admissionsOpen: boolean;
   admissionsSession: string;
   admissionsHeadline: string;
+  philosophy?: SchoolPhilosophyConfig;
   principalMessage: {
     authorName: string;
     roleTitle: string;
     quote: string;
     fullMessage: string;
+    photoUrl?: string;
   };
   salientFeatures: SchoolWebsiteFeature[];
   managementTeam: SchoolManagementMember[];
+  facilityCategories?: SchoolFacilityCategory[];
+  parentEngagementHighlights?: SchoolParentEngagementItem[];
+  pendingAdminVerification?: SchoolVerificationFlag[];
   gallery: SchoolGalleryItem[];
   campusStats: SchoolWebsiteCampusStat[];
   contact: SchoolWebsiteContact;

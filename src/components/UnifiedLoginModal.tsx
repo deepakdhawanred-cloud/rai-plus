@@ -318,7 +318,7 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  VIS Jhajjar
+                  Virat International School (VIS)
                 </button>
                 <button
                   type="button"

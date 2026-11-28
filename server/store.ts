@@ -21,7 +21,7 @@ function getDbFilePath(dir = activeDataDir): string {
   return path.join(dir, DB_FILENAME);
 }
 
-const CURRENT_DB_SCHEMA_VERSION = 20261128;
+const CURRENT_DB_SCHEMA_VERSION = 20261129;
 
 type PersistedDatabaseState = DatabaseState & {
   _schemaVersion?: number;
@@ -741,11 +741,39 @@ function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
           }
         }
       }
-      // Migrate VIS Jhajjar leadership (Dr. Deepak Dhawan -> Deputy Director, Ms. Niharika Yadav -> Principal, Ms. Nirmla Yadav -> Vice Principal)
-      // and separate Admission CRM vs Enrolled Student 4x/year Quarterly Home Visits
+      // Migrate official Virat International School (Kapriwas, Rewari) institutional profile & 5 leadership accounts
+      // strictly for tenant school-vis-jjr without disturbing any students, fees, attendance, or other schools
+      if (Array.isArray(parsed.schools)) {
+        const visSchool = parsed.schools.find((s) => s.id === 'school-vis-jjr');
+        const freshVis = fresh.schools.find((s) => s.id === 'school-vis-jjr');
+        if (visSchool && freshVis) {
+          if (
+            visSchool.name !== freshVis.name ||
+            visSchool.city !== freshVis.city ||
+            visSchool.udiseCode !== freshVis.udiseCode ||
+            visSchool.haryanaMisCode !== freshVis.haryanaMisCode ||
+            visSchool.code !== freshVis.code
+          ) {
+            visSchool.name = freshVis.name;
+            visSchool.code = freshVis.code;
+            visSchool.city = freshVis.city;
+            visSchool.state = freshVis.state;
+            visSchool.board = 'HBSE';
+            visSchool.udiseCode = freshVis.udiseCode;
+            visSchool.haryanaMisCode = freshVis.haryanaMisCode;
+            migrated = true;
+          }
+        }
+      }
       if (Array.isArray(parsed.users)) {
         const freshVisLeaders = fresh.users.filter((u) =>
-          ['usr-deputy-director-vis', 'usr-principal-vis', 'usr-vice-principal-vis'].includes(u.id),
+          [
+            'usr-chairman-vis',
+            'usr-director-vis',
+            'usr-deputy-director-vis',
+            'usr-principal-vis',
+            'usr-vice-principal-vis',
+          ].includes(u.id),
         );
         for (const leader of freshVisLeaders) {
           const existingIdx = parsed.users.findIndex((u) => u.id === leader.id);
@@ -790,7 +818,11 @@ function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
       }
       if (parsed.schoolWebsitesBySchool?.['school-vis-jjr']) {
         const visSite = parsed.schoolWebsitesBySchool['school-vis-jjr'];
-        if (visSite.principalMessage?.authorName === 'Dr. Deepak Dhawan') {
+        if (
+          !visSite.logoUrl ||
+          visSite.tagline !== 'READ | LEAD | SUCCEED' ||
+          (visSite.salientFeatures || []).length < 16
+        ) {
           delete parsed.schoolWebsitesBySchool['school-vis-jjr'];
           migrated = true;
         }

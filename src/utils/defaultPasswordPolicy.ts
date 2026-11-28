@@ -32,7 +32,9 @@ export function getDefaultDesignationPassword(
     return 'coo123';
   }
   const desig = String(user.designation || '').toLowerCase();
+  if (desig.includes('chairman')) return 'chairman123';
   if (desig.includes('deputy director')) return 'deputydirector123';
+  if (desig.includes('director')) return 'director123';
   if (desig.includes('vice principal')) return 'viceprincipal123';
   const prefix = ROLE_DEFAULT_PREFIX[user.role] || 'user';
   return `${prefix}123`;

@@ -1598,12 +1598,28 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
                 ))}
               </select>
             ) : (
-              <p className="text-xs font-semibold text-white leading-snug">
-                {data.activeSchool.name}
-                <span className="block font-normal text-[#A9C5D8]">
-                  {data.activeSchool.city} · {data.activeSchool.board}
-                </span>
-              </p>
+              <div className="flex items-center gap-2.5">
+                {data.activeSchool.id === 'school-vis-jjr' && (
+                  <img
+                    src="/assets/schools/vis/vis-logo.png"
+                    alt="Virat International School Logo"
+                    className="h-9 w-9 rounded-lg border border-[#D6B66D]/60 bg-white p-0.5 object-contain shrink-0"
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white leading-snug truncate">
+                    {data.activeSchool.name}
+                  </p>
+                  <p className="text-[10px] font-normal text-[#A9C5D8] truncate">
+                    {data.activeSchool.city} · {data.activeSchool.board}
+                  </p>
+                  {data.activeSchool.id === 'school-vis-jjr' && (
+                    <p className="text-[9px] font-extrabold tracking-widest text-[#D6B66D] mt-0.5">
+                      READ | LEAD | SUCCEED
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         )}

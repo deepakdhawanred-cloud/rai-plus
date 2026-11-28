@@ -184,6 +184,7 @@ export function registerSchoolWebsiteRoutes(app: Express, deps: RouteDeps) {
       const patch = req.body as Partial<SchoolWebsiteProfile>;
       const updated: SchoolWebsiteProfile = {
         ...existing,
+        logoUrl: typeof patch.logoUrl === 'string' ? patch.logoUrl.trim() || existing.logoUrl : existing.logoUrl,
         tagline: typeof patch.tagline === 'string' && patch.tagline.trim() ? patch.tagline.trim() : existing.tagline,
         motto: typeof patch.motto === 'string' && patch.motto.trim() ? patch.motto.trim() : existing.motto,
         establishedYear:
@@ -194,6 +195,21 @@ export function registerSchoolWebsiteRoutes(app: Express, deps: RouteDeps) {
           typeof patch.gradesOffered === 'string' && patch.gradesOffered.trim()
             ? patch.gradesOffered.trim()
             : existing.gradesOffered,
+        hbseSchoolCode:
+          typeof patch.hbseSchoolCode === 'string' ? patch.hbseSchoolCode.trim() : existing.hbseSchoolCode,
+        curriculum:
+          typeof patch.curriculum === 'string' && patch.curriculum.trim()
+            ? patch.curriculum.trim()
+            : existing.curriculum,
+        streams: Array.isArray(patch.streams) && patch.streams.length > 0 ? patch.streams : existing.streams,
+        prePrimaryConfigurable:
+          typeof patch.prePrimaryConfigurable === 'boolean'
+            ? patch.prePrimaryConfigurable
+            : existing.prePrimaryConfigurable,
+        affiliationNote:
+          typeof patch.affiliationNote === 'string' && patch.affiliationNote.trim()
+            ? patch.affiliationNote.trim()
+            : existing.affiliationNote,
         admissionsOpen:
           typeof patch.admissionsOpen === 'boolean' ? patch.admissionsOpen : existing.admissionsOpen,
         admissionsHeadline:
@@ -206,22 +222,33 @@ export function registerSchoolWebsiteRoutes(app: Express, deps: RouteDeps) {
           patch.accentTheme === 'crimson_scholar'
             ? patch.accentTheme
             : existing.accentTheme,
+        philosophy: patch.philosophy ? patch.philosophy : existing.philosophy,
         principalMessage: patch.principalMessage
           ? {
               authorName: patch.principalMessage.authorName?.trim() || existing.principalMessage.authorName,
               roleTitle: patch.principalMessage.roleTitle?.trim() || existing.principalMessage.roleTitle,
               quote: patch.principalMessage.quote?.trim() || existing.principalMessage.quote,
               fullMessage: patch.principalMessage.fullMessage?.trim() || existing.principalMessage.fullMessage,
+              photoUrl: patch.principalMessage.photoUrl || existing.principalMessage.photoUrl,
             }
           : existing.principalMessage,
         salientFeatures: Array.isArray(patch.salientFeatures) && patch.salientFeatures.length > 0
-          ? patch.salientFeatures.slice(0, 12)
+          ? patch.salientFeatures.slice(0, 24)
           : existing.salientFeatures,
         managementTeam: Array.isArray(patch.managementTeam) && patch.managementTeam.length > 0
           ? patch.managementTeam.slice(0, 12)
           : existing.managementTeam,
+        facilityCategories: Array.isArray(patch.facilityCategories)
+          ? patch.facilityCategories.slice(0, 20)
+          : existing.facilityCategories,
+        parentEngagementHighlights: Array.isArray(patch.parentEngagementHighlights)
+          ? patch.parentEngagementHighlights.slice(0, 10)
+          : existing.parentEngagementHighlights,
+        pendingAdminVerification: Array.isArray(patch.pendingAdminVerification)
+          ? patch.pendingAdminVerification.slice(0, 20)
+          : existing.pendingAdminVerification,
         gallery: Array.isArray(patch.gallery) && patch.gallery.length > 0
-          ? patch.gallery.slice(0, 24)
+          ? patch.gallery.slice(0, 32)
           : existing.gallery,
         contact: patch.contact
           ? {

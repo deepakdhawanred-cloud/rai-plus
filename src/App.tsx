@@ -5,6 +5,7 @@ import { apiRequest } from './utils/api';
 import { PublicPortal } from './components/PublicPortal';
 import { SchoolMicrositePage } from './components/public/SchoolMicrositePage';
 import { UnifiedLoginModal, type PublicDemoAccount } from './components/UnifiedLoginModal';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { RaiMotionProvider } from './components/motion/RaiMotionSystem';
 
@@ -91,6 +92,8 @@ export default function App() {
   const [workspaceData, setWorkspaceData] = useState<WorkspaceData | null>(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [isFirstLoginPasswordPrompt, setIsFirstLoginPasswordPrompt] = useState(false);
   const [mapsQuotaExceeded, setMapsQuotaExceeded] = useState(false);
   const [directSchoolSlug, setDirectSchoolSlug] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -189,11 +192,24 @@ export default function App() {
     setToken(payload.token);
     setActiveUser(payload.user);
     setLoginOpen(false);
+    if (payload.user.mustChangePassword) {
+      setIsFirstLoginPasswordPrompt(true);
+      setPasswordModalOpen(true);
+    } else {
+      setIsFirstLoginPasswordPrompt(false);
+      setPasswordModalOpen(false);
+    }
     if (isStandaloneSsbRole(payload.user.role) || isStandaloneCareerRole(payload.user.role)) {
       setWorkspaceData(null);
     } else {
       void loadWorkspace(payload.token);
     }
+  }
+
+  function handlePasswordChanged(updatedUser: UserAccount) {
+    setActiveUser(updatedUser);
+    setWorkspaceData((prev) => (prev ? { ...prev, user: updatedUser } : prev));
+    setIsFirstLoginPasswordPrompt(false);
   }
 
   function handleLogout() {
@@ -202,6 +218,8 @@ export default function App() {
     setHasCookieSession(false);
     setActiveUser(null);
     setWorkspaceData(null);
+    setPasswordModalOpen(false);
+    setIsFirstLoginPasswordPrompt(false);
     if (typeof window !== 'undefined' && window.location.hash.startsWith('#/app/')) {
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -294,6 +312,14 @@ export default function App() {
             schools={publicData?.schools ?? []}
             onLoginSuccess={handleLoginSuccess}
           />
+          <ChangePasswordModal
+            isOpen={passwordModalOpen}
+            onClose={() => setPasswordModalOpen(false)}
+            user={activeUser}
+            token={token || ''}
+            isFirstLoginPrompt={isFirstLoginPasswordPrompt}
+            onPasswordChanged={handlePasswordChanged}
+          />
         </ModuleErrorBoundary>
       </RaiMotionProvider>
     );
@@ -320,6 +346,14 @@ export default function App() {
             schools={publicData?.schools ?? []}
             onLoginSuccess={handleLoginSuccess}
           />
+          <ChangePasswordModal
+            isOpen={passwordModalOpen}
+            onClose={() => setPasswordModalOpen(false)}
+            user={activeUser}
+            token={token || ''}
+            isFirstLoginPrompt={isFirstLoginPasswordPrompt}
+            onPasswordChanged={handlePasswordChanged}
+          />
         </ModuleErrorBoundary>
       </RaiMotionProvider>
     );
@@ -345,6 +379,10 @@ export default function App() {
               onRefresh={() => loadWorkspace(token)}
               onSwitchUser={() => setLoginOpen(true)}
               onLogout={handleLogout}
+              onOpenChangePassword={() => {
+                setIsFirstLoginPasswordPrompt(Boolean(workspaceData.user.mustChangePassword));
+                setPasswordModalOpen(true);
+              }}
             />
           </Suspense>
           <UnifiedLoginModal
@@ -354,6 +392,14 @@ export default function App() {
             demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
             schools={publicData?.schools ?? []}
             onLoginSuccess={handleLoginSuccess}
+          />
+          <ChangePasswordModal
+            isOpen={passwordModalOpen}
+            onClose={() => setPasswordModalOpen(false)}
+            user={workspaceData.user}
+            token={token || ''}
+            isFirstLoginPrompt={isFirstLoginPasswordPrompt}
+            onPasswordChanged={handlePasswordChanged}
           />
         </ModuleErrorBoundary>
       </RaiMotionProvider>

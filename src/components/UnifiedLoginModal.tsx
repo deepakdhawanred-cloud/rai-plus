@@ -164,12 +164,12 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       setError('Please enter your registered institutional email address.');
       return;
     }
-    if (!demoLoginEnabled && !password) {
-      setError('Please enter your password to sign in.');
+    if (!password.trim()) {
+      setError('Please enter your password (first-time default: your designation + 123, e.g. principal123, teacher123, admin123).');
       return;
     }
     void handleLogin(
-      { email: email.trim(), ...(password ? { password } : {}) },
+      { email: email.trim(), password: password.trim() },
       'email-form',
     );
   }
@@ -237,7 +237,7 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={demoLoginEnabled ? 'Password (if configured)' : 'Password (required)'}
+                placeholder="Password (default: designation + 123)"
                 className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-900/15"
               />
             </div>
@@ -250,6 +250,16 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50/75 px-4 py-2.5 text-xs text-amber-950 flex items-center gap-2.5">
+            <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0" />
+            <span>
+              <strong>1st-Login Default Password:</strong> Your designation + <code className="font-mono font-bold">123</code> (e.g.{' '}
+              <code className="font-mono font-bold">principal123</code>, <code className="font-mono font-bold">admin123</code>,{' '}
+              <code className="font-mono font-bold">teacher123</code>, <code className="font-mono font-bold">parent123</code>,{' '}
+              <code className="font-mono font-bold">student123</code>). You can set your own personal password right after your first login.
+            </span>
+          </div>
 
           {!demoLoginEnabled && (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-xs text-emerald-900 flex items-center gap-2.5">

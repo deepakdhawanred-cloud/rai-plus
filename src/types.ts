@@ -77,6 +77,10 @@ export interface UserAccount {
   isPlatformCoo?: boolean;
   /** Server-only salted scrypt password hash (stripped before API responses) */
   passwordHash?: string;
+  /** True while user is still using the default designation+123 password until first change */
+  mustChangePassword?: boolean;
+  /** ISO timestamp of when the user last updated their own password */
+  passwordChangedAt?: string;
   /** Independent product DPDP privacy & minor safeguards */
   isMinor?: boolean;
   guardianConsentName?: string;

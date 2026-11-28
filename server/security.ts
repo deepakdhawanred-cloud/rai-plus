@@ -43,7 +43,12 @@ export function verifyPassword(password: string, storedHash: string): boolean {
  */
 export function sanitizeUserForClient<T extends UserAccount>(user: T): Omit<T, 'passwordHash'> {
   const copy = { ...user } as Record<string, unknown>;
+  const hasCustomPassword = Boolean(user.passwordHash);
   delete copy.passwordHash;
+  copy.mustChangePassword =
+    typeof user.mustChangePassword === 'boolean'
+      ? user.mustChangePassword
+      : !hasCustomPassword;
   return copy as Omit<T, 'passwordHash'>;
 }
 

@@ -85,6 +85,10 @@ import {
 } from './server/flagshipProductsRoutes.ts';
 import { registerStudentOnboardingRoutes } from './server/studentOnboardingRoutes.ts';
 import { registerSchoolWebsiteRoutes } from './server/schoolWebsiteRoutes.ts';
+import {
+  getDefaultDesignationPassword,
+  matchesDefaultDesignationPassword,
+} from './src/utils/defaultPasswordPolicy.ts';
 import { createDay1OnboardingBlueprint } from './src/utils/studentOnboardingDocsEngine.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
@@ -813,19 +817,27 @@ async function startServer() {
       return;
     }
 
-    // Enforce password verification whenever a user has set a password OR when demo login is disabled
-    if (user.passwordHash) {
-      if (!password || !verifyPassword(password, user.passwordHash)) {
-        res.status(401).json({ error: 'Invalid email or password.' });
-        return;
-      }
-    } else if (!demoEnabled) {
-      const bootstrapPass = process.env.PROD_BOOTSTRAP_PASSWORD?.trim();
-      if (!bootstrapPass || !password || password !== bootstrapPass) {
-        res.status(401).json({
-          error: 'Password required in production mode. Contact your school administrator to activate your credentials.',
-        });
-        return;
+    // Password verification:
+    // - 1-click Demo Sandbox cards (userId without password when demo mode is enabled) remain allowed for demos.
+    // - Email login (always) & Production login (always) verify either custom passwordHash OR default designation+123 password.
+    const isOneClickDemoCard = Boolean(userId && !email && !password && demoEnabled);
+    if (!isOneClickDemoCard) {
+      if (user.passwordHash) {
+        if (!password || !verifyPassword(password, user.passwordHash)) {
+          res.status(401).json({ error: 'Invalid email or password.' });
+          return;
+        }
+      } else {
+        const bootstrapPass = process.env.PROD_BOOTSTRAP_PASSWORD?.trim();
+        const matchesDefault = matchesDefaultDesignationPassword(user, password);
+        const matchesBootstrap = Boolean(bootstrapPass && password && password === bootstrapPass);
+        if (!password || (!matchesDefault && !matchesBootstrap)) {
+          const hint = getDefaultDesignationPassword(user);
+          res.status(401).json({
+            error: `Invalid password. For first login, enter your designation default password (e.g., ${hint}).`,
+          });
+          return;
+        }
       }
     }
 
@@ -875,8 +887,8 @@ async function startServer() {
       currentPassword?: string;
       newPassword?: string;
     };
-    if (!newPassword || newPassword.length < 8 || newPassword.length > 128) {
-      res.status(400).json({ error: 'New password must be between 8 and 128 characters.' });
+    if (!newPassword || newPassword.length < 6 || newPassword.length > 128) {
+      res.status(400).json({ error: 'New password must be between 6 and 128 characters.' });
       return;
     }
     const db = getDb();
@@ -885,11 +897,31 @@ async function startServer() {
       res.status(404).json({ error: 'User account not found.' });
       return;
     }
-    if (targetUser.passwordHash && (!currentPassword || !verifyPassword(currentPassword, targetUser.passwordHash))) {
-      res.status(401).json({ error: 'Current password is incorrect.' });
+    if (targetUser.passwordHash) {
+      if (!currentPassword || !verifyPassword(currentPassword, targetUser.passwordHash)) {
+        res.status(401).json({ error: 'Current password is incorrect.' });
+        return;
+      }
+    } else if (currentPassword) {
+      const bootstrapPass = process.env.PROD_BOOTSTRAP_PASSWORD?.trim();
+      const matchesDefault = matchesDefaultDesignationPassword(targetUser, currentPassword);
+      const matchesBootstrap = Boolean(bootstrapPass && currentPassword === bootstrapPass);
+      if (!matchesDefault && !matchesBootstrap) {
+        res.status(401).json({
+          error: `Current default password is incorrect (expected ${getDefaultDesignationPassword(targetUser)}).`,
+        });
+        return;
+      }
+    }
+    if (matchesDefaultDesignationPassword(targetUser, newPassword)) {
+      res.status(400).json({
+        error: 'Please choose a new personal password different from your default designation123 password.',
+      });
       return;
     }
     targetUser.passwordHash = hashPassword(newPassword);
+    targetUser.mustChangePassword = false;
+    targetUser.passwordChangedAt = new Date().toISOString();
     appendAuditLog({
       schoolId: req.activeSchoolId ?? targetUser.schoolId,
       actor: targetUser,
@@ -899,7 +931,7 @@ async function startServer() {
       detail: `${targetUser.name} updated their account password.`,
     });
     saveDb(undefined, { schoolId: req.activeSchoolId ?? targetUser.schoolId });
-    res.json({ ok: true });
+    res.json({ ok: true, user: sanitizeUserForClient(targetUser) });
   });
 
   // Protected private campus documents (never exposed under public/)

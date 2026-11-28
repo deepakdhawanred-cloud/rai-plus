@@ -22,6 +22,7 @@ import {
   Globe,
   HeartHandshake,
   IndianRupee,
+  KeyRound,
   Keyboard,
   LayoutDashboard,
   Lightbulb,
@@ -190,6 +191,7 @@ interface ErpWorkspaceProps {
   onRefresh: () => Promise<void>;
   onSwitchUser: () => void;
   onLogout: () => void;
+  onOpenChangePassword?: () => void;
 }
 
 type NavSectionId =
@@ -624,6 +626,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
   onRefresh,
   onSwitchUser,
   onLogout,
+  onOpenChangePassword,
 }) => {
   const isSuperAdmin = data.user.role === 'super_admin';
   const defaultTabForRole: WorkspaceTab = isSuperAdmin
@@ -2004,6 +2007,19 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               >
                 <Globe className="h-3.5 w-3.5 text-[#937024]" />
                 <span>School Website</span>
+              </button>
+            )}
+
+            {onOpenChangePassword && (
+              <button
+                type="button"
+                data-testid="header-change-password-btn"
+                onClick={onOpenChangePassword}
+                title="Change your account password"
+                aria-label="Change your account password"
+                className="hidden sm:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shrink-0"
+              >
+                <KeyRound className="h-3.5 w-3.5" />
               </button>
             )}
 

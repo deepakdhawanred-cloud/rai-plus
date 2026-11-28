@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
+  Award,
   Bus,
   Check,
+  ChevronDown,
   Compass,
   FileCheck2,
   Menu,
   Shield,
+  Sparkles,
   Users,
   X,
 } from 'lucide-react';
@@ -23,8 +26,14 @@ import type {
   BlogArticle,
   CareerCounsellingRequest,
   RouteRecommendationResult,
+  UserAccount,
   UserRole,
 } from '../types';
+import {
+  CareerIntelligenceLandingPage,
+  DynamicPricingPage,
+  SsbAcademyLandingPage,
+} from './public/FlagshipPublicPages';
 import { RAI_PLUS_LOGO_URL } from '../utils/transportEngine';
 import type { PublicDemoAccount } from './UnifiedLoginModal';
 import {
@@ -67,6 +76,11 @@ interface PublicPortalProps {
   publishedBlogs: BlogArticle[];
   onOpenLogin: () => void;
   onQuickLoginRole?: (userId: string) => Promise<void>;
+  onAuthSuccess?: (payload: {
+    token: string;
+    user: UserAccount;
+    activeSchoolId: string | null;
+  }) => void;
 }
 
 const INTEREST_OPTIONS = [
@@ -110,7 +124,46 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   publishedBlogs,
   onOpenLogin,
   onQuickLoginRole,
+  onAuthSuccess,
 }) => {
+  type PublicPageView = 'home' | 'ssb_academy' | 'career_intelligence' | 'pricing';
+
+  function resolvePublicPageFromPath(): PublicPageView {
+    if (typeof window === 'undefined') return 'home';
+    const p = window.location.pathname.toLowerCase();
+    if (p.startsWith('/products/ssb-academy')) return 'ssb_academy';
+    if (p.startsWith('/products/career-intelligence')) return 'career_intelligence';
+    if (p === '/pricing' || p.startsWith('/pricing/')) return 'pricing';
+    return 'home';
+  }
+
+  const [publicPage, setPublicPage] = useState<PublicPageView>(() => resolvePublicPageFromPath());
+  const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onPop = () => setPublicPage(resolvePublicPageFromPath());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  function navigatePublicPage(target: PublicPageView) {
+    setPublicPage(target);
+    setProductsMenuOpen(false);
+    setMobileNavOpen(false);
+    if (typeof window !== 'undefined') {
+      const pathMap: Record<PublicPageView, string> = {
+        home: '/',
+        ssb_academy: '/products/ssb-academy',
+        career_intelligence: '/products/career-intelligence',
+        pricing: '/pricing',
+      };
+      if (window.location.pathname !== pathMap[target]) {
+        window.history.pushState({}, '', pathMap[target]);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
   const [activeSection, setActiveSection] = useState<
     'home' | 'architecture' | 'roles' | 'pricing' | 'career' | 'blog' | 'contact'
   >('home');
@@ -225,7 +278,15 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
       | 'School Demo & Onboarding'
       | 'General Contact',
   ) {
+    if (publicPage !== 'home') {
+      navigatePublicPage('home');
+      setTimeout(() => {
+        const el = document.getElementById(`section-${id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+    }
     setActiveSection(id);
+    setProductsMenuOpen(false);
     setMobileNavOpen(false);
     if (presetEnquiryType) {
       setEnquiryType(presetEnquiryType);
@@ -415,7 +476,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 md:pb-0">
       {/* Strict 3-Zone Top Bar Contract */}
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 py-3.5">
           {/* Zone 1: Official Rai Plus Logo & Wordmark */}
           <a
             href="#section-home"
@@ -437,55 +498,121 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             </span>
           </a>
 
-          {/* Zone 2: 4 concise single-line nav links */}
+          {/* Zone 2: Products Dropdown + concise single-line nav links */}
           <nav
             aria-label="Primary navigation"
-            className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600"
+            className="hidden md:flex items-center gap-4 lg:gap-5 text-xs lg:text-sm font-medium text-slate-600"
           >
+            {/* Products Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-expanded={productsMenuOpen}
+                onClick={() => setProductsMenuOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
+                  publicPage === 'ssb_academy' || publicPage === 'career_intelligence'
+                    ? 'text-blue-900 font-semibold'
+                    : ''
+                }`}
+              >
+                Products <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {productsMenuOpen && (
+                <div
+                  className="absolute left-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50 space-y-1 text-left"
+                  onMouseLeave={() => setProductsMenuOpen(false)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('architecture')}
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-slate-50"
+                  >
+                    <p className="text-xs font-bold text-[#142B46]">School ERP</p>
+                    <p className="text-[11px] text-slate-500">Multi-tenant Operations, Finance, Attendance &amp; HR</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('roles')}
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-slate-50"
+                  >
+                    <p className="text-xs font-bold text-[#142B46]">AI Learning Ecosystem</p>
+                    <p className="text-[11px] text-slate-500">Classes 6–12 Portal, 3D Visuals &amp; Mindmaps</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigatePublicPage('ssb_academy')}
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-amber-50 border border-amber-200/70 bg-amber-50/40"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-[#142B46]">SSB Academy</p>
+                      <span className="rounded bg-[#142B46] px-1.5 py-0.5 text-[9px] font-bold text-amber-300">
+                        100 SETS
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">NDA · CDS · AFCAT · WAT/SRT/TAT/PPDT &amp; 15 OLQs</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigatePublicPage('career_intelligence')}
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-emerald-50 border border-emerald-200/70 bg-emerald-50/40"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-[#0F2A3F]">Career Intelligence</p>
+                      <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                        100% FREE
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">5-Stage IQ/EQ/AQ/CQ, Budget Bypass &amp; Global Roadmap</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('architecture')}
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-slate-50"
+                  >
+                    <p className="text-xs font-bold text-[#142B46]">Smart Campus</p>
+                    <p className="text-[11px] text-slate-500">Inventory AI, GPS Transport, Gate Pass &amp; RFID</p>
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => scrollToSection('architecture')}
+              onClick={() => navigatePublicPage('ssb_academy')}
               className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
-                activeSection === 'architecture' ? 'text-blue-900 font-semibold' : ''
+                publicPage === 'ssb_academy' ? 'text-blue-900 font-semibold' : ''
               }`}
             >
-              Architecture
+              SSB Academy
+            </button>
+            <button
+              type="button"
+              onClick={() => navigatePublicPage('career_intelligence')}
+              className={`inline-flex items-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
+                publicPage === 'career_intelligence' ? 'text-emerald-800 font-semibold' : ''
+              }`}
+            >
+              <span>Career Intelligence</span>
+              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-800">
+                FREE
+              </span>
             </button>
             <button
               type="button"
               onClick={() => scrollToSection('roles')}
               className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
-                activeSection === 'roles' ? 'text-blue-900 font-semibold' : ''
+                publicPage === 'home' && activeSection === 'roles' ? 'text-blue-900 font-semibold' : ''
               }`}
             >
               Role Workspaces
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('career')}
+              onClick={() => navigatePublicPage('pricing')}
               className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
-                activeSection === 'career' ? 'text-blue-900 font-semibold' : ''
+                publicPage === 'pricing' ? 'text-blue-900 font-semibold' : ''
               }`}
             >
-              Career Guidance
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('blog')}
-              className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
-                activeSection === 'blog' ? 'text-blue-900 font-semibold' : ''
-              }`}
-            >
-              Knowledge Centre
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('pricing')}
-              className={`hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 ${
-                activeSection === 'pricing' ? 'text-blue-900 font-semibold' : ''
-              }`}
-            >
-              Plans &amp; ROI
+              Pricing
             </button>
           </nav>
 
@@ -513,6 +640,27 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileNavOpen && (
           <div className="md:hidden border-t border-slate-200 bg-white px-6 py-4 space-y-2 text-sm font-medium text-slate-700">
+            <button
+              type="button"
+              onClick={() => navigatePublicPage('ssb_academy')}
+              className="block w-full text-left py-2 font-bold text-[#142B46]"
+            >
+              SSB Academy (100 Practice Sets)
+            </button>
+            <button
+              type="button"
+              onClick={() => navigatePublicPage('career_intelligence')}
+              className="block w-full text-left py-2 font-bold text-emerald-700"
+            >
+              Career Intelligence (100% Free)
+            </button>
+            <button
+              type="button"
+              onClick={() => navigatePublicPage('pricing')}
+              className="block w-full text-left py-2 hover:text-blue-900"
+            >
+              Pricing &amp; Packages
+            </button>
             <button
               type="button"
               onClick={() => scrollToSection('architecture')}
@@ -552,7 +700,63 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         )}
       </header>
 
+      {publicPage === 'ssb_academy' ? (
+        <SsbAcademyLandingPage
+          onBackHome={() => navigatePublicPage('home')}
+          onNavigatePricing={() => navigatePublicPage('pricing')}
+          onOpenLogin={onOpenLogin}
+          onQuickDemoSsb={
+            onQuickLoginRole ? () => void handleLaunchRolePortal('ssb_student') : undefined
+          }
+          onRegistered={(payload) => onAuthSuccess?.(payload)}
+        />
+      ) : publicPage === 'career_intelligence' ? (
+        <CareerIntelligenceLandingPage
+          onBackHome={() => navigatePublicPage('home')}
+          onNavigatePricing={() => navigatePublicPage('pricing')}
+          onOpenLogin={onOpenLogin}
+          onQuickDemoCareer={
+            onQuickLoginRole ? () => void handleLaunchRolePortal('career_user') : undefined
+          }
+          onRegistered={(payload) => onAuthSuccess?.(payload)}
+        />
+      ) : publicPage === 'pricing' ? (
+        <DynamicPricingPage
+          onBackHome={() => navigatePublicPage('home')}
+          onNavigateSsb={() => navigatePublicPage('ssb_academy')}
+          onNavigateCareer={() => navigatePublicPage('career_intelligence')}
+        />
+      ) : (
       <main>
+        {/* Flagship Standalone Products Ribbon */}
+        <div className="bg-[#142B46] text-white border-b border-[#254264]">
+          <div className="mx-auto max-w-7xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded bg-[#D6B66D] px-2 py-0.5 text-[10px] font-extrabold uppercase text-[#142B46]">
+                NEW FLAGSHIP PRODUCTS
+              </span>
+              <span className="text-slate-200">
+                Standalone portals available directly for aspirants &amp; students — zero school ERP required:
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigatePublicPage('ssb_academy')}
+                className="inline-flex items-center gap-1 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-1 font-bold text-amber-200 hover:bg-amber-400/30"
+              >
+                <Award className="h-3.5 w-3.5" /> Rai Plus SSB Academy (100 Sets)
+              </button>
+              <button
+                type="button"
+                onClick={() => navigatePublicPage('career_intelligence')}
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 border border-emerald-400/50 px-3 py-1 font-bold text-emerald-200 hover:bg-emerald-500/30"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> 100% Free Career Intelligence (₹0)
+              </button>
+            </div>
+          </div>
+        </div>
         {/* ==================== SECTION 1: HERO PROPOSITION ==================== */}
         <section
           id="section-home"
@@ -1850,6 +2054,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
           </div>
         </section>
       </main>
+      )}
 
       {/* Quiet Footer */}
       <footer className="border-t border-slate-200 bg-[#F3E6D8]/45">

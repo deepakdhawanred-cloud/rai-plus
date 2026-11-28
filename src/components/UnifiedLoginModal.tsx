@@ -24,7 +24,7 @@ interface UnifiedLoginModalProps {
   onLoginSuccess: (payload: { token: string; user: UserAccount; activeSchoolId: string | null }) => void;
 }
 
-type RoleCategoryTab = 'leadership' | 'teachers' | 'accounts' | 'clinical' | 'family';
+type RoleCategoryTab = 'leadership' | 'teachers' | 'accounts' | 'clinical' | 'family' | 'flagship';
 
 const RECENT_STORAGE_KEY = 'vs360_recent_logins_v1';
 
@@ -46,6 +46,11 @@ const CATEGORY_TABS: Array<{
     roles: ['clinical_psychologist', 'slp', 'audiologist', 'special_educator'],
   },
   { id: 'family', label: 'Parents & Students', roles: ['parent', 'student'] },
+  {
+    id: 'flagship',
+    label: 'SSB & Free Career',
+    roles: ['ssb_student', 'career_user', 'ssb_admin', 'career_admin'],
+  },
 ];
 
 function loadRecentIds(): string[] {

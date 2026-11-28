@@ -79,6 +79,10 @@ import {
 import { evaluatePeriodDrop } from './src/utils/timetableDragDropEngine.ts';
 import { registerLearningPortalRoutes } from './server/learningPortalRoutes.ts';
 import { registerInventoryRoutes } from './server/inventoryRoutes.ts';
+import {
+  ensureFlagshipProductsInitialized,
+  registerFlagshipProductsRoutes,
+} from './server/flagshipProductsRoutes.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
 import {
@@ -431,7 +435,14 @@ async function startServer() {
 
   // Honeypot bot guard + burst rate limiting on public lead forms
   app.post(
-    ['/api/public/enquiry', '/api/public/admission-enquiry', '/api/public/career-counselling'],
+    [
+      '/api/public/enquiry',
+      '/api/public/admission-enquiry',
+      '/api/public/career-counselling',
+      '/api/public/product-enquiry',
+      '/api/auth/register-ssb',
+      '/api/auth/register-career',
+    ],
     publicFormRateLimiter,
     (req, res, next) => {
       const body = req.body as { website?: unknown; _hp?: unknown } | undefined;
@@ -475,6 +486,7 @@ async function startServer() {
   // ---------------- PUBLIC ENDPOINTS ----------------
   app.get('/api/public/overview', (_req, res) => {
     const db = getDb();
+    ensureFlagshipProductsInitialized(db);
     const demoEnabled = isDemoLoginEnabled();
     res.json({
       schoolsCount: db.schools.length,
@@ -984,6 +996,18 @@ async function startServer() {
   app.get('/api/workspace', requireAuth, async (req: AuthedRequest, res) => {
     const db = getDb();
     const user = req.user!;
+    if (
+      user.role === 'ssb_student' ||
+      user.role === 'career_user' ||
+      user.role === 'ssb_admin' ||
+      user.role === 'career_admin'
+    ) {
+      res.status(403).json({
+        error:
+          'Standalone product account isolation enforced: School ERP workspace is not accessible from SSB Academy or Career Intelligence logins.',
+      });
+      return;
+    }
     const schoolId = req.activeSchoolId ?? db.schools[0].id;
     const activeSchool = db.schools.find((s) => s.id === schoolId) ?? db.schools[0];
 
@@ -8352,6 +8376,25 @@ async function startServer() {
   registerControlRoomAndCalendarRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerLearningPortalRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerInventoryRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerFlagshipProductsRoutes(app, {
+    requireAuth,
+    requireRoles,
+    appendAuditLog,
+    createSessionForUser: (user, res, req) => {
+      const token = crypto.randomBytes(24).toString('hex');
+      const now = Date.now();
+      sessions.set(token, {
+        token,
+        userId: user.id,
+        activeSchoolId: null,
+        createdAt: now,
+        lastSeenAt: now,
+        expiresAt: now + SESSION_IDLE_TTL_MS,
+      });
+      setSessionCookie(res, token, req);
+      return token;
+    },
+  });
 
   // Ensure unmatched API routes always return JSON instead of falling through to SPA HTML
   app.use('/api', (_req, res) => {

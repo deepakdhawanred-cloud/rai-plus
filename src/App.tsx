@@ -9,6 +9,14 @@ import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 const ErpWorkspace = lazy(() =>
   import('./components/ErpWorkspace').then((m) => ({ default: m.ErpWorkspace })),
 );
+const SsbAcademyWorkspace = lazy(() =>
+  import('./components/ssb/SsbAcademyWorkspace').then((m) => ({ default: m.SsbAcademyWorkspace })),
+);
+const FreeCareerIntelligenceWorkspace = lazy(() =>
+  import('./components/career/FreeCareerIntelligenceWorkspace').then((m) => ({
+    default: m.FreeCareerIntelligenceWorkspace,
+  })),
+);
 
 interface PublicOverviewPayload {
   schoolsCount: number;
@@ -16,6 +24,14 @@ interface PublicOverviewPayload {
   schools: Array<{ id: string; name: string; code: string; city: string; state: string; board: string }>;
   demoAccounts: PublicDemoAccount[];
   publishedBlogs: BlogArticle[];
+}
+
+function isStandaloneSsbRole(role?: UserAccount['role']): boolean {
+  return role === 'ssb_student' || role === 'ssb_admin';
+}
+
+function isStandaloneCareerRole(role?: UserAccount['role']): boolean {
+  return role === 'career_user' || role === 'career_admin';
 }
 
 const WorkspaceBootSkeleton = () => (
@@ -57,7 +73,7 @@ const WorkspaceBootSkeleton = () => (
           ))}
         </div>
         <div className="h-64 rounded-xl border border-slate-200 bg-white p-6 flex items-center justify-center text-xs font-medium text-slate-500">
-          Loading authorised school workspace...
+          Loading authorised Rai Plus workspace...
         </div>
       </main>
     </div>
@@ -69,13 +85,13 @@ export default function App() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [hasCookieSession, setHasCookieSession] = useState(false);
+  const [activeUser, setActiveUser] = useState<UserAccount | null>(null);
   const [workspaceData, setWorkspaceData] = useState<WorkspaceData | null>(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapsQuotaExceeded, setMapsQuotaExceeded] = useState(false);
 
   useEffect(() => {
-    // Clear any legacy session token previously cached in browser storage
     try {
       sessionStorage.removeItem('vs360_token');
     } catch {
@@ -105,10 +121,11 @@ export default function App() {
     try {
       const ws = await apiRequest<WorkspaceData>('/api/workspace', {}, activeToken || undefined);
       setWorkspaceData(ws);
+      setActiveUser(ws.user);
     } catch {
-      // Session expired or revoked — return gracefully to public portal
       setToken(null);
       setHasCookieSession(false);
+      setActiveUser(null);
       setWorkspaceData(null);
     } finally {
       setLoadingWorkspace(false);
@@ -128,7 +145,11 @@ export default function App() {
         );
         if (!cancelled && me?.user?.id) {
           setHasCookieSession(true);
-          void loadWorkspace(null);
+          setActiveUser(me.user);
+          // Strictly isolate standalone SSB and Career accounts from School ERP /api/workspace
+          if (!isStandaloneSsbRole(me.user.role) && !isStandaloneCareerRole(me.user.role)) {
+            void loadWorkspace(null);
+          }
         }
       } catch {
         // Not signed in yet — stay on public portal
@@ -143,12 +164,6 @@ export default function App() {
     void loadPublicOverview();
   }, [loadPublicOverview]);
 
-  useEffect(() => {
-    if (token) {
-      void loadWorkspace(token);
-    }
-  }, [token, loadWorkspace]);
-
   function handleLoginSuccess(payload: {
     token: string;
     user: UserAccount;
@@ -156,13 +171,20 @@ export default function App() {
   }) {
     setHasCookieSession(true);
     setToken(payload.token);
+    setActiveUser(payload.user);
     setLoginOpen(false);
+    if (isStandaloneSsbRole(payload.user.role) || isStandaloneCareerRole(payload.user.role)) {
+      setWorkspaceData(null);
+    } else {
+      void loadWorkspace(payload.token);
+    }
   }
 
   function handleLogout() {
     const activeToken = token;
     setToken(null);
     setHasCookieSession(false);
+    setActiveUser(null);
     setWorkspaceData(null);
     if (typeof window !== 'undefined' && window.location.hash.startsWith('#/app/')) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -174,10 +196,6 @@ export default function App() {
   }
 
   const isAuthenticated = Boolean(token || hasCookieSession);
-
-  if (isAuthenticated && loadingWorkspace && !workspaceData) {
-    return <WorkspaceBootSkeleton />;
-  }
 
   const quotaBanner = mapsQuotaExceeded ? (
     <div className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs md:text-sm text-center sticky top-0 z-50 shadow-sm">
@@ -195,6 +213,58 @@ export default function App() {
       </span>
     </div>
   ) : null;
+
+  // Standalone Isolated Workspace 1: Rai Plus SSB Academy
+  if (isAuthenticated && activeUser && isStandaloneSsbRole(activeUser.role)) {
+    return (
+      <ModuleErrorBoundary scope="app" onReset={handleLogout}>
+        {quotaBanner}
+        <Suspense fallback={<WorkspaceBootSkeleton />}>
+          <SsbAcademyWorkspace
+            token={token || ''}
+            onSwitchUser={() => setLoginOpen(true)}
+            onLogout={handleLogout}
+          />
+        </Suspense>
+        <UnifiedLoginModal
+          isOpen={loginOpen}
+          onClose={() => setLoginOpen(false)}
+          demoAccounts={publicData?.demoAccounts ?? []}
+          demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+          schools={publicData?.schools ?? []}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      </ModuleErrorBoundary>
+    );
+  }
+
+  // Standalone Isolated Workspace 2: Rai Plus Free Career Intelligence (₹0)
+  if (isAuthenticated && activeUser && isStandaloneCareerRole(activeUser.role)) {
+    return (
+      <ModuleErrorBoundary scope="app" onReset={handleLogout}>
+        {quotaBanner}
+        <Suspense fallback={<WorkspaceBootSkeleton />}>
+          <FreeCareerIntelligenceWorkspace
+            token={token || ''}
+            onSwitchUser={() => setLoginOpen(true)}
+            onLogout={handleLogout}
+          />
+        </Suspense>
+        <UnifiedLoginModal
+          isOpen={loginOpen}
+          onClose={() => setLoginOpen(false)}
+          demoAccounts={publicData?.demoAccounts ?? []}
+          demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+          schools={publicData?.schools ?? []}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      </ModuleErrorBoundary>
+    );
+  }
+
+  if (isAuthenticated && loadingWorkspace && !workspaceData) {
+    return <WorkspaceBootSkeleton />;
+  }
 
   if (isAuthenticated && workspaceData) {
     return (
@@ -260,6 +330,7 @@ export default function App() {
         demoAccounts={publicData?.demoAccounts ?? []}
         publishedBlogs={publicData?.publishedBlogs ?? []}
         onQuickLoginRole={publicData?.demoLoginEnabled === false ? undefined : handleQuickRoleLogin}
+        onAuthSuccess={handleLoginSuccess}
         onOpenLogin={() => {
           setError(null);
           if (!publicData || (!Array.isArray(publicData.demoAccounts) && publicData.demoLoginEnabled !== false)) {

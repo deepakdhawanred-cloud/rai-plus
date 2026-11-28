@@ -202,6 +202,7 @@ export interface WorkspaceData {
 
 export type WorkspaceTab =
   | 'feature_allotment'
+  | 'flagship_products'
   | 'overview'
   | 'control_room'
   | 'academic_calendar'

@@ -320,6 +320,21 @@ export interface DatabaseState {
   salaryAuditLogs?: import('../src/types').SalaryModificationAuditRecord[];
   gatePasses?: import('../src/types').GatePassRecord[];
   visitorLogs?: import('../src/types').VisitorLogRecord[];
+  // Flagship Standalone Products (SSB Academy + Free Career Intelligence + Central Commercial Registry)
+  commercialRegistry?: import('../src/types/flagshipProducts').CommercialPricingRegistry;
+  ssbPracticeSets?: import('../src/types/flagshipProducts').SsbPracticeSet[];
+  ssbStudentProfiles?: Record<string, import('../src/types/flagshipProducts').SsbStudentProfile>;
+  careerUserWorkspaces?: Record<string, import('../src/types/flagshipProducts').CareerUserWorkspaceState>;
+  productEnquiries?: import('../src/types/flagshipProducts').ProductEnquiryRecord[];
+  dataDeletionRequests?: Array<{
+    id: string;
+    userId: string;
+    email: string;
+    product: 'ssb_academy' | 'career_intelligence';
+    reason: string;
+    status: 'Requested' | 'Completed';
+    requestedAt: string;
+  }>;
 }
 
 export function createInitialDatabase(): DatabaseState {

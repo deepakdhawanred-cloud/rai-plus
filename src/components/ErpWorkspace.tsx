@@ -131,6 +131,9 @@ const MarksReportCardModule = lazy(() =>
 const SuperAdminFeatureAllotmentModule = lazy(() =>
   import('./modules/SuperAdminFeatureAllotmentModule').then((m) => ({ default: m.SuperAdminFeatureAllotmentModule })),
 );
+const SuperAdminProductsConsole = lazy(() =>
+  import('./modules/SuperAdminProductsConsole').then((m) => ({ default: m.SuperAdminProductsConsole })),
+);
 const StaffAttendanceSalaryModule = lazy(() =>
   import('./modules/StaffAttendanceSalaryModule').then((m) => ({ default: m.StaffAttendanceSalaryModule })),
 );
@@ -209,6 +212,13 @@ const NAV_ITEMS: Array<{
     label: 'Plan & Feature Allotment',
     section: 'School Operations',
     icon: Sliders,
+    roles: ['super_admin'],
+  },
+  {
+    id: 'flagship_products',
+    label: 'Products, SSB & Pricing CMS',
+    section: 'School Operations',
+    icon: ShieldCheck,
     roles: ['super_admin'],
   },
   {
@@ -894,7 +904,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
 
   const allowedNav = NAV_ITEMS.filter((item) => {
     if (!item.roles.includes(data.user.role)) return false;
-    if (isSuperAdmin) return item.id === 'feature_allotment';
+    if (isSuperAdmin) return item.id === 'feature_allotment' || item.id === 'flagship_products';
     if (item.id === 'academics') {
       return (
         isWorkspaceTabEnabledForSchool(data.activeSchool, 'academics') ||
@@ -977,7 +987,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
   const gateLiveCount = onCampusVisitorsCount + pendingGatePassesCount;
 
   const currentTabLabel = isSuperAdmin
-    ? 'Plan & Feature Allotment'
+    ? activeTab === 'flagship_products'
+      ? 'Products, SSB & Pricing CMS'
+      : 'Plan & Feature Allotment'
     : activeTab === 'today_workspace' && todayFocusRequest.mode === 'attendance'
       ? 'Today Workspace · One-Go Attendance'
       : activeTab === 'academic_resources'
@@ -1145,7 +1157,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
 
   function handleNavigateTab(tab: WorkspaceTab) {
     if (isSuperAdmin) {
-      setActiveTab('feature_allotment');
+      setActiveTab(tab === 'flagship_products' ? 'flagship_products' : 'feature_allotment');
       return;
     }
     const tabEnabled =
@@ -2049,7 +2061,11 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
           <ModuleErrorBoundary key={`${data.activeSchool.id}-${activeTab}`} moduleLabel={currentTabLabel}>
             <Suspense fallback={<WorkspaceModuleSkeleton label={currentTabLabel} />}>
               {isSuperAdmin ? (
-                <SuperAdminFeatureAllotmentModule data={data} token={token} onRefresh={onRefresh} />
+                activeTab === 'flagship_products' ? (
+                  <SuperAdminProductsConsole token={token} />
+                ) : (
+                  <SuperAdminFeatureAllotmentModule data={data} token={token} onRefresh={onRefresh} />
+                )
               ) : (
                 <>
               {(activeTab === 'overview' || activeTab === 'today_workspace') && (

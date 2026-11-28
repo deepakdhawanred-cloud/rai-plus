@@ -12,7 +12,11 @@ export type UserRole =
   | 'clinical_psychologist'
   | 'slp'
   | 'audiologist'
-  | 'special_educator';
+  | 'special_educator'
+  | 'ssb_student'
+  | 'career_user'
+  | 'ssb_admin'
+  | 'career_admin';
 
 export type BoardType = 'HBSE' | 'CBSE' | 'NCERT/SCERT';
 
@@ -73,6 +77,11 @@ export interface UserAccount {
   isPlatformCoo?: boolean;
   /** Server-only salted scrypt password hash (stripped before API responses) */
   passwordHash?: string;
+  /** Independent product DPDP privacy & minor safeguards */
+  isMinor?: boolean;
+  guardianConsentName?: string;
+  consentAcceptedAt?: string;
+  productEntitlements?: Array<'ssb_academy' | 'career_intelligence'>;
 }
 
 export type OlqGroup =

@@ -34,6 +34,8 @@ import {
   DynamicPricingPage,
   SsbAcademyLandingPage,
 } from './public/FlagshipPublicPages';
+import { SchoolMicrositePage } from './public/SchoolMicrositePage';
+import { toSchoolWebsiteSlug } from '../utils/schoolWebsiteEngine';
 import { RAI_PLUS_LOGO_URL } from '../utils/transportEngine';
 import type { PublicDemoAccount } from './UnifiedLoginModal';
 import {
@@ -128,11 +130,18 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   onQuickLoginRole,
   onAuthSuccess,
 }) => {
-  type PublicPageView = 'home' | 'ssb_academy' | 'career_intelligence' | 'pricing';
+  type PublicPageView = 'home' | 'ssb_academy' | 'career_intelligence' | 'pricing' | 'school_website';
+
+  function resolveSchoolSlugFromPath(): string | null {
+    if (typeof window === 'undefined') return null;
+    const m = window.location.pathname.match(/^\/school\/([^/?#]+)/i);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 
   function resolvePublicPageFromPath(): PublicPageView {
     if (typeof window === 'undefined') return 'home';
     const p = window.location.pathname.toLowerCase();
+    if (p.startsWith('/school/')) return 'school_website';
     if (p.startsWith('/products/ssb-academy')) return 'ssb_academy';
     if (p.startsWith('/products/career-intelligence')) return 'career_intelligence';
     if (p === '/pricing' || p.startsWith('/pricing/')) return 'pricing';
@@ -140,20 +149,42 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   }
 
   const [publicPage, setPublicPage] = useState<PublicPageView>(() => resolvePublicPageFromPath());
+  const [activeSchoolSlug, setActiveSchoolSlug] = useState<string>(
+    () => resolveSchoolSlugFromPath() || 'vis-jjr-01',
+  );
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onPop = () => setPublicPage(resolvePublicPageFromPath());
+    const onPop = () => {
+      setPublicPage(resolvePublicPageFromPath());
+      const slug = resolveSchoolSlugFromPath();
+      if (slug) setActiveSchoolSlug(slug);
+    };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  function navigatePublicPage(target: PublicPageView) {
+  function navigateSchoolWebsite(slug: string) {
+    const clean = slug || 'vis-jjr-01';
+    setActiveSchoolSlug(clean);
+    setPublicPage('school_website');
+    setProductsMenuOpen(false);
+    setMobileNavOpen(false);
+    if (typeof window !== 'undefined') {
+      const targetPath = `/school/${encodeURIComponent(clean)}`;
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, '', targetPath);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function navigatePublicPage(target: Exclude<PublicPageView, 'school_website'>) {
     setPublicPage(target);
     setProductsMenuOpen(false);
     setMobileNavOpen(false);
     if (typeof window !== 'undefined') {
-      const pathMap: Record<PublicPageView, string> = {
+      const pathMap: Record<Exclude<PublicPageView, 'school_website'>, string> = {
         home: '/',
         ssb_academy: '/products/ssb-academy',
         career_intelligence: '/products/career-intelligence',
@@ -474,6 +505,17 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
   const leadArticle = filteredBlogs[0] || null;
   const secondaryArticles = filteredBlogs.slice(1);
 
+  if (publicPage === 'school_website') {
+    return (
+      <SchoolMicrositePage
+        schoolSlug={activeSchoolSlug}
+        onSelectSchoolSlug={(slug) => navigateSchoolWebsite(slug)}
+        onBackToRaiPlus={() => navigatePublicPage('home')}
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 md:pb-0">
       {/* Strict 3-Zone Top Bar Contract */}
@@ -584,6 +626,23 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                     <p className="text-xs font-bold text-[#142B46]">Smart Campus</p>
                     <p className="text-[11px] text-slate-500">Inventory AI, GPS Transport, Gate Pass &amp; RFID</p>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigateSchoolWebsite(
+                        toSchoolWebsiteSlug(schools[0]?.code || schools[0]?.name || 'vis-jjr-01'),
+                      )
+                    }
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-blue-50 border border-blue-200/70 bg-blue-50/40"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-[#142B46]">Partner School Websites</p>
+                      <span className="rounded bg-[#142B46] px-1.5 py-0.5 text-[9px] font-bold text-[#D6B66D]">
+                        LIVE SITES
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">Dedicated website for every onboarded school</p>
+                  </button>
                 </motion.div>
               )}
               </AnimatePresence>
@@ -617,6 +676,17 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
               }`}
             >
               Role Workspaces
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigateSchoolWebsite(
+                  toSchoolWebsiteSlug(schools[0]?.code || schools[0]?.name || 'vis-jjr-01'),
+                )
+              }
+              className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0"
+            >
+              School Websites
             </button>
             <button
               type="button"
@@ -691,6 +761,17 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
               className="block w-full text-left py-2 font-bold text-emerald-700"
             >
               Career Intelligence (100% Free)
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigateSchoolWebsite(
+                  toSchoolWebsiteSlug(schools[0]?.code || schools[0]?.name || 'vis-jjr-01'),
+                )
+              }
+              className="block w-full text-left py-2 font-semibold text-[#142B46] hover:text-blue-900"
+            >
+              School Websites
             </button>
             <button
               type="button"
@@ -940,6 +1021,52 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                 </span>
               </button>
             </div>
+
+            {/* Onboarded Partner School Dedicated Websites Strip */}
+            {schools.length > 0 && (
+              <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white/95 p-5 shadow-xs space-y-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+                      Included Free for Every Onboarded School
+                    </p>
+                    <h2 className="font-display text-base font-extrabold text-[#142B46]">
+                      Live Official Websites of Onboarded Partner Schools
+                    </h2>
+                  </div>
+                  <span className="text-[11px] text-slate-500">
+                    Salient Features · Management · Photo Gallery · Direct Admission Enquiry
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {schools.map((sc) => {
+                    const slug = toSchoolWebsiteSlug(sc.code || sc.name);
+                    return (
+                      <button
+                        key={sc.id}
+                        type="button"
+                        onClick={() => navigateSchoolWebsite(slug)}
+                        className="rai-card-interactive group rounded-xl border border-slate-200 bg-[#FAFBFD] p-4 text-left hover:border-[#142B46] transition-all flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <span className="inline-block rounded bg-[#142B46] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#D6B66D]">
+                            {sc.board} · {sc.city}
+                          </span>
+                          <p className="mt-1 font-display text-xs font-extrabold text-[#142B46] truncate">
+                            {sc.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">/school/{slug}</p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-[#F3E6D8] px-2.5 py-1.5 text-[11px] font-bold text-[#142B46] group-hover:bg-[#142B46] group-hover:text-white transition-colors shrink-0">
+                          Visit Site
+                          <ArrowRight className="h-3 w-3" />
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Full-Width 4-Column Institutional Proof Strip — Midnight Navy with Champagne Gold, Sage Green & Soft Blue Accents */}
             <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#29486B] rounded-2xl border border-[#142B46] bg-[#142B46] text-[#F3E6D8] shadow-md">
@@ -2176,6 +2303,17 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
               className="hover:text-emerald-800 font-semibold text-emerald-700"
             >
               Free Career Intelligence
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigateSchoolWebsite(
+                  toSchoolWebsiteSlug(schools[0]?.code || schools[0]?.name || 'vis-jjr-01'),
+                )
+              }
+              className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0"
+            >
+              School Websites
             </button>
             <button
               type="button"

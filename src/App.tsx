@@ -3,6 +3,7 @@ import type { BlogArticle, UserAccount } from './types';
 import type { WorkspaceData } from './types/workspace';
 import { apiRequest } from './utils/api';
 import { PublicPortal } from './components/PublicPortal';
+import { SchoolMicrositePage } from './components/public/SchoolMicrositePage';
 import { UnifiedLoginModal, type PublicDemoAccount } from './components/UnifiedLoginModal';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { RaiMotionProvider } from './components/motion/RaiMotionSystem';
@@ -91,6 +92,20 @@ export default function App() {
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapsQuotaExceeded, setMapsQuotaExceeded] = useState(false);
+  const [directSchoolSlug, setDirectSchoolSlug] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const match = window.location.pathname.match(/^\/school\/([^/?#]+)/i);
+    return match ? decodeURIComponent(match[1]) : null;
+  });
+
+  useEffect(() => {
+    const syncSchoolRoute = () => {
+      const match = window.location.pathname.match(/^\/school\/([^/?#]+)/i);
+      setDirectSchoolSlug(match ? decodeURIComponent(match[1]) : null);
+    };
+    window.addEventListener('popstate', syncSchoolRoute);
+    return () => window.removeEventListener('popstate', syncSchoolRoute);
+  }, []);
 
   useEffect(() => {
     try {
@@ -214,6 +229,49 @@ export default function App() {
       </span>
     </div>
   ) : null;
+
+  // Direct Onboarded School Microsite Route (/school/:slug) — works whether signed in or public!
+  if (directSchoolSlug) {
+    return (
+      <RaiMotionProvider>
+        <ModuleErrorBoundary scope="app" onReset={() => setDirectSchoolSlug(null)}>
+          {quotaBanner}
+          <SchoolMicrositePage
+            schoolSlug={directSchoolSlug}
+            onSelectSchoolSlug={(nextSlug) => {
+              setDirectSchoolSlug(nextSlug);
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', `/school/${encodeURIComponent(nextSlug)}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            onBackToRaiPlus={() => {
+              setDirectSchoolSlug(null);
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', '/');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            onOpenLogin={() => setLoginOpen(true)}
+          />
+          <UnifiedLoginModal
+            isOpen={loginOpen}
+            onClose={() => setLoginOpen(false)}
+            demoAccounts={publicData?.demoAccounts ?? []}
+            demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+            schools={publicData?.schools ?? []}
+            onLoginSuccess={(payload) => {
+              setDirectSchoolSlug(null);
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', '/');
+              }
+              handleLoginSuccess(payload);
+            }}
+          />
+        </ModuleErrorBoundary>
+      </RaiMotionProvider>
+    );
+  }
 
   // Standalone Isolated Workspace 1: Rai Plus SSB Academy
   if (isAuthenticated && activeUser && isStandaloneSsbRole(activeUser.role)) {

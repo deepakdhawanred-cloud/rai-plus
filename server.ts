@@ -84,6 +84,7 @@ import {
   registerFlagshipProductsRoutes,
 } from './server/flagshipProductsRoutes.ts';
 import { registerStudentOnboardingRoutes } from './server/studentOnboardingRoutes.ts';
+import { registerSchoolWebsiteRoutes } from './server/schoolWebsiteRoutes.ts';
 import { createDay1OnboardingBlueprint } from './src/utils/studentOnboardingDocsEngine.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
@@ -8416,6 +8417,7 @@ async function startServer() {
       return token;
     },
   });
+  registerSchoolWebsiteRoutes(app, { requireAuth, requireRoles, appendAuditLog });
 
   // Ensure unmatched API routes always return JSON instead of falling through to SPA HTML
   app.use('/api', (_req, res) => {

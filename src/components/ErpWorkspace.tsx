@@ -19,6 +19,7 @@ import {
   Cpu,
   FileSpreadsheet,
   GitMerge,
+  Globe,
   HeartHandshake,
   IndianRupee,
   Keyboard,
@@ -55,6 +56,7 @@ import { RoleNavigationDock } from './RoleNavigationDock';
 import { RevisionStreakReminderBell } from './RevisionStreakReminderBell';
 import { pushToast, ToastViewport } from './ToastProvider';
 import { AnimatedPageTransition } from './motion/RaiMotionSystem';
+import { SchoolWebsiteCmsModal } from './SchoolWebsiteCmsModal';
 
 // Code-split all 27 ERP workspace modules so every role only downloads the chunks it actually opens
 const DashboardOverview = lazy(() =>
@@ -665,6 +667,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     data.students[0]?.id ?? null,
   );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [websiteCmsOpen, setWebsiteCmsOpen] = useState(false);
   const [sidebarCompact, setSidebarCompact] = useState<boolean>(() => {
     try {
       return localStorage.getItem('rai_sidebar_compact_v1') === '1';
@@ -1991,6 +1994,19 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               />
             )}
 
+            {!isSuperAdmin && ['school_admin', 'principal', 'coordinator'].includes(data.user.role) && (
+              <button
+                type="button"
+                data-testid="header-school-website-btn"
+                onClick={() => setWebsiteCmsOpen(true)}
+                title="View & customize your school's official public website"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-[#D6B66D]/70 bg-[#FAF4EC] px-2.5 py-1.5 text-xs font-bold text-[#142B46] hover:bg-[#f3e6d3] transition-colors whitespace-nowrap shrink-0"
+              >
+                <Globe className="h-3.5 w-3.5 text-[#937024]" />
+                <span>School Website</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => void handleManualRefresh()}
@@ -2496,6 +2512,13 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
 
       {/* Global Non-Blocking Toast Viewport */}
       <ToastViewport />
+      <SchoolWebsiteCmsModal
+        isOpen={websiteCmsOpen}
+        onClose={() => setWebsiteCmsOpen(false)}
+        token={token}
+        schoolName={data.activeSchool.name}
+        canEdit={['super_admin', 'school_admin', 'principal'].includes(data.user.role)}
+      />
     </div>
   );
 };

@@ -248,6 +248,8 @@ export interface DatabaseState {
   learningPortalDocs?: Record<string, Record<string, unknown>>;
   // Rai Plus AI Inventory, Asset, Procurement & Resource Optimization System
   inventoryBySchool?: Record<string, import('../src/types/inventory').SchoolInventoryState>;
+  // Multi-Tenant Onboarded School Dedicated Websites (CMS overrides per schoolId)
+  schoolWebsitesBySchool?: Record<string, import('../src/types/schoolWebsite').SchoolWebsiteProfile>;
   // Additive Virat 360° Intelligence Collections
   thinkingQuestionBank: ThinkingQuestionItem[];
   thinkingScoringConfigs: Record<string, ThinkingScoringConfig>;

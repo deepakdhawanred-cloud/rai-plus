@@ -32,6 +32,7 @@ import visParsedSeedRaw from '../src/data/visParsedReportsSeed.json' with { type
 import { VIS_FACULTY_USERS, VIS_TIMETABLE_NOV_2026 } from '../src/data/visTimetableNov2026.ts';
 import { buildVisFullRosterBundle } from './visRosterBuilder.ts';
 import { VIS_CLINICAL_SPECIALIST_USERS } from './clinicalSeedData.ts';
+import { enrichVisDmitProfileWithFingerprint } from '../src/utils/visReportParser.ts';
 
 export const VIS_SCHOOL_BASE: School = {
   id: 'school-vis-jjr',
@@ -1669,4 +1670,32 @@ export const VIS_PARENT_COMPLAINTS: ParentComplaint[] = [
   },
 ];
 
-export const VIS_PARSED_REPORTS_SEED = visParsedSeedRaw as Record<string, VisParsedReportProfile>;
+const RAW_VIS_PARSED_REPORTS = visParsedSeedRaw as Record<string, VisParsedReportProfile>;
+
+const ENRICHED_VIS_PARSED_REPORTS: Record<string, VisParsedReportProfile> = {};
+const X_SERIES_PATTERN_SETS: string[][] = [
+  ['X1', 'X2.1'],
+  ['X2', 'X2.2'],
+  ['X', 'X1'],
+  ['X2.1', 'X2.2'],
+];
+
+Object.entries(RAW_VIS_PARSED_REPORTS).forEach(([fileId, profile], idx) => {
+  const isReflectiveOrCautious =
+    profile.personality.primaryTrait === 'CAUTIOUS' ||
+    profile.personality.secondaryTrait === 'CAUTIOUS' ||
+    fileId === '12vdAGTc-69yUv0BDo3GMxIuTZ-Ku_G0a' || // Abhiraj (Class 6-A flagship demo student)
+    idx % 3 === 0;
+
+  ENRICHED_VIS_PARSED_REPORTS[fileId] = enrichVisDmitProfileWithFingerprint(profile, {
+    fingerprintCodes: isReflectiveOrCautious
+      ? X_SERIES_PATTERN_SETS[idx % X_SERIES_PATTERN_SETS.length]
+      : ['W1', 'U2'],
+    acquiringStyle: isReflectiveOrCautious ? 'Reflective (Arch)' : 'Balanced',
+  });
+});
+
+export const VIS_PARSED_REPORTS_SEED: Record<string, VisParsedReportProfile> = {
+  ...VIS_ROSTER_BUNDLE.excelDmitProfiles,
+  ...ENRICHED_VIS_PARSED_REPORTS,
+};

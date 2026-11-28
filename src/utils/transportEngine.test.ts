@@ -8,6 +8,7 @@ import {
   computePointToSegmentMetrics,
   computeRouteWiseSegregation,
   createInitialBusRoutesForSchool,
+  getSchoolGeoAnchor,
   haversineDistanceKm,
   optimizeBusRouteForAdmission,
   recommendRouteForLocality,
@@ -41,9 +42,9 @@ function makeStudent(id: string, name: string, classSection: string, address: st
   };
 }
 
-test('recommendRouteForLocality connects Model Town admission enquiry to R-02 with exact match', () => {
+test('recommendRouteForLocality connects Housing Board admission enquiry to VIS R-02 (Sunil Yadav) with exact match', () => {
   const routes = createInitialBusRoutesForSchool(SCHOOL_ID);
-  const rec = recommendRouteForLocality('Model Town, Jhajjar', 'House 14 near Park Gate', routes, []);
+  const rec = recommendRouteForLocality('Housing Board, Dharuhera', 'Near Police Chowki', routes, []);
 
   assert.ok(rec, 'Expected a recommended bus route');
   assert.equal(rec.routeCode, 'R-02');
@@ -193,7 +194,7 @@ test('buildTransportRoleBundle enforces strict parent single-bus isolation while
 test('advanceBusGpsStep moves GPS-equipped bus coordinates while leaving non-GPS buses untouched', () => {
   const routes = createInitialBusRoutesForSchool(SCHOOL_ID);
   const gpsBus = routes.find((r) => r.gpsEnabled)!;
-  const nonGpsBus = routes.find((r) => !r.gpsEnabled)!;
+  const nonGpsBus = { ...gpsBus, id: 'rt-non-gps', gpsEnabled: false, gpsStatus: 'No GPS' as const };
 
   const steppedGps = advanceBusGpsStep(gpsBus);
   assert.ok(
@@ -241,11 +242,12 @@ test('haversineDistanceKm and computePointToSegmentMetrics accurately measure di
 
 test('optimizeBusRouteForAdmission ranks all routes by residential geolocation and capacity', () => {
   const routes = createInitialBusRoutesForSchool(SCHOOL_ID);
-  // Coordinate right next to R-02 Model Town Park Gate stop (28.6245, 76.6533)
+  const r2Stop = routes.find((r) => r.routeCode === 'R-02')!.stops[1];
   const result = optimizeBusRouteForAdmission({
-    residentialGeo: { lat: 28.6246, lng: 76.6534 },
+    residentialGeo: { lat: r2Stop.lat + 0.0001, lng: r2Stop.lng + 0.0001 },
     routes,
     allocations: [],
+    schoolLocation: getSchoolGeoAnchor(SCHOOL_ID),
   });
 
   assert.equal(result.algorithmMode, 'geolocation_and_capacity');
@@ -275,7 +277,7 @@ test('optimizeBusRouteForAdmission enforces capacity overflow hard constraint wh
       routeId: r2.id,
       stopId: r2.stops[0].id,
       stopName: r2.stops[0].name,
-      areaLocality: 'Model Town',
+      areaLocality: 'Housing Board',
       assignedBy: 'System',
       assignedAt: '2026-11-22T00:00:00Z',
     }),
@@ -283,9 +285,10 @@ test('optimizeBusRouteForAdmission enforces capacity overflow hard constraint wh
 
   // Student lives right beside R-02 stop, but R-02 is 100% full
   const result = optimizeBusRouteForAdmission({
-    residentialGeo: { lat: 28.6245, lng: 76.6533 },
+    residentialGeo: { lat: r2.stops[1].lat, lng: r2.stops[1].lng },
     routes,
     allocations: fullR2Allocations,
+    schoolLocation: getSchoolGeoAnchor(SCHOOL_ID),
   });
 
   assert.ok(result.bestRoute);
@@ -359,11 +362,13 @@ test('optimizeBusRouteForAdmission prefers lower-utilization bus when two routes
 
 test('optimizeBusRouteForAdmission flags Walkable Campus Zone when residence is within 0.65 km of school', () => {
   const routes = createInitialBusRoutesForSchool(SCHOOL_ID);
-  // Campus is at 28.6063, 76.6565; pick point ~200m away
+  const campus = getSchoolGeoAnchor(SCHOOL_ID);
+  // Pick point ~200m away from VIS Kapriwas campus
   const result = optimizeBusRouteForAdmission({
-    residentialGeo: { lat: 28.6075, lng: 76.6572 },
+    residentialGeo: { lat: campus.lat + 0.0012, lng: campus.lng + 0.0007 },
     routes,
     allocations: [],
+    schoolLocation: campus,
   });
 
   assert.equal(result.walkableCampusZone, true);

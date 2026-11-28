@@ -1,0 +1,440 @@
+import type { BusRoute, BusRouteStop } from '../types';
+
+export const VIS_CAMPUS_GEO_ANCHOR = {
+  lat: 28.2415,
+  lng: 76.7845,
+  label: 'Virat International School, Kapriwas (Pataudi Rd, 1 KM from NH-8, Rewari)',
+};
+
+export interface VisStudentRouteRosterEntry {
+  routeCode: string;
+  stopName: string;
+  studentName: string;
+  classHint?: string;
+}
+
+/**
+ * Authoritative Virat International School (Kapriwas, Rewari) Bus Routes from Route.xlsx & Dharam Kanta/Mamta Medical sheet.
+ */
+export function buildVisOfficialBusRoutes(schoolId = 'school-vis-jjr'): BusRoute[] {
+  const nowIso = new Date().toISOString();
+  const baseLat = VIS_CAMPUS_GEO_ANCHOR.lat;
+  const baseLng = VIS_CAMPUS_GEO_ANCHOR.lng;
+
+  const makeStop = (
+    routeCode: string,
+    seq: number,
+    name: string,
+    area: string,
+    dLat: number,
+    dLng: number,
+    morningPickupTime: string,
+    eveningDropTime: string,
+  ): BusRouteStop => ({
+    id: `stop-${schoolId}-${routeCode.toLowerCase().replace(/[^a-z0-9]/g, '')}-${seq}`,
+    name,
+    area,
+    lat: Number((baseLat + dLat).toFixed(5)),
+    lng: Number((baseLng + dLng).toFixed(5)),
+    morningPickupTime,
+    eveningDropTime,
+    sequence: seq,
+  });
+
+  // Route 1: Bus 8030 — Dharuhera (46 students, Driver: Rahul 9813700934)
+  const r1Stops: BusRouteStop[] = [
+    makeStop('R01', 1, 'Dharuhera Bus Stand', 'Dharuhera', -0.036, 0.012, '07:05', '14:48'),
+    makeStop('R01', 2, 'BPL Chowk, Dharuhera', 'Dharuhera', -0.031, 0.010, '07:12', '14:42'),
+    makeStop('R01', 3, 'Subhash Chowk', 'Dharuhera', -0.027, 0.008, '07:17', '14:37'),
+    makeStop('R01', 4, 'Alwar Bye Pass', 'Dharuhera', -0.022, 0.006, '07:22', '14:32'),
+    makeStop('R01', 5, 'Hanuman Mandir', 'Dharuhera', -0.017, 0.005, '07:27', '14:27'),
+    makeStop('R01', 6, 'Sohna Road Crossing', 'Sohna Road', -0.012, 0.004, '07:32', '14:22'),
+    makeStop('R01', 7, 'Service Station (NH-8)', 'Dharuhera', -0.006, 0.002, '07:38', '14:16'),
+    makeStop('R01', 8, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 2: Bus 8030-HB — Housing Board (55 students, Driver: Sunil Yadav 8295943878)
+  const r2Stops: BusRouteStop[] = [
+    makeStop('R02', 1, 'Jal Ghar, Housing Board', 'Housing Board', -0.029, 0.019, '07:10', '14:42'),
+    makeStop('R02', 2, 'Police Chowki, Housing Board', 'Housing Board', -0.023, 0.015, '07:20', '14:32'),
+    makeStop('R02', 3, 'Pooja Mam Stop, Housing Board', 'Housing Board', -0.016, 0.010, '07:32', '14:20'),
+    makeStop('R02', 4, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 3: Bus 8066 — Sidhrawali, Malpura & Joniawas (Driver: Yaspal 8295857680)
+  const r3Stops: BusRouteStop[] = [
+    makeStop('R03', 1, 'Sidhrawali Mandir', 'Sidhrawali', 0.042, 0.036, '06:55', '14:58'),
+    makeStop('R03', 2, 'Rathiwas', 'Rathiwas', 0.037, 0.031, '07:01', '14:52'),
+    makeStop('R03', 3, 'Dinokri', 'Dinokri', 0.033, 0.027, '07:06', '14:47'),
+    makeStop('R03', 4, 'Bhudka', 'Bhudka', 0.029, 0.024, '07:10', '14:43'),
+    makeStop('R03', 5, 'Sidhrawali Bus Stand', 'Sidhrawali', 0.025, 0.021, '07:14', '14:39'),
+    makeStop('R03', 6, 'Yadav Hotel & Petrol Pump', 'Sidhrawali', 0.021, 0.017, '07:19', '14:34'),
+    makeStop('R03', 7, 'Sidhrawali Kunj & Nagal', 'Sidhrawali Kunj', 0.017, 0.014, '07:24', '14:29'),
+    makeStop('R03', 8, 'Malpura', 'Malpura', 0.012, 0.009, '07:30', '14:23'),
+    makeStop('R03', 9, 'Joniawas & Model School', 'Joniawas', 0.007, 0.005, '07:37', '14:16'),
+    makeStop('R03', 10, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 4: Bus 4145 — Garib Nagar, Dev Nagar, Santosh Colony, Mau & Lokri (Driver: Bir Singh 9467931227)
+  const r4Stops: BusRouteStop[] = [
+    makeStop('R04', 1, 'Lokri', 'Lokri', 0.034, -0.024, '07:02', '14:50'),
+    makeStop('R04', 2, 'Mau', 'Mau', 0.027, -0.019, '07:10', '14:42'),
+    makeStop('R04', 3, 'Dev Nagar', 'Dev Nagar', 0.019, -0.013, '07:19', '14:33'),
+    makeStop('R04', 4, 'Santosh Colony & Bass Road', 'Santosh Colony', 0.013, -0.009, '07:28', '14:24'),
+    makeStop('R04', 5, 'Garib Nagar', 'Garib Nagar', 0.007, -0.005, '07:36', '14:16'),
+    makeStop('R04', 6, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 5: ECO 7718 — Karan Kunj, Maheshwari, Dwarkadhish, Delton, Anandam & Kapriwas Junior (Driver: Sunil Gujjar 9518020049)
+  const r5Stops: BusRouteStop[] = [
+    makeStop('R05', 1, 'Karan Kunj', 'Karan Kunj', -0.018, -0.022, '07:08', '14:44'),
+    makeStop('R05', 2, 'Maheshwari', 'Maheshwari', -0.014, -0.017, '07:14', '14:38'),
+    makeStop('R05', 3, 'Dwarkadhish City & Society', 'Dwarkadhish', -0.010, -0.012, '07:20', '14:32'),
+    makeStop('R05', 4, 'Delton & Di Gram ki Dhani', 'Delton', -0.007, -0.008, '07:26', '14:26'),
+    makeStop('R05', 5, 'Anandam & Old Rao', 'Anandam', -0.004, -0.005, '07:33', '14:19'),
+    makeStop('R05', 6, 'Kapriwas Junior Stop', 'Kapriwas', -0.002, -0.002, '07:40', '14:12'),
+    makeStop('R05', 7, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 6: Bus 3231 — Banspadaka, Naya Gaon, Nannu Lokra, KS ki Dhani, Palasoli & Bhonkerka
+  const r6Stops: BusRouteStop[] = [
+    makeStop('R06', 1, 'Banspadaka & Naya Gaon', 'Banspadaka', 0.028, -0.034, '07:00', '14:52'),
+    makeStop('R06', 2, 'Nannu, Lokra & KS ki Dhani', 'Lokra', 0.021, -0.026, '07:12', '14:40'),
+    makeStop('R06', 3, 'Palasoli Mandir', 'Palasoli', 0.014, -0.017, '07:24', '14:28'),
+    makeStop('R06', 4, 'Bhonkerka', 'Bhonkerka', 0.008, -0.009, '07:34', '14:18'),
+    makeStop('R06', 5, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  // Route 7: Dharam Kanta & Mamta Medical Express (24 Dharam Kanta + 44 Mamta Medical = 68 students)
+  const r7Stops: BusRouteStop[] = [
+    makeStop('R07', 1, 'Dharam Kanta (NH-8)', 'Dharam Kanta', -0.024, -0.006, '07:15', '14:36'),
+    makeStop('R07', 2, 'Mamta Medical Chowk', 'Mamta Medical', -0.014, -0.003, '07:28', '14:22'),
+    makeStop('R07', 3, 'VIS Campus Gate, Kapriwas', 'School Campus', 0, 0, '07:48', '14:05'),
+  ];
+
+  return [
+    {
+      id: `rt-${schoolId}-01`,
+      schoolId,
+      routeCode: 'R-01',
+      routeName: 'Bus 8030 · Dharuhera Express (Bus Stand – Service Station)',
+      busNumber: 'HR-36-S-8030',
+      capacity: 54,
+      driverName: 'Rahul',
+      driverPhone: '+91 98137 00934',
+      driverLicenseNo: 'HR36-20170080301',
+      driverExperienceYears: 10,
+      attendantName: 'VIS Route Attendant (8030)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-8030',
+      gpsStatus: 'Live',
+      currentLat: r1Stops[3].lat,
+      currentLng: r1Stops[3].lng,
+      currentSpeedKmph: 29,
+      headingDeg: 18,
+      currentStopIndex: 3,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1100,
+      areasCovered: [
+        'Dharuhera',
+        'Service Station',
+        'Sohna Road',
+        'Hanuman Mandir',
+        'Alwar Bye Pass',
+        'Subhash Chowk',
+        'BPL',
+        'Bus Stand',
+      ],
+      stops: r1Stops,
+      routeColor: '#142B46',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-02`,
+      schoolId,
+      routeCode: 'R-02',
+      routeName: 'Bus 8030-HB · Housing Board Corridor (Jal Ghar – Police Chowki – Pooja Mam)',
+      busNumber: 'HR-36-S-8031',
+      capacity: 60,
+      driverName: 'Sunil Yadav',
+      driverPhone: '+91 82959 43878',
+      driverLicenseNo: 'HR36-20160080312',
+      driverExperienceYears: 12,
+      attendantName: 'VIS Route Attendant (HB)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-8031',
+      gpsStatus: 'Live',
+      currentLat: r2Stops[1].lat,
+      currentLng: r2Stops[1].lng,
+      currentSpeedKmph: 26,
+      headingDeg: 324,
+      currentStopIndex: 1,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1050,
+      areasCovered: ['Housing Board', 'Pooja Mam', 'Police Chowki', 'Jal Ghar', 'Dharuhera HB'],
+      stops: r2Stops,
+      routeColor: '#6E987A',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-03`,
+      schoolId,
+      routeCode: 'R-03',
+      routeName: 'Bus 8066 · Sidhrawali, Malpura & Joniawas Corridor',
+      busNumber: 'HR-36-S-8066',
+      capacity: 64,
+      driverName: 'Yaspal',
+      driverPhone: '+91 82958 57680',
+      driverLicenseNo: 'HR36-20150080664',
+      driverExperienceYears: 13,
+      attendantName: 'VIS Route Attendant (8066)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-8066',
+      gpsStatus: 'Live',
+      currentLat: r3Stops[4].lat,
+      currentLng: r3Stops[4].lng,
+      currentSpeedKmph: 31,
+      headingDeg: 222,
+      currentStopIndex: 4,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1200,
+      areasCovered: [
+        'Sidhrawali',
+        'Sidhrawali Mandir',
+        'Rathiwas',
+        'Dinokri',
+        'Bhudka',
+        'Sidhrawali Bus Stand',
+        'Yadav Hotel',
+        'Petrol Pump',
+        'Sidhrawali Kunj',
+        'Nagal',
+        'Malpura',
+        'Joniawas',
+        'Joniyawas',
+        'Model School',
+      ],
+      stops: r3Stops,
+      routeColor: '#9A7422',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-04`,
+      schoolId,
+      routeCode: 'R-04',
+      routeName: 'Bus 4145 · Garib Nagar, Dev Nagar, Santosh Colony, Mau & Lokri',
+      busNumber: 'HR-36-S-4145',
+      capacity: 44,
+      driverName: 'Bir Singh',
+      driverPhone: '+91 94679 31227',
+      driverLicenseNo: 'HR36-20140041459',
+      driverExperienceYears: 14,
+      attendantName: 'VIS Route Attendant (4145)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-4145',
+      gpsStatus: 'Live',
+      currentLat: r4Stops[2].lat,
+      currentLng: r4Stops[2].lng,
+      currentSpeedKmph: 25,
+      headingDeg: 146,
+      currentStopIndex: 2,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1150,
+      areasCovered: ['Garib Nagar', 'Dev Nagar', 'Santosh Colony', 'Bass Road', 'Mau', 'Lokri'],
+      stops: r4Stops,
+      routeColor: '#3B6E8C',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-05`,
+      schoolId,
+      routeCode: 'R-05',
+      routeName: 'ECO 7718 · Karan Kunj, Maheshwari, Dwarkadhish, Delton, Anandam & Kapriwas',
+      busNumber: 'HR-36-ECO-7718',
+      capacity: 42,
+      driverName: 'Sunil Gujjar',
+      driverPhone: '+91 95180 20049',
+      driverLicenseNo: 'HR36-20180077183',
+      driverExperienceYears: 9,
+      attendantName: 'VIS Route Attendant (7718)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-7718',
+      gpsStatus: 'Live',
+      currentLat: r5Stops[2].lat,
+      currentLng: r5Stops[2].lng,
+      currentSpeedKmph: 24,
+      headingDeg: 52,
+      currentStopIndex: 2,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 950,
+      areasCovered: [
+        'Karan Kunj',
+        'Maheshwari',
+        'Dwarkadhish City',
+        'Dwarkadhish Society',
+        'Dwarkadhish',
+        'Delton',
+        'Di Gram ki Dhani',
+        'Anandam',
+        'Old Rao',
+        'Kapriwas',
+        'Kapriwas Junior',
+      ],
+      stops: r5Stops,
+      routeColor: '#7C4D8B',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-06`,
+      schoolId,
+      routeCode: 'R-06',
+      routeName: 'Bus 3231 · Banspadaka, Naya Gaon, Lokra, Palasoli & Bhonkerka',
+      busNumber: 'HR-36-S-3231',
+      capacity: 38,
+      driverName: 'VIS Transport Driver (Bus 3231)',
+      driverPhone: '+91 99920 23224',
+      driverLicenseNo: 'HR36-20170032318',
+      driverExperienceYears: 10,
+      attendantName: 'VIS Route Attendant (3231)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-3231',
+      gpsStatus: 'Live',
+      currentLat: r6Stops[2].lat,
+      currentLng: r6Stops[2].lng,
+      currentSpeedKmph: 27,
+      headingDeg: 130,
+      currentStopIndex: 2,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1100,
+      areasCovered: [
+        'Banspadaka',
+        'Naya Gaon',
+        'Nannu',
+        'Lokra',
+        'Lokara',
+        'KS ki Dhani',
+        'Palasoli',
+        'Palasoli Mandir',
+        'Bhonkerka',
+      ],
+      stops: r6Stops,
+      routeColor: '#B45309',
+      active: true,
+    },
+    {
+      id: `rt-${schoolId}-07`,
+      schoolId,
+      routeCode: 'R-07',
+      routeName: 'VIS Shuttle · Dharam Kanta & Mamta Medical Express',
+      busNumber: 'HR-36-S-8077',
+      capacity: 72,
+      driverName: 'VIS Fleet Driver (Dharam Kanta)',
+      driverPhone: '+91 99920 23224',
+      driverLicenseNo: 'HR36-20160080772',
+      driverExperienceYears: 11,
+      attendantName: 'VIS Route Attendant (DK/MM)',
+      attendantPhone: '+91 99920 23224',
+      gpsEnabled: true,
+      gpsDeviceId: 'GPS-VIS-8077',
+      gpsStatus: 'Live',
+      currentLat: r7Stops[1].lat,
+      currentLng: r7Stops[1].lng,
+      currentSpeedKmph: 23,
+      headingDeg: 14,
+      currentStopIndex: 1,
+      activeShift: 'Morning',
+      lastGpsPingAt: nowIso,
+      monthlyFeeInr: 1000,
+      areasCovered: ['Dharam Kanta', 'Dharamkata', 'Mamta Medical'],
+      stops: r7Stops,
+      routeColor: '#0F766E',
+      active: true,
+    },
+  ];
+}
+
+/**
+ * High-confidence student name + grade -> routeCode/stopName overrides directly from Route.xlsx & Untitled spreadsheet.xlsx
+ * so key VIS students (including flagship accounts Abhiraj, Hardik, Kush, Ajay, Mohit, Jasika, Chirag, Aitik, Arushi)
+ * map directly to their exact real bus route & stop!
+ */
+export const VIS_ROUTE_ROSTER_OVERRIDES: VisStudentRouteRosterEntry[] = [
+  // Flagship & Route 1 (8030 Dharuhera — Rahul)
+  { routeCode: 'R-01', stopName: 'Hanuman Mandir', studentName: 'ajay', classHint: '10' },
+  { routeCode: 'R-01', stopName: 'Subhash Chowk', studentName: 'mohit', classHint: '9' },
+  { routeCode: 'R-01', stopName: 'Dharuhera Bus Stand', studentName: 'jasika', classHint: '9' },
+  { routeCode: 'R-01', stopName: 'Dharuhera Bus Stand', studentName: 'jashika', classHint: '9' },
+  { routeCode: 'R-01', stopName: 'BPL Chowk, Dharuhera', studentName: 'arushi', classHint: '11' },
+  { routeCode: 'R-01', stopName: 'Service Station (NH-8)', studentName: 'ayush', classHint: '8' },
+  { routeCode: 'R-01', stopName: 'Service Station (NH-8)', studentName: 'akansha', classHint: '8' },
+  { routeCode: 'R-01', stopName: 'Subhash Chowk', studentName: 'rohit', classHint: '10' },
+  { routeCode: 'R-01', stopName: 'Subhash Chowk', studentName: 'pushpa', classHint: '12' },
+  { routeCode: 'R-01', stopName: 'BPL Chowk, Dharuhera', studentName: 'mithlesh', classHint: '12' },
+  { routeCode: 'R-01', stopName: 'Dharuhera Bus Stand', studentName: 'arun', classHint: '12' },
+
+  // Route 2 (Housing Board — Sunil Yadav)
+  { routeCode: 'R-02', stopName: 'Pooja Mam Stop, Housing Board', studentName: 'abhiraj', classHint: '6' },
+  { routeCode: 'R-02', stopName: 'Police Chowki, Housing Board', studentName: 'kush', classHint: '3' },
+  { routeCode: 'R-02', stopName: 'Police Chowki, Housing Board', studentName: 'love', classHint: '3' },
+  { routeCode: 'R-02', stopName: 'Jal Ghar, Housing Board', studentName: 'chirag', classHint: '12' },
+  { routeCode: 'R-02', stopName: 'Pooja Mam Stop, Housing Board', studentName: 'shreya', classHint: '9' },
+  { routeCode: 'R-02', stopName: 'Pooja Mam Stop, Housing Board', studentName: 'tanishka', classHint: '9' },
+  { routeCode: 'R-02', stopName: 'Pooja Mam Stop, Housing Board', studentName: 'nakshita', classHint: '6' },
+  { routeCode: 'R-02', stopName: 'Pooja Mam Stop, Housing Board', studentName: 'radhika', classHint: '10' },
+  { routeCode: 'R-02', stopName: 'Jal Ghar, Housing Board', studentName: 'gourav', classHint: '12' },
+  { routeCode: 'R-02', stopName: 'Jal Ghar, Housing Board', studentName: 'priyanka', classHint: '9' },
+
+  // Route 3 (8066 Sidhrawali / Malpura / Joniawas — Yaspal)
+  { routeCode: 'R-03', stopName: 'Yadav Hotel & Petrol Pump', studentName: 'hardik', classHint: '6' },
+  { routeCode: 'R-03', stopName: 'Yadav Hotel & Petrol Pump', studentName: 'aitik', classHint: '1' },
+  { routeCode: 'R-03', stopName: 'Yadav Hotel & Petrol Pump', studentName: 'aaitik', classHint: '1' },
+  { routeCode: 'R-03', stopName: 'Sidhrawali Bus Stand', studentName: 'dhruv', classHint: '10' },
+  { routeCode: 'R-03', stopName: 'Sidhrawali Kunj & Nagal', studentName: 'harshita', classHint: '12' },
+  { routeCode: 'R-03', stopName: 'Sidhrawali Kunj & Nagal', studentName: 'vinay', classHint: '12' },
+  { routeCode: 'R-03', stopName: 'Joniawas & Model School', studentName: 'sanjana', classHint: '10' },
+  { routeCode: 'R-03', stopName: 'Joniawas & Model School', studentName: 'muskan', classHint: '9' },
+
+  // Route 4 (4145 Garib Nagar / Dev Nagar / Santosh Colony / Mau / Lokri — Bir Singh)
+  { routeCode: 'R-04', stopName: 'Garib Nagar', studentName: 'samia', classHint: '9' },
+  { routeCode: 'R-04', stopName: 'Santosh Colony & Bass Road', studentName: 'tanish', classHint: '5' },
+  { routeCode: 'R-04', stopName: 'Mau', studentName: 'mukul', classHint: '1' },
+  { routeCode: 'R-04', stopName: 'Lokri', studentName: 'priyanshi', classHint: '12' },
+  { routeCode: 'R-04', stopName: 'Lokri', studentName: 'manoj', classHint: '12' },
+
+  // Route 5 (ECO 7718 Karan Kunj / Maheshwari / Dwarkadhish / Delton / Anandam / Kapriwas — Sunil Gujjar)
+  { routeCode: 'R-05', stopName: 'Karan Kunj', studentName: 'arin', classHint: '12' },
+  { routeCode: 'R-05', stopName: 'Karan Kunj', studentName: 'krishna', classHint: '10' },
+  { routeCode: 'R-05', stopName: 'Maheshwari', studentName: 'astha', classHint: '7' },
+  { routeCode: 'R-05', stopName: 'Dwarkadhish City & Society', studentName: 'yuvraj', classHint: '10' },
+  { routeCode: 'R-05', stopName: 'Kapriwas Junior Stop', studentName: 'satvika', classHint: '3' },
+
+  // Route 6 (3231 Palasoli / Banspadaka / Lokra / Bhonkerka)
+  { routeCode: 'R-06', stopName: 'Palasoli Mandir', studentName: 'nisha', classHint: '11' },
+  { routeCode: 'R-06', stopName: 'Palasoli Mandir', studentName: 'dhairya', classHint: '5' },
+  { routeCode: 'R-06', stopName: 'Palasoli Mandir', studentName: 'manit', classHint: '3' },
+
+  // Route 7 (Dharam Kanta & Mamta Medical)
+  { routeCode: 'R-07', stopName: 'Dharam Kanta (NH-8)', studentName: 'drishti', classHint: '7' },
+  { routeCode: 'R-07', stopName: 'Dharam Kanta (NH-8)', studentName: 'megha', classHint: '6' },
+  { routeCode: 'R-07', stopName: 'Dharam Kanta (NH-8)', studentName: 'neha', classHint: '12' },
+  { routeCode: 'R-07', stopName: 'Dharam Kanta (NH-8)', studentName: 'sachin', classHint: '11' },
+  { routeCode: 'R-07', stopName: 'Dharam Kanta (NH-8)', studentName: 'sanjay', classHint: '8' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'uday', classHint: '10' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'mahek', classHint: '9' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'jagrati', classHint: '7' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'harshit', classHint: '6' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'riki', classHint: '3' },
+  { routeCode: 'R-07', stopName: 'Mamta Medical Chowk', studentName: 'adarsh', classHint: '3' },
+];

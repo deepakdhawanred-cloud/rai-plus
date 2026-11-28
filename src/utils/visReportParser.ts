@@ -3,12 +3,131 @@ import type {
   DiscBird,
   DiscTrait,
   VisBrainLobes,
+  VisDmitFingerprintProfile,
   VisMultipleIntelligences,
   VisParsedReportProfile,
 } from '../types';
 
 export const VIS_GOVERNANCE_NOTICE =
   'Advisory DMIT & Learning Style profile — strength-based classroom guidance only. Never auto-penalises OLQ or Learners Score.';
+
+export const EXPANDABLE_FINGERPRINT_CODES = ['X', 'X1', 'X2', 'X2.1', 'X2.2'] as const;
+
+export const EXPANDABLE_X_COACHING_DIRECTIVE =
+  'Expandable Potential (X / X1 / X2 / X2.1 / X2.2 Fingerprint Profile): Reflective learner who needs dedicated 1-on-1 focus and structured guided pressure — shows strong academic growth when mentored individually with clear deadlines and consistent accountability.';
+
+/**
+ * Normalizes and classifies DMIT dermatoglyphic fingerprint patterns.
+ * Rule (VIS DMIT Policy): Fingerprints containing X, X1, X2, X2.1, or X2.2 (or Reflective/Arch X-series)
+ * indicate Expandable Potential — Reflective Learner requiring 1-on-1 focus and structured pressure to grow.
+ */
+export function classifyDmitFingerprintPotential(input: {
+  rawText?: string;
+  fingerprintCodes?: string[];
+  acquiringStyle?: string;
+}): VisDmitFingerprintProfile {
+  const detected = new Set<string>();
+  const matchedX = new Set<string>();
+
+  const registerCode = (raw: string) => {
+    const cleaned = raw.trim().toUpperCase().replace(/^X-(\d)/, 'X$1');
+    if (!cleaned) return;
+    detected.add(cleaned);
+    if (/^(X|X1|X2|X2\.1|X2\.2)$/.test(cleaned)) {
+      matchedX.add(cleaned);
+    }
+  };
+
+  for (const code of input.fingerprintCodes || []) {
+    for (const token of String(code).split(/[\s,;/|]+/)) {
+      if (token.trim()) registerCode(token);
+    }
+  }
+
+  const combinedText = `${input.rawText || ''}\n${input.acquiringStyle || ''}`;
+  if (combinedText.trim()) {
+    // Match explicit X-series fingerprint tokens: X2.1, X2.2, X1, X2, or standalone X near fingerprint/print/arch/pattern context
+    const subSeriesMatches = combinedText.matchAll(/\b(X2\.1|X2\.2|X1|X2|X-1|X-2)\b/gi);
+    for (const m of subSeriesMatches) {
+      if (m[1]) registerCode(m[1]);
+    }
+    const contextualX = combinedText.matchAll(
+      /(?:fingerprint|finger\s*print|print|pattern|arch|ridge|dmit|l[1-5]|r[1-5])\s*[:=\-(]?\s*\b(X)\b/gi,
+    );
+    for (const m of contextualX) {
+      if (m[1]) registerCode(m[1]);
+    }
+    if (/\breflective\s*\(\s*arch\s*\)|\barch\s*\(\s*x\s*\)|\breflective\s+learner\b/i.test(combinedText)) {
+      if (matchedX.size === 0) {
+        registerCode('X');
+      }
+    }
+  }
+
+  const matchedXPatterns = Array.from(matchedX);
+  const hasExpandableXSeries = matchedXPatterns.length > 0;
+
+  if (hasExpandableXSeries) {
+    return {
+      detectedPatterns: Array.from(detected),
+      hasExpandableXSeries: true,
+      matchedXPatterns,
+      potentialBand: 'Expandable Potential',
+      learnerArchetype: 'Reflective Learner',
+      requiresOneOnOneFocus: true,
+      respondsToGuidedPressure: true,
+      coachingDirective: EXPANDABLE_X_COACHING_DIRECTIVE,
+    };
+  }
+
+  return {
+    detectedPatterns: Array.from(detected),
+    hasExpandableXSeries: false,
+    matchedXPatterns: [],
+    potentialBand: 'Standard Progressive Potential',
+    learnerArchetype: 'Balanced / Self-Paced Learner',
+    requiresOneOnOneFocus: false,
+    respondsToGuidedPressure: false,
+    coachingDirective:
+      'Balanced learning potential — responds steadily to regular classroom instruction, structured revision cycles, and positive encouragement.',
+  };
+}
+
+/**
+ * Enriches an existing VisParsedReportProfile with fingerprint classification and updates
+ * advisorySummary with 1-on-1 focus + structured pressure guidance whenever X/X1/X2/X2.1/X2.2 prints apply.
+ */
+export function enrichVisDmitProfileWithFingerprint(
+  profile: VisParsedReportProfile,
+  input: { fingerprintCodes?: string[]; acquiringStyle?: string; rawText?: string },
+): VisParsedReportProfile {
+  const fp = classifyDmitFingerprintPotential(input);
+  const studyTips = [...profile.advisorySummary.studyTips];
+  const classroomSupport = [...profile.advisorySummary.classroomSupport];
+
+  if (fp.hasExpandableXSeries) {
+    const oneOnOneTip =
+      'Reflective Learner (X / X1 / X2 / X2.1 / X2.2): Schedule regular 1-on-1 check-ins with clear, time-bound targets — expandable potential unlocks rapidly under structured, guided pressure.';
+    const classroomDirective =
+      'Provide dedicated 1-on-1 teacher attention, direct accountability prompts, and progressive challenge pressure to convert reflective thinking into measurable academic growth.';
+    if (!studyTips.some((t) => /reflective learner/i.test(t))) {
+      studyTips.unshift(oneOnOneTip);
+    }
+    if (!classroomSupport.some((c) => /1-on-1/i.test(c))) {
+      classroomSupport.unshift(classroomDirective);
+    }
+  }
+
+  return {
+    ...profile,
+    fingerprintProfile: fp,
+    advisorySummary: {
+      ...profile.advisorySummary,
+      studyTips,
+      classroomSupport,
+    },
+  };
+}
 
 const TRAIT_TO_BIRD: Record<DiscTrait, DiscBird> = {
   CAUTIOUS: 'Owl',
@@ -145,6 +264,8 @@ export function parseVisReportText(
     extractedAt?: string;
     extractionSource?: 'preparsed_bundle' | 'live_drive_pdf';
     fallbackName?: string;
+    fingerprintCodes?: string[];
+    acquiringStyle?: string;
   },
 ): VisParsedReportProfile {
   const normalized = rawText.replace(/\r\n/g, '\n');
@@ -306,7 +427,7 @@ export function parseVisReportText(
   const primaryBird = primaryTrait ? TRAIT_TO_BIRD[primaryTrait] : null;
   const secondaryBird = secondaryTrait ? TRAIT_TO_BIRD[secondaryTrait] : null;
 
-  return {
+  const baseProfile: VisParsedReportProfile = {
     fileId: meta.fileId,
     reportSubjectName,
     brainDominance: { leftPct, rightPct },
@@ -331,4 +452,10 @@ export function parseVisReportText(
     extractedAt: meta.extractedAt || new Date().toISOString(),
     extractionSource: meta.extractionSource || 'preparsed_bundle',
   };
+
+  return enrichVisDmitProfileWithFingerprint(baseProfile, {
+    rawText: normalized,
+    fingerprintCodes: meta.fingerprintCodes,
+    acquiringStyle: meta.acquiringStyle,
+  });
 }

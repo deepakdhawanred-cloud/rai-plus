@@ -13,6 +13,11 @@ import type {
   CalendarReschedulingMode,
   CurriculumChapterSchedule,
 } from '../types/controlRoomCalendar';
+import {
+  VIS_SCHOOL_ID,
+  buildVisCurriculumPlans40Min,
+  buildVisOfficialCalendarEntries,
+} from '../data/visAcademicPlanners2026.ts';
 import { dateToTimetableDay, normalizeTimetableDay } from './smartTimetableEngine.ts';
 
 function parseIsoDate(iso: string): Date {
@@ -49,6 +54,9 @@ export function isHolidayOrVacationType(type: AcademicCalendarEntryType): boolea
 }
 
 export function buildBoardReferenceEntries(board: BoardType, schoolId: string): AcademicCalendarEntry[] {
+  if (schoolId === VIS_SCHOOL_ID) {
+    return buildVisOfficialCalendarEntries(schoolId);
+  }
   const src: AcademicCalendarEntry['source'] =
     board === 'HBSE' ? 'HBSE Official' : 'CBSE Official';
   const boardExamDate = board === 'HBSE' ? '2027-02-26' : '2027-02-15';
@@ -207,6 +215,9 @@ export function buildDefaultBoardCirculars(board: BoardType, schoolId: string): 
 }
 
 export function buildDefaultCurriculumPlans(schoolId: string): CurriculumChapterSchedule[] {
+  if (schoolId === VIS_SCHOOL_ID) {
+    return buildVisCurriculumPlans40Min(schoolId);
+  }
   return [
     {
       id: `cur-${schoolId}-7a-sci-1`,

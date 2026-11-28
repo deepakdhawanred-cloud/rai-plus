@@ -5,6 +5,7 @@ import {
   BookOpen,
   Calendar,
   CheckCircle2,
+  Clock,
   CloudRain,
   History,
   Lock,
@@ -22,6 +23,12 @@ import type {
   CurriculumChapterStatus,
 } from '../../types/controlRoomCalendar';
 import {
+  VIS_BELL_SCHEDULE_40MIN,
+  VIS_PERIOD_SHIFT_POLICY,
+  VIS_SCHOOL_ID,
+  VIS_SUBJECT_PLANNERS_2026,
+} from '../../data/visAcademicPlanners2026';
+import {
   computeWorkingDaysMetrics,
   createInitialAcademicCalendar,
 } from '../../utils/smartAcademicCalendarEngine';
@@ -34,7 +41,12 @@ interface SmartAcademicCalendarModuleProps {
   onRefresh: () => Promise<void>;
 }
 
-type CalendarSubTab = 'calendar' | 'impact_approvals' | 'curriculum' | 'circulars_history';
+type CalendarSubTab =
+  | 'calendar'
+  | 'vis_planners'
+  | 'impact_approvals'
+  | 'curriculum'
+  | 'circulars_history';
 
 function entryTypeBadge(type: AcademicCalendarEntryType): string {
   switch (type) {
@@ -63,8 +75,12 @@ export const SmartAcademicCalendarModule: React.FC<SmartAcademicCalendarModulePr
     data.user.role,
   );
   const isStaff = isManagement || data.user.role === 'teacher';
+  const isVisSchool = data.activeSchool.id === VIS_SCHOOL_ID;
 
   const [subTab, setSubTab] = useState<CalendarSubTab>('calendar');
+  const [selectedPlannerId, setSelectedPlannerId] = useState<string>(
+    VIS_SUBJECT_PLANNERS_2026[0]?.id || '',
+  );
   const [calendarState, setCalendarState] = useState<AcademicCalendarState | null>(
     data.academicCalendar || null,
   );
@@ -314,6 +330,11 @@ export const SmartAcademicCalendarModule: React.FC<SmartAcademicCalendarModulePr
               <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#A9C5D8]">
                 Mode: {calendar.creationMode}
               </span>
+              {isVisSchool && (
+                <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-200">
+                  40-Min Periods (Shifted from 30m Planners · 7 Periods/Day)
+                </span>
+              )}
             </div>
             <h1 className="font-display text-xl sm:text-2xl font-bold text-white">
               Smart Academic Calendar &amp; Dynamic Curriculum Rescheduler
@@ -374,6 +395,15 @@ export const SmartAcademicCalendarModule: React.FC<SmartAcademicCalendarModulePr
         {(
           [
             { id: 'calendar', label: `Annual Schedule (${calendar.entries.length})`, icon: Calendar },
+            ...(isVisSchool
+              ? [
+                  {
+                    id: 'vis_planners' as const,
+                    label: `40-Min Subject Planners (${VIS_SUBJECT_PLANNERS_2026.length})`,
+                    icon: Clock,
+                  },
+                ]
+              : []),
             ...(isManagement
               ? [
                   {
@@ -410,6 +440,189 @@ export const SmartAcademicCalendarModule: React.FC<SmartAcademicCalendarModulePr
           );
         })}
       </div>
+
+      {/* ==================== TAB 1B: VIS 2026-27 40-MINUTE SHIFTED SUBJECT PLANNERS ==================== */}
+      {subTab === 'vis_planners' && isVisSchool && (() => {
+        const activePlanner =
+          VIS_SUBJECT_PLANNERS_2026.find((p) => p.id === selectedPlannerId) ||
+          VIS_SUBJECT_PLANNERS_2026[0];
+        return (
+          <div className="space-y-5" data-testid="vis-40min-planners-panel">
+            {/* 30-Min -> 40-Min Period Conversion Banner & Bell Schedule */}
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                    VIS Period Duration Upgrade: 30 Mins → 40 Mins (Factor × 0.75)
+                  </p>
+                  <p className="text-xs text-slate-700 mt-1">{VIS_PERIOD_SHIFT_POLICY.note}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0 text-[11px]">
+                  <span className="rounded-lg bg-white border border-amber-300 px-2.5 py-1 font-semibold text-amber-950">
+                    Revision: {VIS_PERIOD_SHIFT_POLICY.revisionModel}
+                  </span>
+                  <span className="rounded-lg bg-white border border-slate-200 px-2.5 py-1 font-semibold text-slate-800">
+                    Syllabus Deadline: 31 Dec 2026
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {VIS_BELL_SCHEDULE_40MIN.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className={`rounded-lg border px-2.5 py-1.5 text-[11px] ${
+                      slot.kind === 'period'
+                        ? 'bg-white border-slate-200 text-slate-900'
+                        : 'bg-amber-100/70 border-amber-200 text-amber-950'
+                    }`}
+                  >
+                    <span className="font-bold">{slot.label}</span>
+                    <span className="font-mono text-slate-500 ml-1.5">
+                      {slot.startTime}–{slot.endTime}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subject Planner Selector Chips */}
+            <div className="flex flex-wrap gap-2">
+              {VIS_SUBJECT_PLANNERS_2026.map((planner) => {
+                const selected = planner.id === activePlanner.id;
+                return (
+                  <button
+                    key={planner.id}
+                    type="button"
+                    onClick={() => setSelectedPlannerId(planner.id)}
+                    className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-all text-left ${
+                      selected
+                        ? 'bg-[#142B46] text-white border-[#142B46] shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>
+                      {planner.classLabel} · {planner.subject}
+                    </span>
+                    <span
+                      className={`ml-2 font-mono text-[10px] rounded px-1.5 py-0.5 ${
+                        selected ? 'bg-[#D6B66D]/25 text-[#D6B66D]' : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {planner.shiftedPeriodsPerWeek}/wk (40m)
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Planner Detail Card */}
+            {activePlanner && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <div className="lg:col-span-8 rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="border-b border-slate-200 bg-slate-50/70 px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-blue-900">
+                        {activePlanner.boardAlignment} · Session {activePlanner.session}
+                      </p>
+                      <h2 className="font-display text-lg font-bold text-[#142B46]">
+                        {activePlanner.classLabel} ({activePlanner.classSection}) — {activePlanner.subject}
+                      </h2>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-lg bg-slate-200/70 px-2.5 py-1 text-slate-600 line-through font-mono">
+                        30m: {activePlanner.originalPeriodsPerWeek}/wk ({activePlanner.originalTotalPeriodsYear}/yr)
+                      </span>
+                      <span className="rounded-lg bg-emerald-100 border border-emerald-200 px-2.5 py-1 text-emerald-900 font-bold font-mono">
+                        40m Shifted: {activePlanner.shiftedPeriodsPerWeek}/wk ({activePlanner.shiftedTotalPeriodsYear}/yr)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase text-slate-500">
+                        <tr>
+                          <th className="px-4 py-2.5">Month</th>
+                          <th className="px-4 py-2.5">Chapter / Topic</th>
+                          <th className="px-4 py-2.5">Exam</th>
+                          <th className="px-4 py-2.5 text-right">30m Orig</th>
+                          <th className="px-4 py-2.5 text-right">40m Shifted</th>
+                          <th className="px-4 py-2.5">Target Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {activePlanner.chapters.map((ch) => (
+                          <tr key={`${activePlanner.id}-${ch.chapterNo}`} className="hover:bg-slate-50/70">
+                            <td className="px-4 py-2.5 font-semibold text-slate-700 whitespace-nowrap">
+                              {ch.month}
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <p className="font-semibold text-slate-900">{ch.title}</p>
+                              <p className="text-[11px] text-slate-500">
+                                {ch.theme}
+                                {ch.revisionDays ? ` · Revision (1-4-7-15-30): ${ch.revisionDays}` : ''}
+                              </p>
+                            </td>
+                            <td className="px-4 py-2.5 whitespace-nowrap">
+                              <span className="rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-bold">
+                                {ch.examTag}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2.5 text-right font-mono text-slate-400 line-through">
+                              {ch.originalPeriods30Min}
+                            </td>
+                            <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-800">
+                              {ch.shiftedPeriods40Min}
+                            </td>
+                            <td className="px-4 py-2.5 font-mono text-slate-600 whitespace-nowrap">
+                              {ch.plannedCompletionDate}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-4 space-y-4">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+                    <h3 className="font-display text-sm font-bold text-[#142B46]">
+                      Examination Syllabus Breakdown
+                    </h3>
+                    <div className="space-y-2 text-xs">
+                      {activePlanner.examSummary.map((ex) => (
+                        <div
+                          key={ex.exam}
+                          className="rounded-lg border border-slate-200 bg-slate-50/70 p-2.5"
+                        >
+                          <p className="font-bold text-slate-900">{ex.exam}</p>
+                          <p className="text-[11px] text-slate-600 mt-0.5">{ex.syllabus}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 text-xs">
+                    <h3 className="font-display text-sm font-bold text-[#142B46]">
+                      NEP 2020 Pedagogy &amp; Enrichment
+                    </h3>
+                    <p className="text-[11px] text-slate-600">{VIS_PERIOD_SHIFT_POLICY.pedagogyModel}</p>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {activePlanner.enrichmentActivities.map((act) => (
+                        <span
+                          key={act}
+                          className="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-semibold text-blue-900"
+                        >
+                          {act}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ==================== TAB 1: ANNUAL SCHEDULE + DYNAMIC MODIFIER ==================== */}
       {subTab === 'calendar' && (

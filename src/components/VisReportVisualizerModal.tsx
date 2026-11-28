@@ -1,6 +1,7 @@
 import React from 'react';
-import { ExternalLink, Sparkles, X } from 'lucide-react';
+import { ExternalLink, Fingerprint, Sparkles, X } from 'lucide-react';
 import type { VisParsedReportProfile, VisReportCatalogItem } from '../types';
+import { EXPANDABLE_FINGERPRINT_CODES } from '../utils/visReportParser';
 
 interface VisDmitProfilePanelProps {
   profile: VisParsedReportProfile;
@@ -105,6 +106,68 @@ export const VisDmitProfilePanel: React.FC<VisDmitProfilePanelProps> = ({
         </div>
       </div>
 
+      {/* DMIT Fingerprint Potential & 1-on-1 Mentoring Card (X / X1 / X2 / X2.1 / X2.2 Rule) */}
+      {profile.fingerprintProfile && (
+        <div
+          data-testid="vis-dmit-fingerprint-card"
+          className={`rounded-xl border p-4 text-xs space-y-2 ${
+            profile.fingerprintProfile.hasExpandableXSeries
+              ? 'border-amber-300 bg-amber-50/80'
+              : 'border-slate-200 bg-slate-50/70'
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Fingerprint
+                className={`h-4 w-4 ${
+                  profile.fingerprintProfile.hasExpandableXSeries
+                    ? 'text-amber-800'
+                    : 'text-blue-900'
+                }`}
+              />
+              <span className="font-bold text-slate-900">
+                Fingerprint Pattern &amp; Potential Classification
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                  profile.fingerprintProfile.hasExpandableXSeries
+                    ? 'bg-amber-200 text-amber-950'
+                    : 'bg-blue-100 text-blue-900'
+                }`}
+              >
+                {profile.fingerprintProfile.potentialBand}
+              </span>
+              <span className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
+                {profile.fingerprintProfile.learnerArchetype}
+              </span>
+              {profile.fingerprintProfile.matchedXPatterns.length > 0 && (
+                <span className="rounded-full bg-[#142B46] px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#D6B66D]">
+                  Prints: {profile.fingerprintProfile.matchedXPatterns.join(', ')}
+                </span>
+              )}
+            </div>
+          </div>
+          <p className="text-slate-800 leading-relaxed">
+            {profile.fingerprintProfile.coachingDirective}
+          </p>
+          {profile.fingerprintProfile.hasExpandableXSeries && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="rounded-md bg-white border border-amber-300 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                1-on-1 Mentoring Focus Required
+              </span>
+              <span className="rounded-md bg-white border border-amber-300 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                Grows Best with Structured Guided Pressure
+              </span>
+              <span className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600">
+                VIS Rule: {EXPANDABLE_FINGERPRINT_CODES.join(', ')} → Expandable Potential (Reflective)
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Advisory Match */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
         <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-1.5">
@@ -183,7 +246,7 @@ export const VisReportVisualizerModal: React.FC<VisReportVisualizerModalProps> =
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
           <div>
             <p className="text-xs font-semibold text-blue-900">
-              Virat International School, Jhajjar · Real Drive PDF Telemetry
+              Virat International School, Kapriwas (Rewari) · DMIT &amp; Learning Telemetry
             </p>
             <h2 id="vis-dmit-modal-title" className="font-display text-lg font-bold text-slate-900 mt-0.5">
               {catalogItem ? `${catalogItem.studentName} (${catalogItem.normalizedClass} ${catalogItem.section})` : profile.reportSubjectName}
@@ -214,6 +277,35 @@ export const VisReportVisualizerModal: React.FC<VisReportVisualizerModalProps> =
         </div>
 
         <div className="p-6 space-y-6 text-xs">
+          {/* Fingerprint Potential & 1-on-1 Mentoring Banner (X / X1 / X2 / X2.1 / X2.2 Rule) */}
+          {profile.fingerprintProfile && (
+            <div
+              className={`rounded-xl border p-4 space-y-2 ${
+                profile.fingerprintProfile.hasExpandableXSeries
+                  ? 'border-amber-300 bg-amber-50/80'
+                  : 'border-slate-200 bg-slate-50/70'
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Fingerprint className="h-4 w-4 text-amber-800" />
+                  Fingerprint Potential Profile — {profile.fingerprintProfile.potentialBand}
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
+                    {profile.fingerprintProfile.learnerArchetype}
+                  </span>
+                  {profile.fingerprintProfile.matchedXPatterns.length > 0 && (
+                    <span className="rounded-full bg-[#142B46] px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#D6B66D]">
+                      Prints: {profile.fingerprintProfile.matchedXPatterns.join(', ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-slate-800">{profile.fingerprintProfile.coachingDirective}</p>
+            </div>
+          )}
+
           {/* Row 1: VAK + Hemispheres + Leadership/Motive */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5">

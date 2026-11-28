@@ -25,6 +25,7 @@ import {
   buildControlRoomHistoricalReports,
   buildLiveControlRoomSnapshot,
   deriveSchoolClassrooms,
+  getDefaultBellScheduleForSchool,
 } from '../src/utils/liveSchoolTimelineEngine.ts';
 import {
   analyzeCalendarModificationImpact,
@@ -135,7 +136,7 @@ export function ensureControlRoomAndCalendarInitialized(
   }
 
   if (!db.schoolBellSchedules[schoolId]) {
-    db.schoolBellSchedules[schoolId] = [...DEFAULT_BELL_SCHEDULE];
+    db.schoolBellSchedules[schoolId] = getDefaultBellScheduleForSchool(schoolId);
     mutated = true;
   }
 

@@ -19,6 +19,10 @@ import type {
   TeacherDutyRecord,
 } from '../types/controlRoomCalendar';
 import {
+  VIS_BELL_SCHEDULE_40MIN,
+  VIS_SCHOOL_ID,
+} from '../data/visAcademicPlanners2026.ts';
+import {
   computeCapabilityBands,
   createDefaultSubstituteRuleConfig,
   dateToTimetableDay,
@@ -40,6 +44,13 @@ export const DEFAULT_BELL_SCHEDULE: BellPeriodSlot[] = [
   { id: 'p7', label: 'Period 7', kind: 'period', periodNumber: 7, startTime: '12:50', endTime: '13:25' },
   { id: 'p8', label: 'Period 8', kind: 'period', periodNumber: 8, startTime: '13:25', endTime: '14:00' },
 ];
+
+export function getDefaultBellScheduleForSchool(schoolId: string): BellPeriodSlot[] {
+  if (schoolId === VIS_SCHOOL_ID) {
+    return VIS_BELL_SCHEDULE_40MIN.map((slot) => ({ ...slot }));
+  }
+  return DEFAULT_BELL_SCHEDULE.map((slot) => ({ ...slot }));
+}
 
 export function parseTimeToMinutes(hhmm: string): number {
   const m = (hhmm || '').trim().match(/^(\d{1,2}):(\d{2})$/);

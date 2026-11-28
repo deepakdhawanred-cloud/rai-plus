@@ -11,6 +11,12 @@ import {
 } from './supabaseStore.ts';
 import { VIS_FEE_LEDGER_VERSION } from './visFeeLoader.ts';
 import { VIS_SALARY_EXPENSE_VERSION } from './visFinanceSheetLoader.ts';
+import { VIS_BELL_SCHEDULE_40MIN, VIS_SCHOOL_ID } from '../src/data/visAcademicPlanners2026.ts';
+import { createInitialAcademicCalendar } from '../src/utils/smartAcademicCalendarEngine.ts';
+import {
+  createInitialBusRoutesForSchool,
+  deriveInitialStudentAllocations,
+} from '../src/utils/transportEngine.ts';
 
 const PRIMARY_DATA_DIR = path.resolve(process.cwd(), '.data');
 const FALLBACK_DATA_DIR = path.join(os.tmpdir(), 'virat-student-360-data');
@@ -21,7 +27,7 @@ function getDbFilePath(dir = activeDataDir): string {
   return path.join(dir, DB_FILENAME);
 }
 
-const CURRENT_DB_SCHEMA_VERSION = 20261129;
+const CURRENT_DB_SCHEMA_VERSION = 20261130;
 
 type PersistedDatabaseState = DatabaseState & {
   _schemaVersion?: number;
@@ -826,6 +832,70 @@ function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
           delete parsed.schoolWebsitesBySchool['school-vis-jjr'];
           migrated = true;
         }
+      }
+
+      if ((parsed._schemaVersion ?? 0) < 20261130) {
+        // VIS 2026-27 Upgrade: 40-min Bell Schedule & Academic Calendar, Kapriwas/Rewari Bus Routes,
+        // /80 Theory + UT Marks, and DMIT X/X1/X2/X2.1/X2.2 Fingerprint Profiles (strictly scoped to school-vis-jjr).
+        if (!parsed.schoolBellSchedules || typeof parsed.schoolBellSchedules !== 'object') {
+          parsed.schoolBellSchedules = {};
+        }
+        parsed.schoolBellSchedules[VIS_SCHOOL_ID] = VIS_BELL_SCHEDULE_40MIN.map((slot) => ({ ...slot }));
+
+        if (!parsed.academicCalendars || typeof parsed.academicCalendars !== 'object') {
+          parsed.academicCalendars = {};
+        }
+        parsed.academicCalendars[VIS_SCHOOL_ID] = createInitialAcademicCalendar({
+          schoolId: VIS_SCHOOL_ID,
+          board: 'HBSE',
+          session: '2026-27',
+          mode: 'Hybrid',
+          createdBy: 'VIS Academic Coordinator (40-Min Planner Sync)',
+        });
+
+        // Refresh VIS bus routes & baseline allocations with real Kapriwas/Rewari routes (Route.xlsx + Dharam Kanta/Mamta Medical)
+        const visRoutes = createInitialBusRoutesForSchool(VIS_SCHOOL_ID);
+        const nonVisRoutes = Array.isArray(parsed.busRoutes)
+          ? parsed.busRoutes.filter((r) => r.schoolId !== VIS_SCHOOL_ID)
+          : [];
+        parsed.busRoutes = [...visRoutes, ...nonVisRoutes];
+
+        const visStudentsNow = Array.isArray(parsed.students)
+          ? parsed.students.filter((s) => s.schoolId === VIS_SCHOOL_ID)
+          : [];
+        const freshVisAllocs = deriveInitialStudentAllocations(visStudentsNow, visRoutes, VIS_SCHOOL_ID);
+        const nonVisAllocs = Array.isArray(parsed.studentTransportAllocations)
+          ? parsed.studentTransportAllocations.filter((a) => a.schoolId !== VIS_SCHOOL_ID)
+          : [];
+        parsed.studentTransportAllocations = [...freshVisAllocs, ...nonVisAllocs];
+
+        // Refresh VIS examMarks with real /80 Theory + UT marks from Virat_School_Complete_Single_Sheet_Sample.xlsx
+        const freshVisMarks = fresh.examMarks.filter((m) => m.schoolId === VIS_SCHOOL_ID);
+        const nonVisMarks = Array.isArray(parsed.examMarks)
+          ? parsed.examMarks.filter((m) => m.schoolId !== VIS_SCHOOL_ID)
+          : [];
+        parsed.examMarks = [...freshVisMarks, ...nonVisMarks];
+
+        // Sync VIS DMIT fingerprint profiles & student visReportFileId links
+        if (!parsed.visParsedReports || typeof parsed.visParsedReports !== 'object') {
+          parsed.visParsedReports = {};
+        }
+        for (const [fid, profile] of Object.entries(fresh.visParsedReports)) {
+          parsed.visParsedReports[fid] = profile;
+        }
+        if (Array.isArray(parsed.students)) {
+          const freshFileIdByStu = new Map(
+            fresh.students
+              .filter((s) => s.schoolId === VIS_SCHOOL_ID && s.visReportFileId)
+              .map((s) => [s.id, s.visReportFileId!]),
+          );
+          for (const stu of parsed.students) {
+            if (stu.schoolId === VIS_SCHOOL_ID && !stu.visReportFileId && freshFileIdByStu.has(stu.id)) {
+              stu.visReportFileId = freshFileIdByStu.get(stu.id);
+            }
+          }
+        }
+        migrated = true;
       }
 
       const thinkingMigrationReport = runThinkingAssessmentMigrations(parsed);

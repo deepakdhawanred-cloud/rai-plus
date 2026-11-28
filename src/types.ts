@@ -852,6 +852,17 @@ export interface VisBrainLobes {
   visual: number | null;
 }
 
+export interface VisDmitFingerprintProfile {
+  detectedPatterns: string[];
+  hasExpandableXSeries: boolean;
+  matchedXPatterns: string[];
+  potentialBand: 'Expandable Potential' | 'Standard Progressive Potential';
+  learnerArchetype: 'Reflective Learner' | 'Balanced / Self-Paced Learner';
+  requiresOneOnOneFocus: boolean;
+  respondsToGuidedPressure: boolean;
+  coachingDirective: string;
+}
+
 export interface VisParsedReportProfile {
   fileId: string;
   reportSubjectName: string;
@@ -888,6 +899,7 @@ export interface VisParsedReportProfile {
     taskOrientedPct: number | null;
     relationshipOrientedPct: number | null;
   };
+  fingerprintProfile?: VisDmitFingerprintProfile;
   advisorySummary: {
     studyTips: string[];
     classroomSupport: string[];

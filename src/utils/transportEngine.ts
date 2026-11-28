@@ -12,14 +12,16 @@ import type {
   UserRole,
 } from '../types';
 
+import {
+  VIS_CAMPUS_GEO_ANCHOR,
+  VIS_ROUTE_ROSTER_OVERRIDES,
+  buildVisOfficialBusRoutes,
+} from '../data/visTransportRoutesData.ts';
+
 export const RAI_PLUS_LOGO_URL = '/assets/brand/rai-plus-logo.png';
 
 export const SCHOOL_GEO_ANCHORS: Record<string, { lat: number; lng: number; label: string }> = {
-  'school-vis-jjr': {
-    lat: 28.6063,
-    lng: 76.6565,
-    label: 'Virat International School Campus, Jhajjar',
-  },
+  'school-vis-jjr': VIS_CAMPUS_GEO_ANCHOR,
   'school-nvh-rtk': {
     lat: 28.8955,
     lng: 76.6066,
@@ -38,6 +40,9 @@ export function getSchoolGeoAnchor(schoolId: string): { lat: number; lng: number
 }
 
 export function createInitialBusRoutesForSchool(schoolId: string): BusRoute[] {
+  if (schoolId === 'school-vis-jjr') {
+    return buildVisOfficialBusRoutes(schoolId);
+  }
   const anchor = getSchoolGeoAnchor(schoolId);
   const nowIso = new Date().toISOString();
   const baseLat = anchor.lat;
@@ -844,36 +849,89 @@ export function deriveInitialStudentAllocations(
 
   if (activeRoutes.length === 0) return [];
 
-  const sampleAreas = [
-    'Sector 6',
-    'Model Town',
-    'Badli Road',
-    'Rewari Road',
-    'Beri Gate',
-    'Civil Lines',
-    'Bahadurgarh Road',
-    'Subhash Nagar',
-    'Gurugram Road',
-    'Rohtak Road',
-    'Campus Enclave (Walkable)',
-  ];
+  const sampleAreas =
+    schoolId === 'school-vis-jjr'
+      ? [
+          'Dharuhera',
+          'Housing Board',
+          'Sidhrawali',
+          'Malpura',
+          'Joniawas',
+          'Garib Nagar',
+          'Santosh Colony',
+          'Karan Kunj',
+          'Maheshwari',
+          'Palasoli',
+          'Dharam Kanta',
+          'Mamta Medical',
+          'Kapriwas (Walkable)',
+        ]
+      : [
+          'Sector 6',
+          'Model Town',
+          'Badli Road',
+          'Rewari Road',
+          'Beri Gate',
+          'Civil Lines',
+          'Bahadurgarh Road',
+          'Subhash Nagar',
+          'Gurugram Road',
+          'Rohtak Road',
+          'Campus Enclave (Walkable)',
+        ];
 
+  const routeByCode = new Map(activeRoutes.map((r) => [r.routeCode, r]));
   const allocations: StudentTransportAllocation[] = [];
   const baselineCounts: Record<string, number> = {};
   const baselineCapForRoute = (route: BusRoute): number =>
-    Math.max(1, Math.floor(route.capacity * 0.8));
+    Math.max(1, Math.floor(route.capacity * 0.85));
 
   schoolStudents.forEach((student, idx) => {
+    // 1. Direct match from VIS Route.xlsx & Dharam Kanta/Mamta Medical official roster
+    if (schoolId === 'school-vis-jjr') {
+      const cleanFirst = (student.name || '').trim().toLowerCase().split(/\s+/)[0] || '';
+      const gradeToken = (student.classSection || '').match(/^(\d{1,2})/)?.[1] || '';
+      const rosterMatch = VIS_ROUTE_ROSTER_OVERRIDES.find(
+        (entry) =>
+          entry.studentName === cleanFirst &&
+          (!entry.classHint || !gradeToken || entry.classHint === gradeToken),
+      );
+      if (rosterMatch) {
+        const matchedRoute = routeByCode.get(rosterMatch.routeCode);
+        if (matchedRoute && (baselineCounts[matchedRoute.id] || 0) < matchedRoute.capacity) {
+          const matchedStop =
+            matchedRoute.stops.find(
+              (s) => s.name.toLowerCase() === rosterMatch.stopName.toLowerCase(),
+            ) || matchedRoute.stops[0];
+          baselineCounts[matchedRoute.id] = (baselineCounts[matchedRoute.id] || 0) + 1;
+          allocations.push({
+            studentId: student.id,
+            schoolId,
+            mode: 'Bus',
+            routeId: matchedRoute.id,
+            stopId: matchedStop.id,
+            stopName: matchedStop.name,
+            areaLocality: matchedStop.area,
+            pickupTime: matchedStop.morningPickupTime,
+            dropTime: matchedStop.eveningDropTime,
+            assignedBy: 'VIS Route Sheet (Route.xlsx)',
+            assignedAt: nowIso,
+          });
+          return;
+        }
+      }
+    }
+
     // Guarantee key demo parent accounts have live GPS bus routes allotted
     if (student.id === 'stu-vis-601') {
-      const r1 = activeRoutes[0];
-      const stop = r1.stops[1] || r1.stops[0];
-      baselineCounts[r1.id] = (baselineCounts[r1.id] || 0) + 1;
+      const r2 = activeRoutes[1] || activeRoutes[0];
+      const stop = r2.stops[2] || r2.stops[0];
+      baselineCounts[r2.id] = (baselineCounts[r2.id] || 0) + 1;
       allocations.push({
         studentId: student.id,
         schoolId,
         mode: 'Bus',
-        routeId: r1.id,
+        routeId: r2.id,
         stopId: stop.id,
         stopName: stop.name,
         areaLocality: stop.area,
@@ -885,14 +943,14 @@ export function deriveInitialStudentAllocations(
       return;
     }
     if (student.id === 'stu-vis-602' || student.id === 'stu-vis-902') {
-      const r2 = activeRoutes[1] || activeRoutes[0];
-      const stop = r2.stops[1] || r2.stops[0];
-      baselineCounts[r2.id] = (baselineCounts[r2.id] || 0) + 1;
+      const r3 = activeRoutes[2] || activeRoutes[1] || activeRoutes[0];
+      const stop = r3.stops[5] || r3.stops[1] || r3.stops[0];
+      baselineCounts[r3.id] = (baselineCounts[r3.id] || 0) + 1;
       allocations.push({
         studentId: student.id,
         schoolId,
         mode: 'Bus',
-        routeId: r2.id,
+        routeId: r3.id,
         stopId: stop.id,
         stopName: stop.name,
         areaLocality: stop.area,

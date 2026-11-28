@@ -296,10 +296,43 @@ export interface AttendanceRecord {
   verifiedAt?: string;
 }
 
+export type DocumentVerificationStatus = 'Completed' | 'Pending' | 'Submitted' | 'Not Applicable';
+
 export interface DocumentChecklistItem {
+  key?: string;
   name: string;
   verified: boolean;
+  status?: DocumentVerificationStatus;
+  mandatory?: boolean;
   referenceNo?: string;
+  dueDate?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  remarks?: string;
+}
+
+export interface StudentOnboardingCheckpoint {
+  id: string;
+  dayTarget: 1 | 3 | 7 | 15 | 30;
+  phase: 'Day 1 · Welcome & Safety' | 'Day 3 · Academic Readiness' | 'Day 7 · Comfort & Peer Check' | 'Day 15 · Docs & Parent Sync' | 'Day 30 · First-Month Review';
+  title: string;
+  ownerRole: 'Admin' | 'Class Teacher' | 'Transport' | 'Coordinator';
+  completed: boolean;
+  completedBy?: string;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface StudentOnboardingRecord {
+  admissionDate: string;
+  assignedClassTeacher: string;
+  peerBuddyName?: string;
+  transportMode: 'Bus' | 'Walker' | 'Parent Drop';
+  documentDueDate: string;
+  day1Status: 'Ready for Day 1' | 'Day-1 Settling' | 'Week-1 Active' | 'Month-1 Monitored' | 'Completed';
+  parentWelcomeSent: boolean;
+  checkpoints: StudentOnboardingCheckpoint[];
+  notes?: string;
 }
 
 export interface StudentRecord {
@@ -328,6 +361,7 @@ export interface StudentRecord {
   confidentialCounsellorNote: string; // hidden from parents/students
   visReportFileId?: string;
   familyAccountId?: string;
+  onboarding?: StudentOnboardingRecord;
 }
 
 export interface LearnersScoreBreakdown {

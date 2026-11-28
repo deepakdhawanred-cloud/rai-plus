@@ -112,7 +112,7 @@ export const PLATFORM_FEATURES: PlatformFeatureSpec[] = [
     category: 'Core ERP',
     description: 'Live School Control Room timeline, Smart Academic Calendar & rescheduling engine, digital gate pass, visitors register & audit logs.',
     includedInPlans: ['Starter ERP', 'Growth ERP', 'Premium Campus', 'Enterprise 360°'],
-    governedTabs: ['operations', 'campus_gate', 'control_room', 'academic_calendar', 'learning_portal', 'inventory_assets', 'flagship_products'],
+    governedTabs: ['operations', 'campus_gate', 'control_room', 'academic_calendar', 'learning_portal', 'inventory_assets', 'student_onboarding', 'flagship_products'],
     isCore: true,
   },
 

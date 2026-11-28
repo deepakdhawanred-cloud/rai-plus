@@ -83,6 +83,8 @@ import {
   ensureFlagshipProductsInitialized,
   registerFlagshipProductsRoutes,
 } from './server/flagshipProductsRoutes.ts';
+import { registerStudentOnboardingRoutes } from './server/studentOnboardingRoutes.ts';
+import { createDay1OnboardingBlueprint } from './src/utils/studentOnboardingDocsEngine.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
 import {
@@ -5130,6 +5132,19 @@ async function startServer() {
         responsibilities: [],
         achievements: [],
         confidentialCounsellorNote: `Enrolled from Admission CRM (${lead.source}). ${lead.notes || ''}`.trim(),
+        onboarding: createDay1OnboardingBlueprint({
+          admissionDate: new Date().toISOString().slice(0, 10),
+          assignedClassTeacher:
+            db.users.find(
+              (u) =>
+                u.schoolId === req.activeSchoolId! &&
+                u.role === 'teacher' &&
+                u.classTeacherOf?.toLowerCase() === classSection.toLowerCase(),
+            )?.name || req.user!.name,
+          transportMode: lead.transportPreference === 'Walker' ? 'Walker' : 'Bus',
+          documentDueDate: new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10),
+          notes: lead.notes || undefined,
+        }),
       };
       lead.stage = 'Confirmed';
       lead.convertedStudentId = student.id;
@@ -8376,6 +8391,12 @@ async function startServer() {
   registerControlRoomAndCalendarRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerLearningPortalRoutes(app, { requireAuth, requireRoles, appendAuditLog });
   registerInventoryRoutes(app, { requireAuth, requireRoles, appendAuditLog });
+  registerStudentOnboardingRoutes(app, {
+    requireAuth,
+    requireRoles,
+    appendAuditLog,
+    syncSchoolFamilyAccounts,
+  });
   registerFlagshipProductsRoutes(app, {
     requireAuth,
     requireRoles,

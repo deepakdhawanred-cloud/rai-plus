@@ -208,6 +208,7 @@ export type WorkspaceTab =
   | 'academic_calendar'
   | 'learning_portal'
   | 'inventory_assets'
+  | 'student_onboarding'
   | 'alerts'
   | 'today_workspace'
   | 'interactive_learning'

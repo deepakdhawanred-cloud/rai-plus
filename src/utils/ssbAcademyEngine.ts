@@ -116,6 +116,26 @@ const WAT_WORDS: Array<[string, 'Positive' | 'Negative' | 'Neutral' | 'Abstract'
   ['Leak', 'Situational', 'Advanced', ['effective_intelligence', 'sense_of_responsibility']],
   ['Promise', 'Abstract', 'Intermediate', ['sense_of_responsibility', 'cooperation']],
   ['Resolve', 'Positive', 'Officer-Level', ['determination', 'courage']],
+  ['Integrity', 'Abstract', 'Officer-Level', ['sense_of_responsibility', 'courage']],
+  ['Strategy', 'Neutral', 'Advanced', ['organising_ability', 'reasoning_ability']],
+  ['Endurance', 'Positive', 'Intermediate', ['stamina', 'determination']],
+  ['Rivalry', 'Negative', 'Intermediate', ['social_adaptability', 'liveliness']],
+  ['Initiative', 'Positive', 'Beginner', ['initiative', 'self_confidence']],
+  ['Ambush', 'Situational', 'Officer-Level', ['speed_of_decision', 'courage']],
+  ['Clarity', 'Abstract', 'Intermediate', ['power_of_expression', 'reasoning_ability']],
+  ['Terrain', 'Neutral', 'Intermediate', ['effective_intelligence', 'stamina']],
+  ['Neglect', 'Negative', 'Advanced', ['sense_of_responsibility', 'initiative']],
+  ['Comrade', 'Positive', 'Beginner', ['cooperation', 'social_adaptability']],
+  ['Scarcity', 'Situational', 'Advanced', ['effective_intelligence', 'organising_ability']],
+  ['Humility', 'Abstract', 'Intermediate', ['social_adaptability', 'self_confidence']],
+  ['Setback', 'Negative', 'Intermediate', ['determination', 'liveliness']],
+  ['Patrol', 'Neutral', 'Intermediate', ['sense_of_responsibility', 'stamina']],
+  ['Decisive', 'Positive', 'Officer-Level', ['speed_of_decision', 'self_confidence']],
+  ['Friction', 'Negative', 'Advanced', ['social_adaptability', 'cooperation']],
+  ['Shelter', 'Neutral', 'Beginner', ['organising_ability', 'cooperation']],
+  ['Vigilant', 'Positive', 'Intermediate', ['effective_intelligence', 'sense_of_responsibility']],
+  ['Exhausted', 'Negative', 'Officer-Level', ['stamina', 'determination']],
+  ['Mission', 'Positive', 'Officer-Level', ['determination', 'influence_group']],
 ];
 
 const SRT_THEMES: Array<{
@@ -280,6 +300,26 @@ const SRT_THEMES: Array<{
       ['You must choose between leading a difficult community project yourself or delegating key modules to less experienced members. You…', 'Officer-Level', ['organising_ability', 'influence_group', 'cooperation']],
       ['During a night camp navigation exercise, your squad’s compass malfunctions 3 km before the checkpoint. You…', 'Officer-Level', ['effective_intelligence', 'speed_of_decision', 'self_confidence']],
       ['While escorting school children across a busy highway junction, the traffic signal fails during peak rush hour. You…', 'Advanced', ['initiative', 'courage', 'sense_of_responsibility']],
+      ['A severe hailstorm damages tents at an NCC camp at midnight while junior cadets panic. You…', 'Officer-Level', ['courage', 'organising_ability', 'influence_group']],
+      ['You discover an error in the printed exam schedule distributed to 400 students one evening before finals. You…', 'Intermediate', ['speed_of_decision', 'sense_of_responsibility', 'organising_ability']],
+      ['Two volunteers argue loudly at a village eye-checkup registration desk as elderly patients wait. You…', 'Intermediate', ['social_adaptability', 'influence_group', 'cooperation']],
+      ['During a boat-rowing drill, one oar snaps 80 metres from the riverbank. You…', 'Advanced', ['effective_intelligence', 'speed_of_decision', 'liveliness']],
+      ['Your assigned group mentor cancels on the morning of an important inter-school robotics showcase. You…', 'Intermediate', ['initiative', 'self_confidence', 'organising_ability']],
+      ['A teammate accidentally deletes the shared spreadsheet of event finances two hours before audit review. You…', 'Advanced', ['effective_intelligence', 'cooperation', 'sense_of_responsibility']],
+      ['You witness a minor road collision where both drivers begin shouting while blocking an ambulance behind them. You…', 'Officer-Level', ['courage', 'influence_group', 'speed_of_decision']],
+      ['Half of your marathon refreshment volunteers fail to show up at 5:30 AM due to heavy rain. You…', 'Advanced', ['organising_ability', 'initiative', 'stamina']],
+      ['Your hostel water motor burns out on a Sunday morning before an exam week. You…', 'Beginner', ['effective_intelligence', 'cooperation', 'initiative']],
+      ['A senior asks you to take charge of a newly formed debate club that has lost most of its active members. You…', 'Intermediate', ['influence_group', 'liveliness', 'organising_ability']],
+      ['During a trekking descent, dense mist separates two slower walkers from the main line. You…', 'Officer-Level', ['sense_of_responsibility', 'speed_of_decision', 'cooperation']],
+      ['You receive conflicting weather advisories before leading an outdoor youth plantation drive. You…', 'Intermediate', ['reasoning_ability', 'organising_ability', 'sense_of_responsibility']],
+      ['Your sports team trails badly at halftime and players start blaming the goalkeeper. You…', 'Intermediate', ['liveliness', 'influence_group', 'cooperation']],
+      ['You spot exposed live electrical wiring near a damp drinking-water tap on campus. You…', 'Beginner', ['sense_of_responsibility', 'speed_of_decision', 'initiative']],
+      ['A newly joined junior feels homesick and wants to quit the residential academy within the first week. You…', 'Beginner', ['social_adaptability', 'cooperation', 'liveliness']],
+      ['During a district science quiz you are moderating, a technical glitch displays the wrong score tally on screen. You…', 'Intermediate', ['self_confidence', 'power_of_expression', 'organising_ability']],
+      ['Your cycle puncture occurs on a lonely road 5 km from town as sunlight fades before a family function. You…', 'Beginner', ['effective_intelligence', 'stamina', 'self_confidence']],
+      ['A community clean-water tank overflows repeatedly because residents forget to shut off the pump. You…', 'Intermediate', ['initiative', 'organising_ability', 'effective_intelligence']],
+      ['You are asked to present a project update to a senior panel after your co-presenter loses their voice. You…', 'Advanced', ['power_of_expression', 'self_confidence', 'cooperation']],
+      ['While travelling in a crowded bus, an elderly passenger faints near the rear exit. You…', 'Intermediate', ['speed_of_decision', 'initiative', 'cooperation']],
     ],
   },
 ];
@@ -354,24 +394,36 @@ export function generateInitialSsbPracticeSets(): SsbPracticeSet[] {
   const diffs: SsbDifficulty[] = ['Beginner', 'Intermediate', 'Advanced', 'Officer-Level'];
   let setNumber = 1;
 
-  // 1. 25 WAT Sets (4 words per set in practice pack = 100 unique words total, plus full-set shuffle support)
+  // 1. 25 WAT Sets — Authentic SSB Exam Standard: 60 unique words per set (15s/word = 15 min)
+  const watPoolLen = WAT_WORDS.length;
+  const watStrides = [1, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103];
   for (let i = 0; i < 25; i += 1) {
-    const slice = WAT_WORDS.slice(i * 4, i * 4 + 4);
+    const stride = watStrides[i % watStrides.length]!;
+    const offset = (i * 5) % watPoolLen;
+    const usedIndices = new Set<number>();
+    const slice: typeof WAT_WORDS = [];
+    for (let step = 0; slice.length < 60 && step < watPoolLen * 2; step += 1) {
+      const idx = (offset + step * stride) % watPoolLen;
+      if (!usedIndices.has(idx)) {
+        usedIndices.add(idx);
+        slice.push(WAT_WORDS[idx]!);
+      }
+    }
     const diff = diffs[Math.floor(i / 7) % diffs.length]!;
     sets.push({
       id: `ssb-wat-${String(i + 1).padStart(2, '0')}`,
       setNumber: setNumber++,
       code: `WAT-${String(i + 1).padStart(2, '0')}`,
-      title: `WAT Practice Set ${i + 1} · ${slice[0]?.[1] || 'Mixed'} & Response Clarity`,
+      title: `WAT Full Exam Set ${i + 1} · 60 Words (${slice[0]?.[1] || 'Mixed'} Focus)`,
       format: 'WAT',
       difficulty: diff,
       categoryFocus: Array.from(new Set(slice.map((w) => w[1]))).join(' / '),
       isFreeDemo: i === 0,
       published: true,
-      estimatedMinutes: 5,
-      tags: ['WAT', diff, slice[0]?.[1] || 'Mixed'],
+      estimatedMinutes: 15,
+      tags: ['WAT', '60 Words', diff, slice[0]?.[1] || 'Mixed'],
       stimuli: slice.map(([word, cat, d, olqs], j) => ({
-        id: `wat-w-${i * 4 + j + 1}`,
+        id: `wat-s${i + 1}-w${j + 1}`,
         format: 'WAT',
         prompt: word,
         category: cat,
@@ -383,30 +435,42 @@ export function generateInitialSsbPracticeSets(): SsbPracticeSet[] {
     });
   }
 
-  // 2. 25 SRT Sets (flatten all 100 unique SRT situations -> 4 per set = 100 unique SRTs)
+  // 2. 25 SRT Sets — Authentic SSB Exam Standard: 60 unique situations per set (30s/situation = 30 min)
   const flatSrts: Array<{ category: string; prompt: string; difficulty: SsbDifficulty; olqs: OlqKey[] }> = [];
   for (const grp of SRT_THEMES) {
     for (const [prompt, difficulty, olqs] of grp.scenarios) {
       flatSrts.push({ category: grp.category, prompt, difficulty, olqs });
     }
   }
+  const srtPoolLen = flatSrts.length;
+  const srtStrides = [1, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103];
   for (let i = 0; i < 25; i += 1) {
-    const slice = flatSrts.slice(i * 4, i * 4 + 4);
-    const diff = slice[0]?.difficulty || diffs[i % diffs.length]!;
+    const stride = srtStrides[i % srtStrides.length]!;
+    const offset = (i * 5) % srtPoolLen;
+    const usedIndices = new Set<number>();
+    const slice: typeof flatSrts = [];
+    for (let step = 0; slice.length < 60 && step < srtPoolLen * 2; step += 1) {
+      const idx = (offset + step * stride) % srtPoolLen;
+      if (!usedIndices.has(idx)) {
+        usedIndices.add(idx);
+        slice.push(flatSrts[idx]!);
+      }
+    }
+    const diff = diffs[i % diffs.length]!;
     sets.push({
       id: `ssb-srt-${String(i + 1).padStart(2, '0')}`,
       setNumber: setNumber++,
       code: `SRT-${String(i + 1).padStart(2, '0')}`,
-      title: `SRT Practice Set ${i + 1} · ${slice[0]?.category || 'Mixed Scenarios'}`,
+      title: `SRT Full Exam Set ${i + 1} · 60 Situations (${slice[0]?.category || 'Mixed'})`,
       format: 'SRT',
       difficulty: diff,
-      categoryFocus: Array.from(new Set(slice.map((s) => s.category))).join(' / '),
+      categoryFocus: Array.from(new Set(slice.map((s) => s.category))).slice(0, 4).join(' / '),
       isFreeDemo: i === 0,
       published: true,
-      estimatedMinutes: 8,
-      tags: ['SRT', diff, slice[0]?.category || 'Mixed'],
+      estimatedMinutes: 30,
+      tags: ['SRT', '60 Situations', diff, slice[0]?.category || 'Mixed'],
       stimuli: slice.map((s, j) => ({
-        id: `srt-q-${i * 4 + j + 1}`,
+        id: `srt-s${i + 1}-q${j + 1}`,
         format: 'SRT',
         prompt: s.prompt,
         category: s.category,

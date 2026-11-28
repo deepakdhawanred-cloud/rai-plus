@@ -693,13 +693,13 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
                   {
                     format: 'WAT' as SsbTestFormat,
                     title: 'WAT — Word Association',
-                    subtitle: '25 Sets · 100 Curated Words · 15s Timer',
+                    subtitle: '25 Sets · 60 Words / Set · 15s Timer',
                     color: 'from-[#142B46] to-[#1E3B5C]',
                   },
                   {
                     format: 'SRT' as SsbTestFormat,
                     title: 'SRT — Situation Reaction',
-                    subtitle: '25 Sets · 100 Situations · 12 Categories',
+                    subtitle: '25 Sets · 60 Situations / Set · 30m',
                     color: 'from-emerald-800 to-emerald-700',
                   },
                   {
@@ -1256,24 +1256,58 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
                       }
                       className="w-full rounded-xl border border-slate-300 p-3.5 text-sm focus:border-[#142B46] focus:outline-none"
                     />
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-slate-500">
-                        Avoid memorized clichés — authentic, practical actions score highest.
+                        Progress: <strong>{stimIdx + 1} / {activeSet.stimuli.length}</strong> · Avoid memorized clichés — authentic, practical actions score highest.
                       </p>
-                      <button
-                        type="button"
-                        disabled={submittingSession}
-                        onClick={handleNextStimulus}
-                        className="rounded-lg bg-[#142B46] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#1E3B5C] disabled:opacity-60"
-                      >
-                        {stimIdx + 1 < activeSet.stimuli.length
-                          ? 'Save & Next Stimulus →'
-                          : activeSet.format === 'PPDT'
-                            ? 'Proceed to Narration & GD →'
-                            : submittingSession
-                              ? 'Analyzing…'
-                              : 'Submit Set for AI Analysis'}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {stimIdx + 1 < activeSet.stimuli.length &&
+                          (collectedAnswers.length > 0 || currentAnswer.trim().length > 0) && (
+                            <button
+                              type="button"
+                              disabled={submittingSession}
+                              onClick={() => {
+                                const currentStim = activeSet.stimuli[stimIdx];
+                                const finalList = currentAnswer.trim()
+                                  ? [
+                                      ...collectedAnswers,
+                                      {
+                                        stimulusId: currentStim.id,
+                                        candidateResponse: currentAnswer.trim(),
+                                        timeTakenSeconds: Math.max(1, elapsedForStim),
+                                      },
+                                    ]
+                                  : collectedAnswers;
+                                void submitCompleteSession(finalList);
+                              }}
+                              className="rounded-lg border border-emerald-600 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-900 hover:bg-emerald-100 disabled:opacity-60"
+                            >
+                              Finish &amp; Evaluate ({collectedAnswers.length + (currentAnswer.trim() ? 1 : 0)} Answered)
+                            </button>
+                          )}
+                        <button
+                          type="button"
+                          disabled={submittingSession}
+                          onClick={handleNextStimulus}
+                          className="rounded-lg bg-[#142B46] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#1E3B5C] disabled:opacity-60"
+                        >
+                          {stimIdx + 1 < activeSet.stimuli.length
+                            ? 'Save & Next Stimulus →'
+                            : activeSet.format === 'PPDT'
+                              ? 'Proceed to Narration & GD →'
+                              : submittingSession
+                                ? 'Analyzing…'
+                                : 'Submit Set for AI Analysis'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full bg-[#142B46] transition-all"
+                        style={{
+                          width: `${Math.round(((stimIdx + 1) / Math.max(1, activeSet.stimuli.length)) * 100)}%`,
+                        }}
+                      />
                     </div>
                   </div>
                 )}

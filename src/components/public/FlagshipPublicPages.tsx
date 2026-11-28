@@ -483,12 +483,12 @@ export const SsbAcademyLandingPage: React.FC<{
             {
               icon: BookOpen,
               title: 'WAT — Word Association',
-              detail: '25 Sets (100 curated positive, negative, neutral, abstract & situational words) with 15-second spontaneous timer and anti-cliché feedback.',
+              detail: '25 Full Exam Sets with 60 curated words per set (15-second spontaneous timer, 15 min full drill) and response-specific anti-cliché feedback.',
             },
             {
               icon: Target,
               title: 'SRT — Situation Reaction',
-              detail: '25 Sets (100 situations across 12 realistic categories: Emergency, Leadership, Ethics, Teamwork, Resource Limits) with practicality scoring.',
+              detail: '25 Full Exam Sets with 60 realistic situations per set across 12 SSB categories (30-minute board simulation) with practicality scoring.',
             },
             {
               icon: Layers,

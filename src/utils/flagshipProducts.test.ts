@@ -1,5 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   computeSchoolAnnualQuote,
   createDefaultCommercialPricingRegistry,
@@ -24,7 +26,7 @@ import {
 import type { SsbAssessmentSessionRecord } from '../types/flagshipProducts';
 
 describe('Rai Plus Flagship Products — 30-Criteria Verification Suite', () => {
-  it('generates exactly 100 complete non-duplicate SSB practice sets (25 WAT / 25 SRT / 25 TAT / 25 PPDT)', () => {
+  it('generates exactly 100 complete SSB practice sets with 60 unique words per WAT set and 60 unique situations per SRT set', () => {
     const sets = generateInitialSsbPracticeSets();
     assert.equal(sets.length, 100);
 
@@ -39,11 +41,39 @@ describe('Rai Plus Flagship Products — 30-Criteria Verification Suite', () => 
     assert.equal(byFormat.TAT.length, 25);
     assert.equal(byFormat.PPDT.length, 25);
 
-    for (const fmt of ['WAT', 'SRT', 'TAT', 'PPDT'] as const) {
+    // Every single WAT set has exact 60 unique words (no duplicates inside any set!) and 15 min duration
+    for (const watSet of byFormat.WAT) {
+      assert.equal(watSet.stimuli.length, 60, `Expected 60 words in ${watSet.code}, got ${watSet.stimuli.length}`);
+      assert.equal(watSet.estimatedMinutes, 15);
+      const uniqueInSet = new Set(watSet.stimuli.map((st) => st.prompt.trim().toLowerCase()));
+      assert.equal(uniqueInSet.size, 60, `Duplicate words detected inside ${watSet.code}`);
+    }
+    const allUniqueWatWords = new Set(
+      byFormat.WAT.flatMap((s) => s.stimuli.map((st) => st.prompt.trim().toLowerCase())),
+    );
+    assert.ok(allUniqueWatWords.size >= 115, `Expected >=115 unique WAT words overall, got ${allUniqueWatWords.size}`);
+
+    // Every single SRT set has exact 60 unique situations (no duplicates inside any set!) and 30 min duration
+    for (const srtSet of byFormat.SRT) {
+      assert.equal(srtSet.stimuli.length, 60, `Expected 60 situations in ${srtSet.code}, got ${srtSet.stimuli.length}`);
+      assert.equal(srtSet.estimatedMinutes, 30);
+      const uniqueInSet = new Set(srtSet.stimuli.map((st) => st.prompt.trim().toLowerCase()));
+      assert.equal(uniqueInSet.size, 60, `Duplicate situations detected inside ${srtSet.code}`);
+    }
+    const allUniqueSrts = new Set(
+      byFormat.SRT.flatMap((s) => s.stimuli.map((st) => st.prompt.trim().toLowerCase())),
+    );
+    assert.ok(allUniqueSrts.size >= 115, `Expected >=115 unique SRT situations overall, got ${allUniqueSrts.size}`);
+
+    // TAT and PPDT have 100 unique prompts across their 25 sets
+    for (const fmt of ['TAT', 'PPDT'] as const) {
       const prompts = byFormat[fmt].flatMap((s) => s.stimuli.map((st) => st.prompt.trim().toLowerCase()));
       assert.ok(prompts.length >= 100, `Expected >=100 stimuli for ${fmt}, got ${prompts.length}`);
       assert.equal(new Set(prompts).size, prompts.length, `Duplicate stimuli detected in ${fmt}`);
     }
+
+    // Hostinger Express deployment guard: root server.js must exist with exact capitalization
+    assert.equal(fs.existsSync(path.resolve(process.cwd(), 'server.js')), true);
 
     const freeDemos = sets.filter((s) => s.isFreeDemo);
     assert.ok(freeDemos.length >= 4);

@@ -114,8 +114,17 @@ export function ensureFlagshipProductsInitialized(db: DatabaseState): void {
     dirty = true;
   }
 
-  if (!Array.isArray(db.ssbPracticeSets) || db.ssbPracticeSets.length < 100) {
-    db.ssbPracticeSets = generateInitialSsbPracticeSets();
+  const needsSsbRefresh =
+    !Array.isArray(db.ssbPracticeSets) ||
+    db.ssbPracticeSets.length < 100 ||
+    db.ssbPracticeSets.some(
+      (s) =>
+        (s.id.startsWith('ssb-wat-') || s.id.startsWith('ssb-srt-')) &&
+        s.stimuli.length !== 60,
+    );
+  if (needsSsbRefresh) {
+    const customSets = (db.ssbPracticeSets || []).filter((s) => s.id.startsWith('ssb-set-custom-'));
+    db.ssbPracticeSets = [...customSets, ...generateInitialSsbPracticeSets()];
     dirty = true;
   }
   if (!db.ssbStudentProfiles) {
@@ -173,8 +182,8 @@ export function ensureFlagshipProductsInitialized(db: DatabaseState): void {
     profile.subscription.unlockedSetLimit = 100; // Full demo preview in demo mode
     profile.subscription.planStatus = 'Subscribed';
     // Seed 2 starter practice sessions so OLQ corroboration & progress UI are alive immediately
-    const watSet1 = db.ssbPracticeSets.find((s) => s.format === 'WAT');
-    const srtSet1 = db.ssbPracticeSets.find((s) => s.format === 'SRT');
+    const watSet1 = (db.ssbPracticeSets || []).find((s) => s.format === 'WAT');
+    const srtSet1 = (db.ssbPracticeSets || []).find((s) => s.format === 'SRT');
     if (watSet1) {
       const watResponses = watSet1.stimuli.slice(0, 3).map((st) =>
         analyzeSsbResponse({

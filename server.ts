@@ -8404,16 +8404,18 @@ async function startServer() {
   // ---------------- VITE MIDDLEWARE OR PRODUCTION STATIC ----------------
   const distDir = path.resolve(process.cwd(), 'dist');
   const hasDistBuild = fs.existsSync(path.join(distDir, 'index.html'));
-  const isStartScript =
-    process.env.npm_lifecycle_event === 'start' || process.env.npm_lifecycle_event === 'preview';
-  const isProduction =
-    process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE) || isStartScript;
-  if (!isProduction || !hasDistBuild) {
+  const isDevMode = process.env.NODE_ENV === 'development';
+  const useViteMiddleware = isDevMode || !hasDistBuild;
+  if (useViteMiddleware) {
     // Start Vite middleware asynchronously so port 3000 binds immediately for health checks.
     const vitePromise = import('vite')
       .then(({ createServer: createViteServer }) =>
         createViteServer({
-          server: { middlewareMode: true },
+          server: {
+            middlewareMode: true,
+            hmr: isDevMode,
+            watch: isDevMode ? undefined : null,
+          },
           appType: 'spa',
         }),
       )
@@ -8469,13 +8471,20 @@ async function startServer() {
     portArgIdx >= 0 && process.argv[portArgIdx + 1]
       ? Number(process.argv[portArgIdx + 1])
       : NaN;
-  const PORT =
-    (Number.isFinite(cliPort) && cliPort > 0 ? cliPort : 0) ||
-    Number(process.env.PORT) ||
-    3000;
+  const rawEnvPort = process.env.PORT?.trim();
+  const listenTarget: number | string =
+    Number.isFinite(cliPort) && cliPort > 0
+      ? cliPort
+      : rawEnvPort
+        ? /^\d+$/.test(rawEnvPort)
+          ? Number(rawEnvPort)
+          : rawEnvPort
+        : 3000;
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Rai Plus server listening on http://0.0.0.0:${PORT}`);
+  const onServerListening = () => {
+    const boundLabel =
+      typeof listenTarget === 'string' ? listenTarget : `http://0.0.0.0:${listenTarget}`;
+    console.log(`Rai Plus server listening on ${boundLabel}`);
     // Warm persisted database right after port binding so startup probes succeed immediately.
     setImmediate(() => {
       try {
@@ -8487,7 +8496,12 @@ async function startServer() {
         console.error('Background DB warmup failed:', err);
       }
     });
-  });
+  };
+
+  const server =
+    typeof listenTarget === 'string'
+      ? app.listen(listenTarget, onServerListening)
+      : app.listen(listenTarget, '0.0.0.0', onServerListening);
 
   const handleShutdown = (signal: string) => {
     console.log(`Received ${signal}; flushing pending database writes and closing server...`);

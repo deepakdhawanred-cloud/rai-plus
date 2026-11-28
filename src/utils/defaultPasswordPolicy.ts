@@ -23,7 +23,7 @@ const ROLE_DEFAULT_PREFIX: Record<UserRole, string> = {
 
 /**
  * Returns the canonical default first-login password for any Rai Plus user:
- * their designation/role prefix followed by "123" (e.g., principal123, admin123, teacher123).
+ * their designation/role prefix followed by "123" (e.g., deputydirector123, principal123, viceprincipal123, teacher123).
  */
 export function getDefaultDesignationPassword(
   user: Pick<UserAccount, 'role' | 'designation' | 'isPlatformCoo'>,
@@ -31,6 +31,9 @@ export function getDefaultDesignationPassword(
   if (user.role === 'super_admin' && user.isPlatformCoo) {
     return 'coo123';
   }
+  const desig = String(user.designation || '').toLowerCase();
+  if (desig.includes('deputy director')) return 'deputydirector123';
+  if (desig.includes('vice principal')) return 'viceprincipal123';
   const prefix = ROLE_DEFAULT_PREFIX[user.role] || 'user';
   return `${prefix}123`;
 }

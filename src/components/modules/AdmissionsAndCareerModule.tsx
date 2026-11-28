@@ -31,6 +31,8 @@ import { hasGoogleMapsAccess } from '../../utils/subscriptionEntitlements';
 import { optimizeBusRouteForAdmission } from '../../utils/transportEngine';
 import { AdmissionRouteOptimizerPanel } from '../AdmissionRouteOptimizerPanel';
 import { HomeVisitRecordsPanel } from '../HomeVisitRecordsPanel';
+import { EnrolledStudentHomeVisitsPanel } from '../EnrolledStudentHomeVisitsPanel';
+import { splitHomeVisitsByType } from '../../utils/studentHomeVisitEngine';
 
 interface AdmissionsAndCareerModuleProps {
   data: WorkspaceData;
@@ -53,7 +55,7 @@ const STAGE_TEXT_CLASS: Record<AdmissionLead['stage'], string> = {
   Confirmed: 'text-emerald-700',
 };
 
-type ModuleSubTab = 'pipeline' | 'home_visits' | 'career';
+type ModuleSubTab = 'pipeline' | 'home_visits' | 'enrolled_home_visits' | 'career';
 
 export const AdmissionsAndCareerModule: React.FC<AdmissionsAndCareerModuleProps> = ({
   data,
@@ -119,19 +121,24 @@ export const AdmissionsAndCareerModule: React.FC<AdmissionsAndCareerModuleProps>
   // Career Counselling review notes
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
 
+  const { admissionCrmVisits, enrolledStudentVisits } = useMemo(
+    () => splitHomeVisitsByType(data.homeVisitRecords),
+    [data.homeVisitRecords],
+  );
+
   const summary = useMemo(
-    () => computeAdmissionCrmSummary(data.admissionLeads, data.homeVisitRecords),
-    [data.admissionLeads, data.homeVisitRecords],
+    () => computeAdmissionCrmSummary(data.admissionLeads, admissionCrmVisits),
+    [data.admissionLeads, admissionCrmVisits],
   );
 
   const filteredLeads = useMemo(
     () =>
-      filterAdmissionLeads(data.admissionLeads, data.homeVisitRecords, {
+      filterAdmissionLeads(data.admissionLeads, admissionCrmVisits, {
         query: searchQuery,
         stage: stageFilter,
         homeVisitFilter: visitFilter,
       }),
-    [data.admissionLeads, data.homeVisitRecords, searchQuery, stageFilter, visitFilter],
+    [data.admissionLeads, admissionCrmVisits, searchQuery, stageFilter, visitFilter],
   );
 
   const selectedLead = useMemo(
@@ -507,7 +514,18 @@ export const AdmissionsAndCareerModule: React.FC<AdmissionsAndCareerModuleProps>
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Home Visit Records ({data.homeVisitRecords.length})
+              Admission Home Visits — Leads ({admissionCrmVisits.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('enrolled_home_visits')}
+              className={`px-3.5 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                activeSubTab === 'enrolled_home_visits'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Enrolled Student Visits — 4×/Yr ({enrolledStudentVisits.length})
             </button>
             {!isTeacher && (
               <button
@@ -1478,16 +1496,28 @@ export const AdmissionsAndCareerModule: React.FC<AdmissionsAndCareerModuleProps>
         </div>
       )}
 
-      {/* TAB 2: HOME VISIT RECORDS */}
+      {/* TAB 2A: ADMISSION CRM HOME VISITS (PROSPECTIVE LEADS ONLY) */}
       {!isCounsellorOnly && activeSubTab === 'home_visits' && (
         <HomeVisitRecordsPanel
           leads={data.admissionLeads}
-          visits={data.homeVisitRecords}
+          visits={admissionCrmVisits}
           defaultStaffName={data.user.name}
           preselectedLeadId={visitPreselectLeadId}
           token={token}
           onRefresh={onRefresh}
           onClearPreselect={() => setVisitPreselectLeadId(null)}
+        />
+      )}
+
+      {/* TAB 2B: ENROLLED STUDENT QUARTERLY HOME VISITS (4 VISITS/YEAR MANDATE) */}
+      {!isCounsellorOnly && activeSubTab === 'enrolled_home_visits' && (
+        <EnrolledStudentHomeVisitsPanel
+          students={data.students}
+          visits={enrolledStudentVisits}
+          academicSession={data.activeSchool.session || '2026-27'}
+          defaultStaffName={data.user.name}
+          token={token}
+          onRefresh={onRefresh}
         />
       )}
 

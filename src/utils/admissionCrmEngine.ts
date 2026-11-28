@@ -98,14 +98,17 @@ export function computeAdmissionCrmSummary(
   let scheduledHomeVisits = 0;
   let completedHomeVisits = 0;
   const coveredLeadIds = new Set<string>();
+  const admissionVisits = visits.filter(
+    (v) => v.visitCategory !== 'enrolled_student' && !v.studentId,
+  );
 
-  for (const visit of visits) {
+  for (const visit of admissionVisits) {
     if (visit.status === 'Scheduled' || visit.status === 'Rescheduled') {
       scheduledHomeVisits += 1;
     } else if (visit.status === 'Completed') {
       completedHomeVisits += 1;
     }
-    if (visit.status !== 'Cancelled') {
+    if (visit.status !== 'Cancelled' && visit.leadId) {
       coveredLeadIds.add(visit.leadId);
     }
   }
@@ -117,7 +120,7 @@ export function computeAdmissionCrmSummary(
     confirmedCount,
     conversionRatePct,
     followUpsDueCount,
-    totalHomeVisits: visits.length,
+    totalHomeVisits: admissionVisits.length,
     scheduledHomeVisits,
     completedHomeVisits,
     leadsWithHomeVisitCount: coveredLeadIds.size,
@@ -129,7 +132,7 @@ export function deriveLeadVisitSummary(
   visits: HomeVisitRecord[],
 ): LeadVisitSummary {
   const matching = visits
-    .filter((v) => v.leadId === leadId)
+    .filter((v) => v.visitCategory !== 'enrolled_student' && !v.studentId && v.leadId === leadId)
     .slice()
     .sort((a, b) => b.visitDate.localeCompare(a.visitDate));
 

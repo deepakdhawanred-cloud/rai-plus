@@ -21,7 +21,7 @@ function getDbFilePath(dir = activeDataDir): string {
   return path.join(dir, DB_FILENAME);
 }
 
-const CURRENT_DB_SCHEMA_VERSION = 20261126;
+const CURRENT_DB_SCHEMA_VERSION = 20261128;
 
 type PersistedDatabaseState = DatabaseState & {
   _schemaVersion?: number;
@@ -741,6 +741,61 @@ function applyDatabaseMigrations(parsed: PersistedDatabaseState): boolean {
           }
         }
       }
+      // Migrate VIS Jhajjar leadership (Dr. Deepak Dhawan -> Deputy Director, Ms. Niharika Yadav -> Principal, Ms. Nirmla Yadav -> Vice Principal)
+      // and separate Admission CRM vs Enrolled Student 4x/year Quarterly Home Visits
+      if (Array.isArray(parsed.users)) {
+        const freshVisLeaders = fresh.users.filter((u) =>
+          ['usr-deputy-director-vis', 'usr-principal-vis', 'usr-vice-principal-vis'].includes(u.id),
+        );
+        for (const leader of freshVisLeaders) {
+          const existingIdx = parsed.users.findIndex((u) => u.id === leader.id);
+          if (existingIdx === -1) {
+            parsed.users.unshift(leader);
+            migrated = true;
+          } else {
+            const cur = parsed.users[existingIdx];
+            if (
+              cur.name !== leader.name ||
+              cur.designation !== leader.designation ||
+              cur.email !== leader.email ||
+              cur.role !== leader.role
+            ) {
+              parsed.users[existingIdx] = {
+                ...cur,
+                name: leader.name,
+                designation: leader.designation,
+                email: leader.email,
+                role: leader.role,
+                subjectSpecialty: leader.subjectSpecialty,
+              };
+              migrated = true;
+            }
+          }
+        }
+      }
+      if (Array.isArray(parsed.homeVisitRecords)) {
+        for (const hv of parsed.homeVisitRecords) {
+          if (!hv.visitCategory) {
+            hv.visitCategory = hv.studentId ? 'enrolled_student' : 'admission_crm';
+            migrated = true;
+          }
+        }
+        const existingHvIds = new Set(parsed.homeVisitRecords.map((v) => v.id));
+        for (const seedHv of fresh.homeVisitRecords) {
+          if (seedHv.visitCategory === 'enrolled_student' && !existingHvIds.has(seedHv.id)) {
+            parsed.homeVisitRecords.push(seedHv);
+            migrated = true;
+          }
+        }
+      }
+      if (parsed.schoolWebsitesBySchool?.['school-vis-jjr']) {
+        const visSite = parsed.schoolWebsitesBySchool['school-vis-jjr'];
+        if (visSite.principalMessage?.authorName === 'Dr. Deepak Dhawan') {
+          delete parsed.schoolWebsitesBySchool['school-vis-jjr'];
+          migrated = true;
+        }
+      }
+
       const thinkingMigrationReport = runThinkingAssessmentMigrations(parsed);
       if (thinkingMigrationReport.mutated) {
         migrated = true;

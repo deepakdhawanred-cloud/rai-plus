@@ -89,6 +89,10 @@ import {
   getDefaultDesignationPassword,
   matchesDefaultDesignationPassword,
 } from './src/utils/defaultPasswordPolicy.ts';
+import {
+  inferQuarterFromDate,
+  validateEnrolledStudentVisitInput,
+} from './src/utils/studentHomeVisitEngine.ts';
 import { createDay1OnboardingBlueprint } from './src/utils/studentOnboardingDocsEngine.ts';
 import { getNotificationGatewayStatus } from './server/notificationGateway.ts';
 import { buildRoleScopedCampusAdminPayload } from './src/utils/campusAdminEngine.ts';
@@ -5284,6 +5288,7 @@ async function startServer() {
       const visit: HomeVisitRecord = {
         id: `hv-${Date.now()}`,
         schoolId: req.activeSchoolId!,
+        visitCategory: 'admission_crm',
         leadId: lead.id,
         studentName: lead.studentName,
         applyingClass: lead.applyingClass,
@@ -5354,6 +5359,8 @@ async function startServer() {
       }
       if (body.status) visit.status = body.status;
       if (body.outcome) visit.outcome = body.outcome;
+      if (body.academicQuarter) visit.academicQuarter = body.academicQuarter;
+      if (body.enrolledVisitOutcome) visit.enrolledVisitOutcome = body.enrolledVisitOutcome;
       visit.updatedAt = new Date().toISOString().slice(0, 10);
 
       appendAuditLog({
@@ -5362,10 +5369,85 @@ async function startServer() {
         action: 'UPDATED_HOME_VISIT',
         entityType: 'HomeVisitRecord',
         entityId: visit.id,
-        detail: `Updated home visit for ${visit.studentName} to ${visit.status} (${visit.outcome}).`,
+        detail: `Updated home visit for ${visit.studentName} to ${visit.status} (${visit.enrolledVisitOutcome || visit.outcome}).`,
       });
       saveDb();
       res.json({ visit });
+    },
+  );
+
+  // Enrolled Student Quarterly Home Visits (4 Visits/Year Mandate: Q1, Q2, Q3, Q4)
+  app.post(
+    '/api/students/:studentId/home-visits',
+    requireAuth,
+    requireRoles(['super_admin', 'school_admin', 'principal', 'coordinator', 'counsellor', 'teacher']),
+    (req: AuthedRequest, res) => {
+      const db = getDb();
+      const student = db.students.find(
+        (s) => s.id === req.params.studentId && s.schoolId === req.activeSchoolId,
+      );
+      if (!student) {
+        res.status(404).json({ error: 'Enrolled student not found in active school.' });
+        return;
+      }
+
+      const body = (req.body || {}) as Partial<HomeVisitRecord>;
+      const quarter = body.academicQuarter || inferQuarterFromDate(body.visitDate);
+      const check = validateEnrolledStudentVisitInput({
+        studentId: student.id,
+        academicQuarter: quarter,
+        visitDate: body.visitDate,
+        visitingStaff: body.visitingStaff || req.user?.name,
+        guardianMet: body.guardianMet || student.guardianName,
+      });
+      if (!check.valid) {
+        res.status(400).json({ error: check.error });
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      const activeSchool = db.schools.find((s) => s.id === req.activeSchoolId);
+      const visit: HomeVisitRecord = {
+        id: `hv-stu-${Date.now()}`,
+        schoolId: req.activeSchoolId!,
+        visitCategory: 'enrolled_student',
+        leadId: '',
+        studentId: student.id,
+        admissionNo: student.admissionNo,
+        classSection: student.classSection,
+        academicQuarter: quarter,
+        academicSession: body.academicSession?.trim() || activeSchool?.session || '2026-27',
+        enrolledVisitOutcome: body.enrolledVisitOutcome || 'Thriving & On Track',
+        studentName: student.name,
+        applyingClass: student.classSection,
+        parentName: student.guardianName,
+        phone: student.guardianPhone,
+        visitDate: body.visitDate!.trim(),
+        visitSlot: body.visitSlot?.trim() || '04:00 PM – 04:45 PM',
+        visitingStaff: (body.visitingStaff || req.user?.name || 'Faculty').trim(),
+        address: body.address?.trim() || student.address || '',
+        locality: body.locality?.trim() || activeSchool?.city || '',
+        guardianMet: (body.guardianMet || student.guardianName).trim(),
+        homeEnvironmentSummary: body.homeEnvironmentSummary?.trim() || '',
+        learningSupportNotes: body.learningSupportNotes?.trim() || '',
+        transportOrFeeNotes: body.transportOrFeeNotes?.trim() || '',
+        status: body.status || 'Completed',
+        outcome: 'Proceed to Admission',
+        createdAt: today,
+        updatedAt: today,
+      };
+
+      db.homeVisitRecords.unshift(visit);
+      appendAuditLog({
+        schoolId: req.activeSchoolId!,
+        actor: req.user!,
+        action: 'LOGGED_ENROLLED_STUDENT_HOME_VISIT',
+        entityType: 'HomeVisitRecord',
+        entityId: visit.id,
+        detail: `${visit.status} ${quarter} quarterly home visit (4x/year) for enrolled student ${student.name} (${student.classSection}) by ${visit.visitingStaff}.`,
+      });
+      saveDb(undefined, { schoolId: req.activeSchoolId });
+      res.status(201).json({ visit });
     },
   );
 

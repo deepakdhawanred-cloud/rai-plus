@@ -35,6 +35,8 @@ import {
   StaggerCard,
   StaggerGrid,
 } from '../motion/RaiMotionSystem';
+import { EnrolledStudentHomeVisitsPanel } from '../EnrolledStudentHomeVisitsPanel';
+import { splitHomeVisitsByType } from '../../utils/studentHomeVisitEngine';
 
 interface StudentDocsAndOnboardingModuleProps {
   data: WorkspaceData;
@@ -42,7 +44,7 @@ interface StudentDocsAndOnboardingModuleProps {
   onRefresh: () => Promise<void>;
 }
 
-type ModuleTab = 'documents' | 'new_admission' | 'day1_monitor';
+type ModuleTab = 'documents' | 'new_admission' | 'day1_monitor' | 'home_visits_4x';
 type DocFilterMode = 'all' | 'pending' | 'overdue' | 'completed';
 
 export const StudentDocsAndOnboardingModule: React.FC<StudentDocsAndOnboardingModuleProps> = ({
@@ -453,6 +455,18 @@ export const StudentDocsAndOnboardingModule: React.FC<StudentDocsAndOnboardingMo
           >
             <ClipboardCheck className="h-3.5 w-3.5" />
             Day-1 Monitoring Board ({monitoredStudents.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('home_visits_4x')}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors ${
+              activeTab === 'home_visits_4x'
+                ? 'bg-[#142B46] text-white'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Users className="h-3.5 w-3.5" />
+            Student Home Visits (4×/Yr)
           </button>
         </div>
       </div>
@@ -1324,6 +1338,18 @@ export const StudentDocsAndOnboardingModule: React.FC<StudentDocsAndOnboardingMo
             </div>
           )}
         </div>
+      )}
+
+      {/* ==================== TAB 4: ENROLLED STUDENT HOME VISITS (4x/YEAR) ==================== */}
+      {activeTab === 'home_visits_4x' && (
+        <EnrolledStudentHomeVisitsPanel
+          students={data.students}
+          visits={splitHomeVisitsByType(data.homeVisitRecords).enrolledStudentVisits}
+          academicSession={data.activeSchool.session || '2026-27'}
+          defaultStaffName={data.user.name}
+          token={token}
+          onRefresh={onRefresh}
+        />
       )}
       </AnimatedPageTransition>
     </div>

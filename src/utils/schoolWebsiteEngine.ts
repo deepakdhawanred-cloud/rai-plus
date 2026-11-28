@@ -171,8 +171,17 @@ export function buildDefaultSchoolWebsiteProfile(
   schoolUsers: UserAccount[] = [],
 ): SchoolWebsiteProfile {
   const slug = toSchoolWebsiteSlug(school.code || school.name);
-  const principalUser = schoolUsers.find((u) => u.role === 'principal');
-  const adminUser = schoolUsers.find((u) => u.role === 'school_admin');
+  const principalUser =
+    schoolUsers.find((u) => u.role === 'principal' && !String(u.designation || '').toLowerCase().includes('vice')) ||
+    schoolUsers.find((u) => u.role === 'principal');
+  const vicePrincipalUser = schoolUsers.find((u) =>
+    String(u.designation || '').toLowerCase().includes('vice principal'),
+  );
+  const deputyDirectorUser = schoolUsers.find((u) =>
+    String(u.designation || '').toLowerCase().includes('deputy director'),
+  );
+  const adminUser =
+    deputyDirectorUser || schoolUsers.find((u) => u.role === 'school_admin');
   const coordUser = schoolUsers.find((u) => u.role === 'coordinator');
   const seniorTeacher = schoolUsers.find((u) => u.role === 'teacher');
 
@@ -189,13 +198,16 @@ export function buildDefaultSchoolWebsiteProfile(
   const principalName =
     principalUser?.name ||
     (isVis
-      ? 'Dr. Deepak Dhawan'
+      ? 'Ms. Niharika Yadav'
       : isSvm
         ? 'Dr. Meenakshi Deswal'
         : 'Principal Academic Leadership');
-  const adminName =
+  const deputyDirectorName =
+    deputyDirectorUser?.name ||
     adminUser?.name ||
-    (isVis ? 'Rameshwar Dayal Kaushik' : isSvm ? 'Rajeshwar Sharma' : 'Campus Director');
+    (isVis ? 'Dr. Deepak Dhawan' : isSvm ? 'Rajeshwar Sharma' : 'Campus Director');
+  const vicePrincipalName =
+    vicePrincipalUser?.name || (isVis ? 'Ms. Nirmla Yadav' : '');
   const coordName =
     coordUser?.name ||
     (isVis ? 'Sunita Devi Ahlawat' : isSvm ? 'Anil Kumar Hooda' : 'Academic Coordinator');
@@ -203,24 +215,39 @@ export function buildDefaultSchoolWebsiteProfile(
   const managementTeam: SchoolManagementMember[] = [
     {
       id: `${school.id}-mgmt-1`,
-      name: adminName,
-      roleTitle: isVis ? 'Director & School Administrator' : 'Management & School Administrator',
-      qualification: 'M.A., B.Ed. · Educational Governance & Campus Operations',
-      bio: `Oversees campus infrastructure, UDISE+ & ${school.board} compliance, transport safety, and transparent parent-school governance at ${school.name}.`,
+      name: deputyDirectorName,
+      roleTitle: isVis ? 'Deputy Director' : 'Management & School Administrator',
+      qualification: isVis
+        ? 'Ph.D. · Institutional Strategy, Psychology & 360° Education'
+        : 'M.A., B.Ed. · Educational Governance & Campus Operations',
+      bio: `Guides institutional vision, campus innovation, UDISE+ & ${school.board} compliance, and transparent parent-school governance at ${school.name}.`,
       message: 'Every child deserves a safe, disciplined, and inspiring environment where families are true partners in learning.',
-      initials: getInitials(adminName),
-      email: adminUser?.email || `admin@${slug}.edu.in`,
+      initials: getInitials(deputyDirectorName),
+      email: deputyDirectorUser?.email || adminUser?.email || `deputydirector@${slug}.edu.in`,
     },
     {
       id: `${school.id}-mgmt-2`,
       name: principalName,
       roleTitle: 'Principal & Head of Institution',
-      qualification: 'Ph.D., M.Ed. · Academic Leadership & Student Development',
+      qualification: 'M.A., M.Ed. · Academic Leadership & Student Development',
       bio: `Leads curriculum innovation, daily classroom quality, faculty mentoring, and 360° student growth across academic and co-curricular domains.`,
       message: 'Education is not just preparing for exams — it is building clarity of thought, strong character, and lifelong confidence.',
       initials: getInitials(principalName),
       email: principalUser?.email || `principal@${slug}.edu.in`,
     },
+    ...(vicePrincipalName
+      ? [
+          {
+            id: `${school.id}-mgmt-vp`,
+            name: vicePrincipalName,
+            roleTitle: 'Vice Principal',
+            qualification: 'M.A., B.Ed. · Curriculum Governance & Student Welfare',
+            bio: `Oversees daily academic discipline, quarterly family home visits (4×/year), faculty coordination, and Day-1 new student mentoring at ${school.name}.`,
+            initials: getInitials(vicePrincipalName),
+            email: vicePrincipalUser?.email || `viceprincipal@${slug}.edu.in`,
+          },
+        ]
+      : []),
     {
       id: `${school.id}-mgmt-3`,
       name: coordName,
@@ -230,15 +257,19 @@ export function buildDefaultSchoolWebsiteProfile(
       initials: getInitials(coordName),
       email: coordUser?.email || `academics@${slug}.edu.in`,
     },
-    {
-      id: `${school.id}-mgmt-4`,
-      name: seniorTeacher?.name || 'Admissions & Student Welfare Desk',
-      roleTitle: seniorTeacher?.designation || 'Senior Faculty & Student Care Lead',
-      qualification: seniorTeacher?.subjectSpecialty || 'Post-Graduate Faculty · Student Mentorship',
-      bio: 'Guides families through campus tours, document verification, house allotment, and smooth first-month student integration.',
-      initials: getInitials(seniorTeacher?.name || 'Student Care'),
-      email: seniorTeacher?.email || `admissions@${slug}.edu.in`,
-    },
+    ...(!vicePrincipalName
+      ? [
+          {
+            id: `${school.id}-mgmt-4`,
+            name: seniorTeacher?.name || 'Admissions & Student Welfare Desk',
+            roleTitle: seniorTeacher?.designation || 'Senior Faculty & Student Care Lead',
+            qualification: seniorTeacher?.subjectSpecialty || 'Post-Graduate Faculty · Student Mentorship',
+            bio: 'Guides families through campus tours, document verification, house allotment, and smooth first-month student integration.',
+            initials: getInitials(seniorTeacher?.name || 'Student Care'),
+            email: seniorTeacher?.email || `admissions@${slug}.edu.in`,
+          },
+        ]
+      : []),
   ];
 
   const tagline = isVis

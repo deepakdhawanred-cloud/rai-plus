@@ -222,12 +222,16 @@ export const HomeVisitRecordsPanel: React.FC<HomeVisitRecordsPanelProps> = ({
       {/* Header & Controls */}
       <div className="border-b border-slate-200 px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-900">
+              Admission CRM Only · Prospective Enquiries
+            </span>
+          </div>
           <h2 className="font-display text-base font-bold text-slate-900">
-            Home Visit Records & Family Outreach Log
+            Admission CRM Home Visits &amp; Conversion Follow-Up Log
           </h2>
           <p className="text-xs text-slate-600 mt-0.5">
-            Track teacher/counsellor home visits, study environment observations, transport & fee
-            queries, and admission readiness recommendations.
+            Strictly for <strong>new admission leads &amp; follow-ups</strong> (transport/fee queries and admission conversion). For already enrolled students (4 visits/year), use the <strong>Enrolled Student Visits — 4×/Yr</strong> tab.
           </p>
         </div>
 

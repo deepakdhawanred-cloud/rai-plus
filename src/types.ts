@@ -444,6 +444,16 @@ export interface TimetableSlot {
   substitutionTeacher?: string;
 }
 
+export type HomeVisitCategory = 'admission_crm' | 'enrolled_student';
+
+export type AcademicVisitQuarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+export type EnrolledHomeVisitOutcome =
+  | 'Thriving & On Track'
+  | 'Needs Academic Follow-up'
+  | 'Parent Support Requested'
+  | 'Wellbeing / Counsellor Referral';
+
 export type HomeVisitStatus = 'Scheduled' | 'Completed' | 'Rescheduled' | 'Cancelled';
 
 export type HomeVisitOutcome =
@@ -455,7 +465,16 @@ export type HomeVisitOutcome =
 export interface HomeVisitRecord {
   id: string;
   schoolId: string;
+  /** Distinguishes prospective Admission CRM visits from 4x/year Enrolled Student visits */
+  visitCategory?: HomeVisitCategory;
   leadId: string;
+  /** Populated for enrolled_student quarterly visits (4 visits/year) */
+  studentId?: string;
+  admissionNo?: string;
+  classSection?: string;
+  academicQuarter?: AcademicVisitQuarter;
+  academicSession?: string;
+  enrolledVisitOutcome?: EnrolledHomeVisitOutcome;
   studentName: string;
   applyingClass: string;
   parentName: string;

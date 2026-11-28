@@ -6,7 +6,9 @@ import {
 } from './defaultPasswordPolicy';
 
 test('getDefaultDesignationPassword maps every role/designation cleanly to <designation>123', () => {
-  assert.equal(getDefaultDesignationPassword({ role: 'principal', designation: 'Principal' }), 'principal123');
+  assert.equal(getDefaultDesignationPassword({ role: 'school_admin', designation: 'Deputy Director (VIS Jhajjar)' }), 'deputydirector123');
+  assert.equal(getDefaultDesignationPassword({ role: 'principal', designation: 'Principal (VIS Jhajjar)' }), 'principal123');
+  assert.equal(getDefaultDesignationPassword({ role: 'principal', designation: 'Vice Principal (VIS Jhajjar)' }), 'viceprincipal123');
   assert.equal(getDefaultDesignationPassword({ role: 'school_admin', designation: 'School Administrator' }), 'admin123');
   assert.equal(getDefaultDesignationPassword({ role: 'super_admin', designation: 'COO', isPlatformCoo: true }), 'coo123');
   assert.equal(getDefaultDesignationPassword({ role: 'super_admin', designation: 'Platform Super Admin' }), 'superadmin123');

@@ -47,6 +47,8 @@ import {
   PublicPricingAndRoiSection,
   type LegalDocKind,
 } from './PublicMarketingEnhancements';
+import { AnimatePresence, motion } from 'motion/react';
+import { AnimatedPageTransition, RAI_VARIANTS } from './motion/RaiMotionSystem';
 import { apiRequest } from '../utils/api';
 import {
   ARCHITECTURE_PILLARS,
@@ -515,11 +517,21 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                     : ''
                 }`}
               >
-                Products <ChevronDown className="h-3.5 w-3.5" />
+                Products{' '}
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                    productsMenuOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
+              <AnimatePresence>
               {productsMenuOpen && (
-                <div
-                  className="absolute left-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50 space-y-1 text-left"
+                <motion.div
+                  variants={RAI_VARIANTS.dropdown}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="absolute left-0 top-full mt-2 w-72 origin-top-left rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50 space-y-1 text-left"
                   onMouseLeave={() => setProductsMenuOpen(false)}
                 >
                   <button
@@ -572,8 +584,9 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                     <p className="text-xs font-bold text-[#142B46]">Smart Campus</p>
                     <p className="text-[11px] text-slate-500">Inventory AI, GPS Transport, Gate Pass &amp; RFID</p>
                   </button>
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
             <button
               type="button"
@@ -725,6 +738,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         )}
       </header>
 
+      <AnimatedPageTransition routeKey={publicPage}>
       {publicPage === 'ssb_academy' ? (
         <SsbAcademyLandingPage
           onBackHome={() => navigatePublicPage('home')}
@@ -2117,6 +2131,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         </section>
       </main>
       )}
+      </AnimatedPageTransition>
 
       {/* Quiet Footer */}
       <footer className="border-t border-slate-200 bg-[#F3E6D8]/45">

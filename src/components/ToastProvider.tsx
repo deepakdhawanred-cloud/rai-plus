@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, Flame, Info, X } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { RAI_EASE } from './motion/RaiMotionSystem';
 
 export type ToastVariant = 'success' | 'info' | 'error' | 'streak';
 
@@ -55,6 +57,7 @@ export function pushToast(
 export const ToastViewport: React.FC = () => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timersRef = useRef<Map<string, number>>(new Map());
+  const prefersReduced = useReducedMotion();
 
   const removeToast = (id: string, invokeDismiss = false) => {
     const existingTimer = timersRef.current.get(id);
@@ -99,14 +102,13 @@ export const ToastViewport: React.FC = () => {
     };
   }, []);
 
-  if (toasts.length === 0) return null;
-
   return (
     <div
       aria-live="polite"
       aria-atomic="true"
       className="fixed top-4 right-4 z-[60] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2rem)] print:hidden pointer-events-none"
     >
+      <AnimatePresence initial={false}>
       {toasts.map((t) => {
         const isStreak = t.variant === 'streak';
         const style =
@@ -135,8 +137,13 @@ export const ToastViewport: React.FC = () => {
                 : 'text-emerald-700';
 
         return (
-          <div
+          <motion.div
             key={t.id}
+            layout="position"
+            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, x: 24, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={prefersReduced ? { opacity: 0 } : { opacity: 0, x: 20, scale: 0.97 }}
+            transition={{ duration: prefersReduced ? 0.1 : 0.22, ease: RAI_EASE.spring }}
             role={isStreak ? 'alert' : 'status'}
             data-testid={isStreak ? 'revision-streak-toast' : 'workspace-toast'}
             onMouseEnter={() => {
@@ -147,7 +154,7 @@ export const ToastViewport: React.FC = () => {
               }
             }}
             onMouseLeave={() => scheduleAutoDismiss(t)}
-            className={`pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3.5 text-xs font-medium shadow-md transition-all ${style}`}
+            className={`pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3.5 text-xs font-medium shadow-md ${style}`}
           >
             {isStreak ? (
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#142B46] text-[#D6B66D] mt-0.5">
@@ -216,9 +223,10 @@ export const ToastViewport: React.FC = () => {
             >
               <X className="h-3.5 w-3.5" />
             </button>
-          </div>
+          </motion.div>
         );
       })}
+      </AnimatePresence>
     </div>
   );
 };

@@ -127,8 +127,9 @@ export function buildRoleQuickDockItems(params: {
     raw = [
       { id: 'dock-overview', tab: 'overview', label: 'Overview', count: pendingReports > 0 ? pendingReports : undefined },
       { id: 'dock-control-room', tab: 'control_room', label: 'Control Room (LIVE)' },
+      { id: 'dock-docs-onboarding', tab: 'student_onboarding', label: 'Docs & Day-1 Onboarding' },
       { id: 'dock-smart-calendar', tab: 'academic_calendar', label: 'Smart Calendar' },
-      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
+      { id: 'dock-hub', tab: 'academics', label: 'Class Learning Hub' },
       { id: 'dock-inventory-assets', tab: 'inventory_assets', label: 'Inventory & Assets AI' },
       { id: 'dock-attendance', tab: 'attendance_heatmap', label: 'Attendance' },
       { id: 'dock-staff-salary', tab: 'staff_payroll', label: 'Staff & Salary', count: pendingPayrollSync > 0 ? pendingPayrollSync : undefined },
@@ -140,8 +141,9 @@ export function buildRoleQuickDockItems(params: {
     raw = [
       { id: 'dock-overview', tab: 'overview', label: 'Overview' },
       { id: 'dock-control-room', tab: 'control_room', label: 'Control Room (LIVE)' },
+      { id: 'dock-docs-onboarding', tab: 'student_onboarding', label: 'Docs & Day-1 Onboarding' },
       { id: 'dock-smart-calendar', tab: 'academic_calendar', label: 'Smart Calendar' },
-      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
+      { id: 'dock-hub', tab: 'academics', label: 'Class Learning Hub' },
       { id: 'dock-inventory-assets', tab: 'inventory_assets', label: 'Inventory & Assets AI' },
       { id: 'dock-attendance', tab: 'attendance_heatmap', label: 'Attendance' },
       { id: 'dock-timetable', tab: 'timetable_leave', label: 'Timetable & Leave' },
@@ -153,10 +155,10 @@ export function buildRoleQuickDockItems(params: {
     raw = [
       { id: 'dock-today', tab: 'today_workspace', label: 'Today’s Desk' },
       { id: 'dock-onego', tab: 'today_workspace', label: 'Mark Attendance', actionMode: 'one_go_attendance' },
+      { id: 'dock-docs-onboarding', tab: 'student_onboarding', label: 'Docs & Day-1 Onboarding' },
       { id: 'dock-marks', tab: 'marks_report_card', label: 'Enter Marks' },
       { id: 'dock-notebook', tab: 'notebook', label: 'Notebooks & Homework' },
       { id: 'dock-hub', tab: 'academics', label: 'Class Learning Hub' },
-      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
       { id: 'dock-payslip', tab: 'staff_payroll', label: 'My Payslip' },
     ];
   } else if (role === 'accountant') {
@@ -164,6 +166,7 @@ export function buildRoleQuickDockItems(params: {
       { id: 'dock-acct-home', tab: 'overview', label: 'Accounts Overview' },
       { id: 'dock-finance', tab: 'finance', label: 'Finance & Fees' },
       { id: 'dock-staff-salary', tab: 'staff_payroll', label: 'Staff Attendance & Salary', count: pendingPayrollSync > 0 ? pendingPayrollSync : undefined },
+      { id: 'dock-inventory-assets', tab: 'inventory_assets', label: 'Inventory & Assets AI' },
       { id: 'dock-gate', tab: 'campus_gate', label: 'My Gate Pass' },
     ];
   } else if (role === 'parent') {
@@ -179,8 +182,7 @@ export function buildRoleQuickDockItems(params: {
   } else if (role === 'student') {
     raw = [
       { id: 'dock-home', tab: 'overview', label: 'Home', count: unreadParentCount > 0 ? unreadParentCount : undefined },
-      { id: 'dock-games', tab: 'academics', label: 'Study Games & Hub', actionMode: 'study_games' },
-      { id: 'dock-learning-portal', tab: 'learning_portal', label: 'Learning Portal (6–12)' },
+      { id: 'dock-games', tab: 'academics', label: 'Class Learning Hub', actionMode: 'study_games' },
       { id: 'dock-marks', tab: 'marks_report_card', label: 'My Marks' },
       { id: 'dock-brain', tab: 'cognitive_profile', label: 'Daily Brain Gym' },
       { id: 'dock-events', tab: 'events', label: 'Events' },

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowRight,
-  CheckCircle2,
   Circle,
   Clock,
   ListChecks,
@@ -22,6 +21,12 @@ import {
   type TodoPriority,
   type TodoSortMode,
 } from '../utils/roleTodoEngine';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  AnimatedProgressBar,
+  AnimatedSuccessCheck,
+  RAI_EASE,
+} from './motion/RaiMotionSystem';
 import { resolveTodayIsoDate } from '../utils/visAcademicProgressEngine';
 
 interface RoleTodoOptimizerPanelProps {
@@ -178,10 +183,12 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
                 <Clock className="h-3 w-3" />~{remainingMinutes}m left
               </span>
             </div>
-            <div className="mt-1.5 h-1.5 w-48 max-w-full rounded-full bg-slate-200 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-emerald-600 transition-all duration-300"
-                style={{ width: `${pct}%` }}
+            <div className="mt-1.5 w-48 max-w-full">
+              <AnimatedProgressBar
+                value={pct}
+                heightClassName="h-1.5"
+                className="bg-slate-200"
+                barClassName="bg-emerald-600"
               />
             </div>
           </div>
@@ -283,8 +290,14 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
         </span>
       </div>
 
+      <AnimatePresence initial={false}>
       {showAddForm && (
-        <form
+        <motion.form
+          key="add-task-form"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18, ease: RAI_EASE.spring }}
           onSubmit={handleAddCustom}
           className="mx-5 mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-wrap items-center gap-2 text-xs"
         >
@@ -323,8 +336,9 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
           >
             Save
           </button>
-        </form>
+        </motion.form>
       )}
+      </AnimatePresence>
 
       {/* Task List */}
       <div className="divide-y divide-slate-100 px-5 pb-3">
@@ -339,11 +353,13 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
             const done = completedSet.has(item.id);
             const snoozed = snoozedSet.has(item.id);
             return (
-              <div
+              <motion.div
                 key={item.id}
-                className={`py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-opacity ${
-                  done ? 'opacity-55' : snoozed ? 'opacity-70' : ''
-                }`}
+                layout="position"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: done ? 0.55 : snoozed ? 0.72 : 1, y: 0 }}
+                transition={{ duration: 0.18, ease: RAI_EASE.enter }}
+                className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
               >
                 <div className="flex items-start gap-2.5 min-w-0">
                   <button
@@ -353,7 +369,9 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
                     className="mt-0.5 shrink-0 text-slate-400 hover:text-emerald-600 transition-colors"
                   >
                     {done ? (
-                      <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />
+                      <span className="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                        <AnimatedSuccessCheck className="h-3.5 w-3.5 text-emerald-700" />
+                      </span>
                     ) : (
                       <Circle className="h-4.5 w-4.5" />
                     )}
@@ -420,7 +438,7 @@ export const RoleTodoOptimizerPanel: React.FC<RoleTodoOptimizerPanelProps> = ({
                     </button>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })
         )}

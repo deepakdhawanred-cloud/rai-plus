@@ -3,6 +3,7 @@ import { ArrowRight, Clock, Search, ShieldCheck, X } from 'lucide-react';
 import type { UserAccount, UserRole } from '../types';
 import { apiRequest } from '../utils/api';
 import { RAI_PLUS_LOGO_URL } from '../utils/transportEngine';
+import { AnimatedModalShell } from './motion/RaiMotionSystem';
 
 export interface PublicDemoAccount {
   id: string;
@@ -125,8 +126,6 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
     });
   }, [demoAccounts, activeCategory, schoolFilter, searchQuery]);
 
-  if (!isOpen) return null;
-
   const schoolNameFor = (schoolId: string | null) => {
     if (!schoolId) return 'Multi-School Platform / Advisory';
     const match = schools.find((s) => s.id === schoolId);
@@ -176,17 +175,12 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="unified-login-heading"
-      onClick={onClose}
+    <AnimatedModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="unified-login-heading"
+      panelClassName="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl"
-      >
         <div className="flex items-center justify-between border-b border-[#254264] px-6 py-4 sticky top-0 bg-[#142B46] text-[#F3E6D8] z-10">
           <div className="flex items-center gap-3.5">
             <img
@@ -267,7 +261,7 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            <div key={error} className="rai-shake rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -423,7 +417,6 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
           </div>
           )}
         </div>
-      </div>
-    </div>
+    </AnimatedModalShell>
   );
 };

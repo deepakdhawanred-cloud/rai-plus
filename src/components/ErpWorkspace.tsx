@@ -54,6 +54,7 @@ import { AlertsCenterPanel } from './AlertsCenterPanel';
 import { RoleNavigationDock } from './RoleNavigationDock';
 import { RevisionStreakReminderBell } from './RevisionStreakReminderBell';
 import { pushToast, ToastViewport } from './ToastProvider';
+import { AnimatedPageTransition } from './motion/RaiMotionSystem';
 
 // Code-split all 27 ERP workspace modules so every role only downloads the chunks it actually opens
 const DashboardOverview = lazy(() =>
@@ -145,9 +146,6 @@ const SchoolControlRoomModule = lazy(() =>
 );
 const SmartAcademicCalendarModule = lazy(() =>
   import('./modules/SmartAcademicCalendarModule').then((m) => ({ default: m.SmartAcademicCalendarModule })),
-);
-const LearningPortalModule = lazy(() =>
-  import('./modules/LearningPortalModule').then((m) => ({ default: m.LearningPortalModule })),
 );
 const InventoryAssetModule = lazy(() =>
   import('./modules/InventoryAssetModule').then((m) => ({ default: m.InventoryAssetModule })),
@@ -260,13 +258,6 @@ const NAV_ITEMS: Array<{
     label: 'Smart Academic Calendar',
     section: 'Daily Desk',
     icon: Calendar,
-    roles: ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student'],
-  },
-  {
-    id: 'learning_portal',
-    label: 'Learning Portal (6–12)',
-    section: 'Daily Desk',
-    icon: BookOpenCheck,
     roles: ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student'],
   },
   {
@@ -663,9 +654,9 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     nonce: number;
   }>({ mode: 'reading', nonce: 0 });
   const [academicsTabRequest, setAcademicsTabRequest] = useState<{
-    tab: 'study_game' | 'interactive_lab' | 'hub' | 'presentations';
+    tab: 'learning_portal' | 'study_game' | 'interactive_lab' | 'hub' | 'presentations';
     nonce: number;
-  }>({ tab: 'study_game', nonce: 0 });
+  }>({ tab: 'learning_portal', nonce: 0 });
   const [vcipSubTabRequest, setVcipSubTabRequest] = useState<{
     tab: 'dashboard' | 'brain_gym';
     nonce: number;
@@ -1190,6 +1181,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
         'alerts',
         'finance',
         'staff_payroll',
+        'inventory_assets',
         'campus_gate',
       ];
       const targetTab: WorkspaceTab = allowedAcctTabs.includes(tab) ? tab : 'overview';
@@ -1203,6 +1195,13 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
     }
     if (tab === 'today_workspace') {
       openTodayWorkspace('all');
+      return;
+    }
+    if (tab === 'learning_portal') {
+      guardNavigation(() => {
+        setAcademicsTabRequest((prev) => ({ tab: 'learning_portal', nonce: prev.nonce + 1 }));
+        commitTabChange('academics');
+      });
       return;
     }
     if (tab === 'interactive_learning') {
@@ -2072,6 +2071,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
 
           <ModuleErrorBoundary key={`${data.activeSchool.id}-${activeTab}`} moduleLabel={currentTabLabel}>
             <Suspense fallback={<WorkspaceModuleSkeleton label={currentTabLabel} />}>
+              <AnimatedPageTransition routeKey={`${data.activeSchool.id}-${activeTab}`}>
               {isSuperAdmin ? (
                 activeTab === 'flagship_products' ? (
                   <SuperAdminProductsConsole token={token} />
@@ -2118,9 +2118,6 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               )}
               {activeTab === 'academic_calendar' && (
                 <SmartAcademicCalendarModule data={data} token={token} onRefresh={onRefresh} />
-              )}
-              {activeTab === 'learning_portal' && (
-                <LearningPortalModule data={data} token={token} />
               )}
               {activeTab === 'inventory_assets' && (
                 <InventoryAssetModule data={data} token={token} onRefresh={onRefresh} />
@@ -2293,6 +2290,7 @@ export const ErpWorkspace: React.FC<ErpWorkspaceProps> = ({
               )}
                 </>
               )}
+              </AnimatedPageTransition>
             </Suspense>
           </ModuleErrorBoundary>
         </main>

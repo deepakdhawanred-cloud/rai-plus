@@ -29,6 +29,7 @@ import type {
 import { apiRequest } from '../../utils/api';
 import type { CapacityQuestion } from '../../utils/careerFiveStageEngine';
 import { RAI_PLUS_LOGO_URL } from '../../utils/transportEngine';
+import { AnimatedPageTransition, AnimatedProgressBar } from '../motion/RaiMotionSystem';
 
 interface CareerWorkspacePayload {
   user: UserAccount;
@@ -422,6 +423,7 @@ export const FreeCareerIntelligenceWorkspace: React.FC<FreeCareerIntelligenceWor
           </span>
         </div>
 
+        <AnimatedPageTransition routeKey={activeStage}>
         {/* ==================== STAGE 1: CAPACITY DISCOVERY ==================== */}
         {activeStage === 'stage1' && (
           <div className="space-y-5">
@@ -447,8 +449,13 @@ export const FreeCareerIntelligenceWorkspace: React.FC<FreeCareerIntelligenceWor
                     <div key={m.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
                       <p className="text-[11px] font-bold text-slate-600">{m.label}</p>
                       <p className="mt-1 text-2xl font-extrabold text-slate-900">{m.val}%</p>
-                      <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
-                        <div className={`h-full ${m.color}`} style={{ width: `${m.val}%` }} />
+                      <div className="mt-2">
+                        <AnimatedProgressBar
+                          value={m.val}
+                          heightClassName="h-2"
+                          className="bg-slate-200"
+                          barClassName={m.color}
+                        />
                       </div>
                     </div>
                   ))}
@@ -1268,6 +1275,7 @@ export const FreeCareerIntelligenceWorkspace: React.FC<FreeCareerIntelligenceWor
             </form>
           </div>
         )}
+        </AnimatedPageTransition>
       </main>
     </div>
   );

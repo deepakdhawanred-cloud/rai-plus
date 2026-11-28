@@ -243,4 +243,55 @@ test('buildRoleOptimizedTodos generates tailored actionable tasks for every Rai 
     quickWins[0]!.estimatedMinutes <= quickWins[quickWins.length - 1]!.estimatedMinutes,
     'Quick Wins mode should float shortest tasks ahead of longest tasks',
   );
+
+  // Every role's to-do items must route Learning Portal through unified Class Learning Hub ('academics'), never duplicate 'learning_portal'
+  for (const role of roles) {
+    const todos = buildRoleOptimizedTodos(makeMinimalWorkspace(role));
+    assert.equal(
+      todos.some((t) => t.targetTab === 'learning_portal'),
+      false,
+      `Role ${role} to-do must not route to duplicate standalone learning_portal tab`,
+    );
+  }
+
+  // Principal, Coordinator & Teacher to-dos must include Student Document Compliance & Day-1 Onboarding tasks
+  for (const complianceRole of ['principal', 'school_admin', 'coordinator', 'teacher'] as UserRole[]) {
+    const ws = makeMinimalWorkspace(complianceRole);
+    ws.students = [
+      {
+        id: 'stu-new-1',
+        name: 'Aarav New',
+        admissionNo: 'ADM-901',
+        classSection: 'Class 6-A',
+        documents: [
+          {
+            docType: 'birth_certificate',
+            label: 'Birth Certificate',
+            mandatory: true,
+            status: 'Pending',
+            dueDate: '2025-01-01',
+          },
+        ],
+        onboarding: {
+          admissionDate: '2026-11-28',
+          status: 'Active Monitoring',
+          documentDueDate: '2026-12-10',
+          checkpoints: [
+            {
+              id: 'day1_welcome',
+              milestone: 'Day 1',
+              title: 'Welcome & Orientation',
+              ownerRole: 'Class Teacher',
+              completed: false,
+            },
+          ],
+        },
+      } as unknown as WorkspaceData['students'][number],
+    ];
+    const todos = buildRoleOptimizedTodos(ws);
+    assert.ok(
+      todos.some((t) => t.targetTab === 'student_onboarding'),
+      `Role ${complianceRole} should receive live Student Docs / Day-1 Onboarding tasks`,
+    );
+  }
 });

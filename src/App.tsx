@@ -5,6 +5,7 @@ import { apiRequest } from './utils/api';
 import { PublicPortal } from './components/PublicPortal';
 import { UnifiedLoginModal, type PublicDemoAccount } from './components/UnifiedLoginModal';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
+import { RaiMotionProvider } from './components/motion/RaiMotionSystem';
 
 const ErpWorkspace = lazy(() =>
   import('./components/ErpWorkspace').then((m) => ({ default: m.ErpWorkspace })),
@@ -217,77 +218,87 @@ export default function App() {
   // Standalone Isolated Workspace 1: Rai Plus SSB Academy
   if (isAuthenticated && activeUser && isStandaloneSsbRole(activeUser.role)) {
     return (
-      <ModuleErrorBoundary scope="app" onReset={handleLogout}>
-        {quotaBanner}
-        <Suspense fallback={<WorkspaceBootSkeleton />}>
-          <SsbAcademyWorkspace
-            token={token || ''}
-            onSwitchUser={() => setLoginOpen(true)}
-            onLogout={handleLogout}
+      <RaiMotionProvider>
+        <ModuleErrorBoundary scope="app" onReset={handleLogout}>
+          {quotaBanner}
+          <Suspense fallback={<WorkspaceBootSkeleton />}>
+            <SsbAcademyWorkspace
+              token={token || ''}
+              onSwitchUser={() => setLoginOpen(true)}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+          <UnifiedLoginModal
+            isOpen={loginOpen}
+            onClose={() => setLoginOpen(false)}
+            demoAccounts={publicData?.demoAccounts ?? []}
+            demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+            schools={publicData?.schools ?? []}
+            onLoginSuccess={handleLoginSuccess}
           />
-        </Suspense>
-        <UnifiedLoginModal
-          isOpen={loginOpen}
-          onClose={() => setLoginOpen(false)}
-          demoAccounts={publicData?.demoAccounts ?? []}
-          demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
-          schools={publicData?.schools ?? []}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      </ModuleErrorBoundary>
+        </ModuleErrorBoundary>
+      </RaiMotionProvider>
     );
   }
 
   // Standalone Isolated Workspace 2: Rai Plus Free Career Intelligence (₹0)
   if (isAuthenticated && activeUser && isStandaloneCareerRole(activeUser.role)) {
     return (
-      <ModuleErrorBoundary scope="app" onReset={handleLogout}>
-        {quotaBanner}
-        <Suspense fallback={<WorkspaceBootSkeleton />}>
-          <FreeCareerIntelligenceWorkspace
-            token={token || ''}
-            onSwitchUser={() => setLoginOpen(true)}
-            onLogout={handleLogout}
+      <RaiMotionProvider>
+        <ModuleErrorBoundary scope="app" onReset={handleLogout}>
+          {quotaBanner}
+          <Suspense fallback={<WorkspaceBootSkeleton />}>
+            <FreeCareerIntelligenceWorkspace
+              token={token || ''}
+              onSwitchUser={() => setLoginOpen(true)}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+          <UnifiedLoginModal
+            isOpen={loginOpen}
+            onClose={() => setLoginOpen(false)}
+            demoAccounts={publicData?.demoAccounts ?? []}
+            demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+            schools={publicData?.schools ?? []}
+            onLoginSuccess={handleLoginSuccess}
           />
-        </Suspense>
-        <UnifiedLoginModal
-          isOpen={loginOpen}
-          onClose={() => setLoginOpen(false)}
-          demoAccounts={publicData?.demoAccounts ?? []}
-          demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
-          schools={publicData?.schools ?? []}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      </ModuleErrorBoundary>
+        </ModuleErrorBoundary>
+      </RaiMotionProvider>
     );
   }
 
   if (isAuthenticated && loadingWorkspace && !workspaceData) {
-    return <WorkspaceBootSkeleton />;
+    return (
+      <RaiMotionProvider>
+        <WorkspaceBootSkeleton />
+      </RaiMotionProvider>
+    );
   }
 
   if (isAuthenticated && workspaceData) {
     return (
-      <ModuleErrorBoundary scope="app" onReset={() => void loadWorkspace(token)}>
-        {quotaBanner}
-        <Suspense fallback={<WorkspaceBootSkeleton />}>
-          <ErpWorkspace
-            data={workspaceData}
-            token={token || ''}
-            onRefresh={() => loadWorkspace(token)}
-            onSwitchUser={() => setLoginOpen(true)}
-            onLogout={handleLogout}
+      <RaiMotionProvider>
+        <ModuleErrorBoundary scope="app" onReset={() => void loadWorkspace(token)}>
+          {quotaBanner}
+          <Suspense fallback={<WorkspaceBootSkeleton />}>
+            <ErpWorkspace
+              data={workspaceData}
+              token={token || ''}
+              onRefresh={() => loadWorkspace(token)}
+              onSwitchUser={() => setLoginOpen(true)}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+          <UnifiedLoginModal
+            isOpen={loginOpen}
+            onClose={() => setLoginOpen(false)}
+            demoAccounts={publicData?.demoAccounts ?? []}
+            demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
+            schools={publicData?.schools ?? []}
+            onLoginSuccess={handleLoginSuccess}
           />
-        </Suspense>
-        <UnifiedLoginModal
-          isOpen={loginOpen}
-          onClose={() => setLoginOpen(false)}
-          demoAccounts={publicData?.demoAccounts ?? []}
-          demoLoginEnabled={publicData?.demoLoginEnabled ?? true}
-          schools={publicData?.schools ?? []}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      </ModuleErrorBoundary>
+        </ModuleErrorBoundary>
+      </RaiMotionProvider>
     );
   }
 
@@ -304,7 +315,8 @@ export default function App() {
   }
 
   return (
-    <ModuleErrorBoundary scope="app" onReset={() => void loadPublicOverview()}>
+    <RaiMotionProvider>
+      <ModuleErrorBoundary scope="app" onReset={() => void loadPublicOverview()}>
       {quotaBanner}
       {error && (
         <div
@@ -347,6 +359,7 @@ export default function App() {
         schools={publicData?.schools ?? []}
         onLoginSuccess={handleLoginSuccess}
       />
-    </ModuleErrorBoundary>
+      </ModuleErrorBoundary>
+    </RaiMotionProvider>
   );
 }

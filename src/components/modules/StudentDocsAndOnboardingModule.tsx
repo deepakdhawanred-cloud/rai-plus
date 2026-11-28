@@ -28,6 +28,13 @@ import {
   resolveDocumentStatus,
   summarizeDocumentCompliance,
 } from '../../utils/studentOnboardingDocsEngine';
+import {
+  AnimatedNumber,
+  AnimatedPageTransition,
+  AnimatedProgressBar,
+  StaggerCard,
+  StaggerGrid,
+} from '../motion/RaiMotionSystem';
 
 interface StudentDocsAndOnboardingModuleProps {
   data: WorkspaceData;
@@ -467,46 +474,51 @@ export const StudentDocsAndOnboardingModule: React.FC<StudentDocsAndOnboardingMo
         </div>
       )}
 
+      <AnimatedPageTransition routeKey={activeTab}>
       {/* ==================== TAB 1: STUDENT DOCUMENT COMPLIANCE REGISTER ==================== */}
       {activeTab === 'documents' && (
         <div className="space-y-5">
           {/* KPI Summary Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <StaggerGrid className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <StaggerCard className="rai-card-interactive rounded-xl border border-slate-200 bg-white p-4">
               <p className="text-[11px] font-semibold uppercase text-slate-500">Students Checked</p>
-              <p className="mt-1 text-2xl font-extrabold text-[#142B46]">{docSummary.totalStudents}</p>
-            </div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+              <p className="mt-1 text-2xl font-extrabold text-[#142B46]">
+                <AnimatedNumber value={docSummary.totalStudents} />
+              </p>
+            </StaggerCard>
+            <StaggerCard className="rai-card-interactive rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
               <p className="text-[11px] font-semibold uppercase text-emerald-800">100% Completed</p>
               <p className="mt-1 text-2xl font-extrabold text-emerald-800">
-                {docSummary.fullyCompletedCount}
+                <AnimatedNumber value={docSummary.fullyCompletedCount} />
               </p>
-            </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+            </StaggerCard>
+            <StaggerCard className="rai-card-interactive rounded-xl border border-amber-200 bg-amber-50/70 p-4">
               <p className="text-[11px] font-semibold uppercase text-amber-800">Docs Pending</p>
               <p className="mt-1 text-2xl font-extrabold text-amber-800">
-                {docSummary.pendingStudentsCount}
+                <AnimatedNumber value={docSummary.pendingStudentsCount} />
               </p>
-            </div>
-            <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-4">
+            </StaggerCard>
+            <StaggerCard className="rai-card-interactive rounded-xl border border-rose-200 bg-rose-50/70 p-4">
               <p className="text-[11px] font-semibold uppercase text-rose-800">Overdue Pending</p>
               <p className="mt-1 text-2xl font-extrabold text-rose-700">
-                {docSummary.overdueStudentsCount}
+                <AnimatedNumber value={docSummary.overdueStudentsCount} />
               </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 col-span-2 lg:col-span-1">
+            </StaggerCard>
+            <StaggerCard className="rai-card-interactive rounded-xl border border-slate-200 bg-white p-4 col-span-2 lg:col-span-1">
               <p className="text-[11px] font-semibold uppercase text-slate-500">Overall Completion</p>
               <p className="mt-1 text-2xl font-extrabold text-[#142B46]">
-                {docSummary.overallCompletionPct}%
+                <AnimatedNumber value={docSummary.overallCompletionPct} suffix="%" />
               </p>
-              <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-600"
-                  style={{ width: `${docSummary.overallCompletionPct}%` }}
+              <div className="mt-1.5">
+                <AnimatedProgressBar
+                  value={docSummary.overallCompletionPct}
+                  heightClassName="h-1.5"
+                  className="bg-slate-100"
+                  barClassName="bg-emerald-600"
                 />
               </div>
-            </div>
-          </div>
+            </StaggerCard>
+          </StaggerGrid>
 
           {/* Filter & Action Toolbar */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3">
@@ -1313,6 +1325,7 @@ export const StudentDocsAndOnboardingModule: React.FC<StudentDocsAndOnboardingMo
           )}
         </div>
       )}
+      </AnimatedPageTransition>
     </div>
   );
 };

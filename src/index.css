@@ -72,6 +72,17 @@
     --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
     --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+    /* Central Rai Plus Motion Design Tokens */
+    --motion-fast: 140ms;
+    --motion-normal: 200ms;
+    --motion-medium: 260ms;
+    --motion-slow: 400ms;
+
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+    --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   html {
@@ -100,6 +111,62 @@
   [role="button"]:not([aria-disabled="true"]),
   select:not(:disabled) {
     cursor: pointer;
+    transition:
+      transform var(--motion-fast) var(--ease-standard),
+      background-color var(--motion-fast) var(--ease-standard),
+      border-color var(--motion-fast) var(--ease-standard),
+      color var(--motion-fast) var(--ease-standard),
+      box-shadow var(--motion-fast) var(--ease-standard);
+  }
+
+  /* Subtle Squash & Stretch tactile press feedback (0.975 scale) */
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active {
+    transform: scale(0.975);
+  }
+
+  /* Reusable Rai Plus motion utility classes */
+  @keyframes rai-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(2px); }
+  }
+
+  @keyframes rai-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes rai-pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(214, 182, 109, 0.35); }
+    50% { box-shadow: 0 0 0 5px rgba(214, 182, 109, 0); }
+  }
+
+  .rai-shake {
+    animation: rai-shake 320ms var(--ease-standard);
+  }
+
+  .rai-skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: rai-shimmer 1.4s infinite linear;
+  }
+
+  .rai-card-interactive {
+    transition:
+      transform var(--motion-normal) var(--ease-spring),
+      box-shadow var(--motion-normal) var(--ease-standard),
+      border-color var(--motion-fast) var(--ease-standard);
+  }
+  .rai-card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -10px rgba(20, 43, 70, 0.14);
+  }
+
+  .rai-pulse-subtle {
+    animation: rai-pulse-ring 2.4s ease-in-out infinite;
   }
 
   a:focus-visible,

@@ -70,7 +70,7 @@ test('buildRoleQuickDockItems returns tailored daily shortcuts and live counts p
     'events',
   ]);
 
-  // School Admin sees Overview, Attendance, Staff & Salary, Finance & Fees, Gate & Visitors, Marks & Reports
+  // School Admin sees Overview, Class Learning Hub (academics), Attendance, Staff & Salary, Finance & Fees, Gate & Visitors, Marks & Reports
   const adminDock = buildRoleQuickDockItems({
     data: makeWorkspaceForRole('school_admin'),
     allowedTabIds: allTabs,
@@ -78,7 +78,7 @@ test('buildRoleQuickDockItems returns tailored daily shortcuts and live counts p
   });
   assert.deepEqual(
     adminDock.map((i) => i.tab),
-    ['overview', 'attendance_heatmap', 'staff_payroll', 'finance', 'campus_gate', 'marks_report_card'],
+    ['overview', 'academics', 'attendance_heatmap', 'staff_payroll', 'finance', 'campus_gate', 'marks_report_card'],
   );
   assert.equal(adminDock.find((i) => i.tab === 'campus_gate')?.count, 2);
   assert.equal(adminDock.find((i) => i.tab === 'staff_payroll')?.count, 1);
@@ -117,4 +117,33 @@ test('buildRoleQuickDockItems returns tailored daily shortcuts and live counts p
   assert.equal(getRoleWorkspaceIdentity('parent').workspaceName, 'Family Portal');
   assert.equal(getRoleWorkspaceIdentity('teacher').workspaceName, 'Teacher Desk');
   assert.equal(getRoleWorkspaceIdentity('accountant').workspaceName, 'Finance & Payroll Desk');
+
+  // Learning Portal is consolidated inside Class Learning Hub ('academics') — never duplicated as 'learning_portal'
+  const extendedTabs = new Set<WorkspaceTab>([
+    ...allTabs,
+    'learning_portal',
+    'student_onboarding',
+    'inventory_assets',
+  ]);
+  for (const role of ['school_admin', 'principal', 'coordinator', 'teacher', 'parent', 'student', 'accountant'] as UserRole[]) {
+    const dock = buildRoleQuickDockItems({
+      data: makeWorkspaceForRole(role),
+      allowedTabIds: extendedTabs,
+      unreadParentCount: 0,
+    });
+    assert.equal(
+      dock.some((i) => i.tab === 'learning_portal'),
+      false,
+      `Role ${role} quick dock must not duplicate standalone learning_portal`,
+    );
+  }
+  const principalDockWithOnboarding = buildRoleQuickDockItems({
+    data: makeWorkspaceForRole('principal'),
+    allowedTabIds: extendedTabs,
+    unreadParentCount: 0,
+  });
+  assert.ok(
+    principalDockWithOnboarding.some((i) => i.tab === 'student_onboarding'),
+    'Principal quick dock should surface Docs & Day-1 Onboarding when enabled',
+  );
 });

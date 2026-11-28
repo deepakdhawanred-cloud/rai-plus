@@ -36,6 +36,10 @@ import type {
 } from '../../types/flagshipProducts';
 import { apiRequest } from '../../utils/api';
 import { RAI_PLUS_LOGO_URL } from '../../utils/transportEngine';
+import {
+  AnimatedPageTransition,
+  AnimatedProgressBar,
+} from '../motion/RaiMotionSystem';
 
 interface SsbPracticeSetWithLock extends SsbPracticeSet {
   unlocked: boolean;
@@ -641,17 +645,23 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
           </p>
         </div>
 
+        <AnimatedPageTransition routeKey={activeTab}>
         {/* ==================== TAB 1: DAILY DASHBOARD ==================== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <div className="rai-card-interactive rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                 <p className="text-xs font-semibold text-slate-500 uppercase">Preparation Progress</p>
                 <p className="mt-1 text-2xl font-bold text-[#142B46]">
                   {completedSetIds.size} / {data.practiceSets.length} Sets
                 </p>
-                <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full bg-[#142B46]" style={{ width: `${Math.max(4, progressPct)}%` }} />
+                <div className="mt-2">
+                  <AnimatedProgressBar
+                    value={Math.max(4, progressPct)}
+                    heightClassName="h-2"
+                    className="bg-slate-100"
+                    barClassName="bg-[#142B46]"
+                  />
                 </div>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
@@ -1117,7 +1127,10 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
                 </div>
               </div>
             ) : currentStimulus ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+              <AnimatedPageTransition
+                routeKey={`${activeSet.id}-${stimIdx}-${phase}`}
+                className="rounded-xl border border-slate-200 bg-white p-6 space-y-5"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
                   <div>
                     <span className="rounded bg-[#142B46] px-2.5 py-0.5 text-[11px] font-bold text-white">
@@ -1301,17 +1314,15 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
                         </button>
                       </div>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full bg-[#142B46] transition-all"
-                        style={{
-                          width: `${Math.round(((stimIdx + 1) / Math.max(1, activeSet.stimuli.length)) * 100)}%`,
-                        }}
-                      />
-                    </div>
+                    <AnimatedProgressBar
+                      value={Math.round(((stimIdx + 1) / Math.max(1, activeSet.stimuli.length)) * 100)}
+                      heightClassName="h-1.5"
+                      className="bg-slate-100"
+                      barClassName="bg-[#142B46]"
+                    />
                   </div>
                 )}
-              </div>
+              </AnimatedPageTransition>
             ) : null}
           </div>
         )}
@@ -1574,6 +1585,7 @@ export const SsbAcademyWorkspace: React.FC<SsbAcademyWorkspaceProps> = ({
             </div>
           </div>
         )}
+        </AnimatedPageTransition>
       </main>
     </div>
   );

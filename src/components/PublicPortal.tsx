@@ -616,12 +616,37 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             </button>
           </nav>
 
-          {/* Zone 3: 1 primary CTA (+ mobile menu affordance below md) */}
+          {/* Zone 3: Compact Language Toggle + Primary CTA (+ mobile menu affordance below md) */}
           <div className="flex items-center gap-2 shrink-0">
+            <div
+              role="group"
+              aria-label="Public site language switcher"
+              data-testid="public-lang-switcher"
+              className="hidden sm:inline-flex items-center rounded-lg border border-slate-200 bg-slate-100/90 p-0.5 text-[11px] font-semibold"
+            >
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`rounded-md px-2 py-1 transition-colors ${
+                  !isHi ? 'bg-[#142B46] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('hi')}
+                className={`rounded-md px-2 py-1 transition-colors ${
+                  isHi ? 'bg-[#142B46] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                हिं
+              </button>
+            </div>
             <button
               type="button"
               onClick={onOpenLogin}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-900 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B46] px-4 py-2 text-xs font-bold text-white hover:bg-[#1D3A5C] shadow-xs transition-all whitespace-nowrap shrink-0"
             >
               Portal Login
             </button>
@@ -728,109 +753,63 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         />
       ) : (
       <main>
-        {/* Flagship Standalone Products Ribbon */}
-        <div className="bg-[#142B46] text-white border-b border-[#254264]">
-          <div className="mx-auto max-w-7xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded bg-[#D6B66D] px-2 py-0.5 text-[10px] font-extrabold uppercase text-[#142B46]">
-                NEW FLAGSHIP PRODUCTS
-              </span>
-              <span className="text-slate-200">
-                Standalone portals available directly for aspirants &amp; students — zero school ERP required:
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => navigatePublicPage('ssb_academy')}
-                className="inline-flex items-center gap-1 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-1 font-bold text-amber-200 hover:bg-amber-400/30"
-              >
-                <Award className="h-3.5 w-3.5" /> Rai Plus SSB Academy (100 Sets)
-              </button>
-              <button
-                type="button"
-                onClick={() => navigatePublicPage('career_intelligence')}
-                className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 border border-emerald-400/50 px-3 py-1 font-bold text-emerald-200 hover:bg-emerald-500/30"
-              >
-                <Sparkles className="h-3.5 w-3.5" /> 100% Free Career Intelligence (₹0)
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* ==================== SECTION 1: HERO PROPOSITION ==================== */}
+        {/* ==================== SECTION 1: MODERN HERO PROPOSITION + 3 FLAGSHIP JOURNEYS ==================== */}
         <section
           id="section-home"
-          className="bg-gradient-to-b from-[#F3E6D8]/55 via-[#FAF4EC] to-white border-b border-slate-200"
+          className="relative overflow-hidden bg-gradient-to-b from-[#FAF5EC] via-white to-[#F5F8FC] border-b border-slate-200/80"
         >
-          <div className="mx-auto max-w-7xl px-6 pt-12 pb-14 lg:pt-16 lg:pb-16">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
-              <div className="lg:col-span-6 flex flex-col justify-center space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs font-semibold text-[#7B5D1C]">
+          <div className="mx-auto max-w-7xl px-6 pt-10 pb-14 lg:pt-14 lg:pb-18">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              <div className="lg:col-span-6 flex flex-col justify-center space-y-5">
+                <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#D6B66D]/60 bg-[#FAF1DF] px-3.5 py-1 text-[11px] font-bold text-[#7B5D1C]">
+                  <Sparkles className="h-3.5 w-3.5 text-[#937024]" />
+                  <span>
                     {isHi
                       ? 'राय प्लस · संपूर्ण शिक्षा इंटेलिजेंस प्लेटफ़ॉर्म · Powered by The Counsellor'
-                      : 'The Complete Education Intelligence Platform · Powered by The Counsellor'}
-                  </p>
-                  <div
-                    role="group"
-                    aria-label="Public site language switcher"
-                    data-testid="public-lang-switcher"
-                    className="inline-flex items-center rounded-lg border border-slate-300 bg-[#F3E6D8]/80 p-0.5 text-[11px] font-semibold shrink-0"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setLang('en')}
-                      className={`rounded-md px-2.5 py-1 transition-colors whitespace-nowrap ${
-                        !isHi ? 'bg-[#142B46] text-[#F3E6D8]' : 'text-[#142B46]/75 hover:text-[#142B46]'
-                      }`}
-                    >
-                      English
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLang('hi')}
-                      className={`rounded-md px-2.5 py-1 transition-colors whitespace-nowrap ${
-                        isHi ? 'bg-[#142B46] text-[#F3E6D8]' : 'text-[#142B46]/75 hover:text-[#142B46]'
-                      }`}
-                    >
-                      हिन्दी
-                    </button>
-                  </div>
+                      : 'Complete Education Intelligence Platform · Powered by The Counsellor'}
+                  </span>
                 </div>
                 <h1
-                  className="font-display text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-[#142B46] leading-[1.09]"
+                  className="font-display text-4xl sm:text-5xl lg:text-[3.35rem] font-extrabold tracking-tight text-[#142B46] leading-[1.07]"
                   style={{ textWrap: 'balance' }}
                 >
                   {isHi
-                    ? 'एक विद्यालय प्रणाली। हर विद्यार्थी की संपूर्ण 360° स्पष्टता।'
-                    : 'One school system. Complete 360° clarity on every student.'}
+                    ? 'एक शिक्षा मंच। हर विद्यालय और विद्यार्थी की संपूर्ण 360° स्पष्टता।'
+                    : 'One education platform. Complete 360° clarity for every school & learner.'}
                 </h1>
                 <p className="text-base leading-relaxed text-slate-600 max-w-xl">
                   {isHi
-                    ? 'राय प्लस (Rai Plus) दैनिक विद्यालय संचालन, एक-क्लिक उपस्थिति व नोटबुक जाँच, फाइनेंस 360°, 15 OLQ गुण, 6-डोमेन संज्ञानात्मक प्रोफ़ाइल और विशेषज्ञ-नेतृत्व वाले क्लिनिकल व स्पीच केयर 360° को कक्षा 1 से 12 तक एक मंच पर जोड़ता है।'
-                    : 'Rai Plus unites daily school operations, Finance 360°, single-entry attendance & notebook checks, 15 Officer Like Qualities, original 6-domain cognitive profiles, visual chapter mindmaps, and specialist-led Clinical & Developmental Care 360° across Classes 1 to 12.'}
+                    ? 'राय प्लस विद्यालय ERP (₹199/विद्यार्थी/वर्ष से), 100-सेट SSB अकादमी और 100% निःशुल्क 5-चरणीय करियर इंटेलिजेंस को एक सुरक्षित, आधुनिक प्लेटफ़ॉर्म पर जोड़ता है।'
+                    : 'Uniting multi-tenant K–12 School ERP (from ₹199/student/yr), 100-set SSB Officer Preparation Academy, and 100% Free 5-Stage Career Intelligence on one secure Indian platform.'}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3.5 pt-1">
+                <div className="flex flex-wrap items-center gap-3 pt-1">
                   <button
                     type="button"
                     onClick={onOpenLogin}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#142B46] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1D3A5C] transition-colors whitespace-nowrap shrink-0"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#142B46] px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-[#1D3A5C] transition-all whitespace-nowrap shrink-0"
                   >
                     {isHi ? 'लाइव पोर्टल लॉगिन खोलें' : 'Launch Live Role Portal'}
                     <ArrowRight className="h-4 w-4 text-[#D6B66D]" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => scrollToSection('contact', 'Parent Admission & Campus Visit')}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[#142B46]/25 bg-white px-5 py-3 text-sm font-semibold text-[#142B46] hover:bg-[#F3E6D8]/60 transition-colors whitespace-nowrap shrink-0"
+                    onClick={() => navigatePublicPage('pricing')}
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#142B46]/20 bg-white px-5 py-3 text-sm font-bold text-[#142B46] shadow-xs hover:border-[#142B46]/40 hover:bg-slate-50 transition-all whitespace-nowrap shrink-0"
                   >
-                    {isHi ? 'प्रवेश व कैंपस विज़िट पूछें' : 'Admissions & Campus Visit'}
+                    {isHi ? '2026–27 मूल्य देखें' : 'View 2026–27 Pricing'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('contact', 'Parent Admission & Campus Visit')}
+                    className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-3 text-xs font-bold text-[#142B46] hover:underline whitespace-nowrap shrink-0"
+                  >
+                    {isHi ? 'प्रवेश व कैंपस विज़िट →' : 'Book Campus Visit →'}
                   </button>
                 </div>
 
-                <div className="pt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-600">
-                  <span className="whitespace-nowrap font-medium text-[#3D6349]">
+                <div className="pt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-600">
+                  <span className="whitespace-nowrap font-semibold text-[#2F6A4A]">
                     {isHi ? 'बुद्धि · विकास · मार्गदर्शन' : 'Intelligence · Growth · Guidance'}
                   </span>
                   <span aria-hidden="true">·</span>
@@ -839,13 +818,13 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                   </span>
                   <span aria-hidden="true">·</span>
                   <span className="whitespace-nowrap">
-                    {isHi ? 'RCI क्लिनिकल व फाइनेंस 360° सुरक्षा' : 'RCI Clinical & Finance 360° governance'}
+                    {isHi ? 'DPDP 2023 व RCI क्लिनिकल सुरक्षा' : 'DPDP 2023 & RCI Clinical Governance'}
                   </span>
                 </div>
               </div>
 
               <div className="lg:col-span-6">
-                <div className="relative h-full min-h-[340px] lg:min-h-[420px] overflow-hidden rounded-xl border border-[#D6B66D]/40 bg-[#142B46]">
+                <div className="relative h-full min-h-[340px] lg:min-h-[420px] overflow-hidden rounded-2xl border border-[#D6B66D]/45 bg-[#142B46] shadow-xl">
                   <img
                     src="/assets/images/hero_campus_india_1794713007660.jpg"
                     alt="North India senior secondary school campus courtyard"
@@ -854,22 +833,102 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
                     decoding="async"
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#142B46]/95 via-[#142B46]/65 to-transparent p-6 pt-16 text-white">
-                    <p className="text-xs font-medium text-[#D6B66D]">
-                      Active North India Multi-School Sandboxes · {activeSchoolCities}
-                    </p>
-                    <p className="mt-1 font-display text-base font-semibold leading-snug text-[#F3E6D8]">
+                  <div className="absolute top-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2">
+                    <span className="rounded-full bg-[#142B46]/85 backdrop-blur-md border border-white/15 px-3 py-1 text-[11px] font-bold text-[#F3E6D8]">
+                      Active North India Campuses · {activeSchoolCities}
+                    </span>
+                    <span className="rounded-full bg-emerald-600/95 px-3 py-1 text-[11px] font-extrabold text-white shadow-sm">
+                      Session 2026–27 Live
+                    </span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0D1E33] via-[#142B46]/80 to-transparent p-6 pt-20 text-white">
+                    <p className="font-display text-base sm:text-lg font-bold leading-snug text-white">
                       {isHi
-                        ? 'प्रधानाचार्य, शिक्षक, लेखा विभाग, क्लिनिकल विशेषज्ञ, अभिभावक और विद्यार्थियों के लिए एकीकृत पोर्टल।'
-                        : 'Built for Principals, Teachers, Accounts, Clinical Specialists, Students & Parents in one portal.'}
+                        ? 'प्रधानाचार्य, शिक्षक, लेखा विभाग, क्लिनिकल विशेषज्ञ, SSB अभ्यर्थी और विद्यार्थियों के लिए एकीकृत मंच।'
+                        : 'Built for Principals, Teachers, Accounts, RCI Clinicians, Parents, SSB Aspirants & Career Explorers.'}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* 3 Clear Audience Entry Cards — Instant 1-Click Routing */}
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                type="button"
+                onClick={() => navigatePublicPage('pricing')}
+                className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs hover:border-[#142B46] hover:shadow-md transition-all flex flex-col justify-between gap-3"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-[#142B46]">
+                      For Schools &amp; Campuses
+                    </span>
+                    <span className="font-mono text-xs font-extrabold text-[#142B46]">From ₹199/yr</span>
+                  </div>
+                  <h3 className="font-display text-base font-extrabold text-[#142B46]">
+                    School ERP + AI Campus 360°
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Attendance, Finance 360°, Inventory AI, Learning Portal (Classes 6–12), VCIP &amp; Clinical Care.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#142B46] group-hover:translate-x-0.5 transition-transform">
+                  Compare 4 Annual Packages <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigatePublicPage('ssb_academy')}
+                className="group rounded-2xl border border-amber-200/90 bg-gradient-to-br from-[#FFFDF7] to-amber-50/40 p-5 text-left shadow-xs hover:border-[#142B46] hover:shadow-md transition-all flex flex-col justify-between gap-3"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-[#142B46] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-[#D6B66D]">
+                      For Defence Aspirants
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-amber-800">100 Full Sets</span>
+                  </div>
+                  <h3 className="font-display text-base font-extrabold text-[#142B46]">
+                    Rai Plus SSB Academy
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    60-word WAT, 60-situation SRT, TAT, PPDT + Voice Narration &amp; GD Simulator with 15-OLQ profile.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#142B46] group-hover:translate-x-0.5 transition-transform">
+                  Explore SSB Academy &amp; Free Demo <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigatePublicPage('career_intelligence')}
+                className="group rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/60 to-white p-5 text-left shadow-xs hover:border-emerald-700 hover:shadow-md transition-all flex flex-col justify-between gap-3"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white">
+                      100% Free · ₹0 Forever
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-emerald-800">5 Stages</span>
+                  </div>
+                  <h3 className="font-display text-base font-extrabold text-[#0F2A3F]">
+                    Free Career Intelligence
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    IQ/EQ/AQ/CQ profile, 12 work environments, verified Budget Bypass schemes &amp; 12-month roadmap.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 group-hover:translate-x-0.5 transition-transform">
+                  Start Free Career Discovery <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
+            </div>
+
             {/* Full-Width 4-Column Institutional Proof Strip — Midnight Navy with Champagne Gold, Sage Green & Soft Blue Accents */}
-            <div className="mt-12 grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#29486B] rounded-xl border border-[#142B46] bg-[#142B46] text-[#F3E6D8]">
+            <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#29486B] rounded-2xl border border-[#142B46] bg-[#142B46] text-[#F3E6D8] shadow-md">
               <div className="p-5">
                 <p className="font-mono text-2xl font-bold text-[#D6B66D] tabular-nums">
                   {schoolsCount} Tenants
@@ -1642,13 +1701,16 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         {/* ==================== SECTION 5B: PRINCIPAL & PARENT FAQ ACCORDION ==================== */}
         <PublicFaqAccordion lang={lang} />
 
-        {/* ==================== SECTION 5C: TRANSPARENT PLANS & ROI CALCULATOR ==================== */}
+        {/* ==================== SECTION 5C: OFFICIAL 2026–27 PLANS & QUOTE CALCULATOR ==================== */}
         <PublicPricingAndRoiSection
           lang={lang}
           onSelectPlan={(planName) => {
-            setMessage(`Interested in ${planName} plan — please schedule a 15-minute live walkthrough.`);
+            setMessage(`Interested in ${planName} — please schedule a 15-minute live walkthrough.`);
             scrollToSection('contact', 'School Demo & Onboarding');
           }}
+          onOpenFullPricing={() => navigatePublicPage('pricing')}
+          onOpenSsb={() => navigatePublicPage('ssb_academy')}
+          onOpenCareer={() => navigatePublicPage('career_intelligence')}
         />
 
         {/* ==================== SECTION 6: PARENT ADMISSIONS & SCHOOL ONBOARDING ==================== */}
@@ -2088,17 +2150,24 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('career')}
-              className="hover:text-slate-900"
+              onClick={() => navigatePublicPage('ssb_academy')}
+              className="hover:text-slate-900 font-semibold"
             >
-              Career Guidance
+              SSB Academy
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('pricing')}
-              className="hover:text-slate-900"
+              onClick={() => navigatePublicPage('career_intelligence')}
+              className="hover:text-emerald-800 font-semibold text-emerald-700"
             >
-              Plans &amp; ROI
+              Free Career Intelligence
+            </button>
+            <button
+              type="button"
+              onClick={() => navigatePublicPage('pricing')}
+              className="hover:text-slate-900 font-semibold"
+            >
+              2026–27 Pricing
             </button>
             <button
               type="button"

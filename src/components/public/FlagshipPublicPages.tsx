@@ -813,66 +813,99 @@ export const DynamicPricingPage: React.FC<{
         </div>
       </div>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 space-y-12">
-        <div className="text-center max-w-3xl mx-auto space-y-2">
-          <span className="rounded-full bg-[#142B46] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300">
-            RAI PLUS 2026–27 OFFICIAL PRICING ARCHITECTURE
+      {/* Executive Dark Hero Header */}
+      <section className="bg-gradient-to-br from-[#0F2238] via-[#142B46] to-[#1D3E63] text-white">
+        <div className="mx-auto max-w-7xl px-6 py-12 text-center space-y-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 border border-amber-300/40 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-200">
+            <Sparkles className="h-3.5 w-3.5" /> RAI PLUS OFFICIAL 2026–27 PRICING ARCHITECTURE
           </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-[#142B46]">
-            Transparent Pricing for Schools, Standalone Modules & Individual Learners
+          <h1 className="font-display text-3xl sm:text-5xl font-extrabold tracking-tight">
+            Transparent Pricing for Schools, Modules &amp; Individual Learners
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600">{registry.gstDisclaimer}</p>
+          <p className="text-xs sm:text-sm text-slate-200 max-w-2xl mx-auto">{registry.gstDisclaimer}</p>
         </div>
+      </section>
 
+      <section className="mx-auto max-w-7xl px-6 py-12 space-y-12">
         {/* 1. Four School ERP Packages */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-extrabold text-[#142B46]">
-            1. School ERP & Education Intelligence Packages (Annual per Student)
-          </h2>
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#142B46]">
+                1. School ERP &amp; Education Intelligence Packages
+              </h2>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Annual per-student pricing · Includes isolated tenant database, role security &amp; guided onboarding
+              </p>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {registry.schoolPackages
               .filter((p) => p.active)
               .map((pkg) => {
+                const isPopular = pkg.id === 'intelligence';
                 const selected = tierId === pkg.id;
                 return (
                   <div
                     key={pkg.id}
-                    className={`rounded-2xl border p-5 bg-white flex flex-col justify-between gap-4 shadow-xs ${
-                      selected ? 'border-[#142B46] ring-2 ring-[#142B46]/20' : 'border-slate-200'
+                    onClick={() => setTierId(pkg.id)}
+                    className={`relative rounded-2xl border p-6 flex flex-col justify-between gap-4 cursor-pointer transition-all ${
+                      isPopular
+                        ? 'border-[#142B46] bg-[#142B46] text-[#F3E6D8] shadow-xl ring-2 ring-[#D6B66D]/50'
+                        : selected
+                          ? 'border-[#142B46] bg-white ring-2 ring-[#142B46]/20 shadow-md'
+                          : 'border-slate-200 bg-white hover:shadow-md'
                     }`}
                   >
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-base font-extrabold text-[#142B46]">{pkg.name}</h3>
-                        {pkg.highlightBadge && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900">
-                            {pkg.highlightBadge}
-                          </span>
-                        )}
+                    {pkg.highlightBadge && (
+                      <span
+                        className={`absolute -top-3 right-5 rounded-full px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                          isPopular ? 'bg-[#D6B66D] text-[#142B46]' : 'bg-amber-100 text-amber-900'
+                        }`}
+                      >
+                        {pkg.highlightBadge}
+                      </span>
+                    )}
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className={`text-lg font-extrabold ${isPopular ? 'text-white' : 'text-[#142B46]'}`}>
+                          {pkg.name}
+                        </h3>
+                        <p className={`text-xs mt-1 ${isPopular ? 'text-[#C2D6E6]' : 'text-slate-600'}`}>
+                          {pkg.tagline}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-600">{pkg.tagline}</p>
-                      <div className="pt-1">
-                        <span className="text-3xl font-extrabold text-[#142B46]">
-                          ₹{pkg.annualPerStudentInr}
+                      <div className={`border-y py-3.5 ${isPopular ? 'border-[#254264]' : 'border-slate-100'}`}>
+                        <span className="font-mono text-3xl font-extrabold">₹{pkg.annualPerStudentInr}</span>
+                        <span className={`text-xs ${isPopular ? 'text-[#C2D6E6]' : 'text-slate-500'}`}>
+                          {' '}/ student / year + GST
                         </span>
-                        <span className="text-xs text-slate-500"> / student / year + GST</span>
                       </div>
-                      <ul className="space-y-1.5 pt-2 text-xs text-slate-700">
+                      <ul className="space-y-2 text-xs">
                         {pkg.features.map((f) => (
-                          <li key={f} className="flex items-start gap-1.5">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                            <span>{f}</span>
+                          <li key={f} className="flex items-start gap-2">
+                            <CheckCircle2
+                              className={`h-4 w-4 shrink-0 mt-0.5 ${
+                                isPopular ? 'text-[#D6B66D]' : 'text-emerald-600'
+                              }`}
+                            />
+                            <span className={isPopular ? 'text-[#F3E6D8]/95' : 'text-slate-700'}>{f}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                     <button
                       type="button"
-                      onClick={() => setTierId(pkg.id)}
-                      className={`w-full rounded-lg px-3 py-2 text-xs font-bold ${
-                        selected
-                          ? 'bg-[#142B46] text-white'
-                          : 'border border-slate-300 text-slate-800 hover:bg-slate-50'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTierId(pkg.id);
+                      }}
+                      className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold transition-colors ${
+                        isPopular
+                          ? 'bg-[#D6B66D] text-[#142B46] hover:bg-amber-300'
+                          : selected
+                            ? 'bg-[#142B46] text-white'
+                            : 'border border-slate-300 text-slate-800 hover:bg-slate-50'
                       }`}
                     >
                       {selected ? 'Selected in Quote Calculator ✓' : 'Calculate with this Tier'}

@@ -75,6 +75,16 @@ describe('Rai Plus Flagship Products — 30-Criteria Verification Suite', () => 
     // Hostinger Express deployment guard: root server.js must exist with exact capitalization
     assert.equal(fs.existsSync(path.resolve(process.cwd(), 'server.js')), true);
 
+    // Public pricing hygiene guard: old monthly ERP pricing must NEVER appear on public website files
+    for (const rel of [
+      'src/components/PublicMarketingEnhancements.tsx',
+      'src/components/PublicPortal.tsx',
+      'src/components/public/FlagshipPublicPages.tsx',
+    ]) {
+      const content = fs.readFileSync(path.resolve(process.cwd(), rel), 'utf8');
+      assert.equal(/Starter ERP|4,999|8,999|14,999|22,999/.test(content), false, `Old pricing found in ${rel}`);
+    }
+
     const freeDemos = sets.filter((s) => s.isFreeDemo);
     assert.ok(freeDemos.length >= 4);
     assert.equal(new Set(freeDemos.map((s) => s.format)).size, 4);
